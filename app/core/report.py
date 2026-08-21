@@ -467,6 +467,7 @@ def send_json_cases(plan, context, results, sn=None):
         "key": key,
         "sn": sn or "",
         "batch": batch,
+        "station_id": context.get_station_id() if context is not None else "",
         "test_time": test_time,
         "records": records,
     }
@@ -490,6 +491,7 @@ def send_remote_report(plan, context, results, sn=None):
     payload = {
         "plan": plan.name,
         "sn": sn,
+        "station_id": context.get_station_id() if context is not None else "",
         "overall": bool(context.get_overall()),
         "total": len(results),
         "passed": sum(1 for r in results if r.get("passed") is True),

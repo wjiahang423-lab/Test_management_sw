@@ -16,6 +16,8 @@ class SettingsManager:
         self.window_height = 800
         self.speed_factor = 1.0
         self.clear_password = DEFAULT_CLEAR_PASSWORD
+        self.station_id = "01"
+        self.station_name = "机器人测试01工位"
         self.load()
 
     def load(self):
@@ -30,6 +32,8 @@ class SettingsManager:
                 self.window_height = int(data.get("window_height", self.window_height))
                 self.speed_factor = float(data.get("speed_factor", self.speed_factor))
                 self.clear_password = str(data.get("clear_password", self.clear_password))
+                self.station_id = str(data.get("station_id", self.station_id))
+                self.station_name = str(data.get("station_name", self.station_name))
             except Exception:
                 syslog.exception("读取全局设置失败：{}".format(self._file))
 
@@ -41,6 +45,8 @@ class SettingsManager:
                 "window_height": self.window_height,
                 "speed_factor": self.speed_factor,
                 "clear_password": self.clear_password,
+                "station_id": self.station_id,
+                "station_name": self.station_name,
             }
             try:
                 os.makedirs(os.path.dirname(self._file), exist_ok=True)
@@ -61,4 +67,8 @@ class SettingsManager:
                 self.speed_factor = float(kwargs["speed_factor"])
             if "clear_password" in kwargs:
                 self.clear_password = str(kwargs["clear_password"])
+            if "station_id" in kwargs:
+                self.station_id = str(kwargs["station_id"])
+            if "station_name" in kwargs:
+                self.station_name = str(kwargs["station_name"])
             self.save()

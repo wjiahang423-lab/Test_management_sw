@@ -175,6 +175,7 @@ class MainWindow(QMainWindow):
         self.setFont(font)
         if init:
             self.resize(self.settings.window_width, self.settings.window_height)
+        self.execute_page.refresh_station_title()
 
     def _logout(self):
         from PyQt5.QtWidgets import QMessageBox

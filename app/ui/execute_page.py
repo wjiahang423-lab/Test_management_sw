@@ -23,8 +23,9 @@ from app.ui.brand import make_logo_label
 from app.ui.grid_delegate import GridLineDelegate
 from app.ui.pop_dialog import PopDialog
 
-# 顶部标题（产线工位名称），在此修改即可
+# 默认工位设置（可在"系统设置→全局基础设置"中修改工位ID/工位名称）
 STATION_TITLE = "机器人测试01工位"
+STATION_ID = "01"
 
 STATE_COLORS = {
     "待执行": "#95a5a6",
@@ -91,10 +92,11 @@ class ExecutePage:
         for i in range(top.count() - 1, -1, -1):
             if isinstance(top.itemAt(i), QSpacerItem):
                 top.removeItem(top.itemAt(i))
-        self.ui.label_title = QLabel(STATION_TITLE, host)
+        self.ui.label_title = QLabel(host)
         self.ui.label_title.setAlignment(Qt.AlignCenter)
         self.ui.label_title.setStyleSheet(
             "font-size: 28px; font-weight: bold; color: #1F5AA8; letter-spacing: 2px;")
+        self.refresh_station_title()
         top.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         top.addWidget(self.ui.label_title, 1)
         top.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
@@ -192,6 +194,15 @@ class ExecutePage:
         self._update_time_label()
         self._update_sn_display()
         return host
+
+    def refresh_station_title(self):
+        """根据全局设置刷新顶部工位标题，并同步工位ID到运行时上下文（供脚本/上报使用）。"""
+        name = (self.settings.station_name if self.settings else "") or STATION_TITLE
+        station_id = (self.settings.station_id if self.settings else "") or STATION_ID
+        if getattr(self, "ui", None) is not None and hasattr(self.ui, "label_title"):
+            self.ui.label_title.setText(name)
+        if self.ctx is not None:
+            self.ctx.set_station_info(station_id, name)
 
     def _update_time_label(self):
         if self.ui and hasattr(self.ui, "label_time"):

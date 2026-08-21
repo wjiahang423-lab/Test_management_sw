@@ -1,0 +1,3 @@
+# 把开发机上改好的 PLAN 传到树莓派部署目录
+scp "/home/jyzn/Test_management_sw/data/plans/*.plan" \
+    wangbo@10.5.35.49:"/home/wangbo/eol_source/deploy/dist/EOL_CIT/data/plans/"

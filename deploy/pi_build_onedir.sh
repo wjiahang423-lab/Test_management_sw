@@ -95,7 +95,7 @@ Wants=graphical.target
 Type=simple
 User=$LOGIN_USER
 Environment=DISPLAY=:0
-Environment=XDG_RUNTIME_DIR=/run/user/\$(id -u)
+Environment=XDG_RUNTIME_DIR=/run/user/$(id -u)
 WorkingDirectory=$APP_DIR
 ExecStart=$EXE
 Restart=on-failure

@@ -22,6 +22,8 @@ class RuntimeContext:
         self._variables = None
         self.measure_result = None  # loop 会话脚本写入的自描述测量结果
         self.upload_key = ""  # 逐用例 JSON 上报密钥（脚本通过 set_upload_key 写入）
+        self.station_id = ""
+        self.station_name = ""
 
     def set_variables(self, variables):
         self._variables = variables
@@ -173,6 +175,22 @@ class RuntimeContext:
         with self._lock:
             return self.upload_key
 
+    # ---------- 工位信息（ID 上报后端，名称显示在页面） ----------
+    def set_station_info(self, station_id=None, station_name=None):
+        with self._lock:
+            if station_id is not None:
+                self.station_id = str(station_id)
+            if station_name is not None:
+                self.station_name = str(station_name)
+
+    def get_station_id(self):
+        with self._lock:
+            return self.station_id
+
+    def get_station_name(self):
+        with self._lock:
+            return self.station_name
+
     # ---------- logging ----------
     def emit_log(self, msg):
         cb = self.log_callback
@@ -308,6 +326,12 @@ class RuntimeContext:
         def get_upload_key():
             return ctx.get_upload_key()
 
+        def get_station_id():
+            return ctx.get_station_id()
+
+        def get_station_name():
+            return ctx.get_station_name()
+
         return {
             "set_sn_to_Panel": set_sn_to_Panel,
             "get_sn": get_sn,
@@ -339,4 +363,6 @@ class RuntimeContext:
             "reset_measure_result": reset_measure_result,
             "set_upload_key": set_upload_key,
             "get_upload_key": get_upload_key,
+            "get_station_id": get_station_id,
+            "get_station_name": get_station_name,
         }

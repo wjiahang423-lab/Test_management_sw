@@ -41,6 +41,12 @@ class SettingsPage(QWidget):
         self.edit_password.setEchoMode(QLineEdit.Password)
         form.addRow("清零统计密码：", self.edit_password)
 
+        self.edit_station_id = QLineEdit()
+        form.addRow("工位ID：", self.edit_station_id)
+
+        self.edit_station_name = QLineEdit()
+        form.addRow("工位名称：", self.edit_station_name)
+
         layout.addWidget(grp)
 
         btn_row = QHBoxLayout()
@@ -57,6 +63,8 @@ class SettingsPage(QWidget):
         self.spin_height.setValue(self.settings.window_height)
         self.spin_speed.setValue(self.settings.speed_factor)
         self.edit_password.setText(self.settings.clear_password)
+        self.edit_station_id.setText(self.settings.station_id)
+        self.edit_station_name.setText(self.settings.station_name)
 
         self.btn_apply.clicked.connect(self.apply_now)
         self.btn_save.clicked.connect(self.save_now)
@@ -69,6 +77,8 @@ class SettingsPage(QWidget):
                 window_height=self.spin_height.value(),
                 speed_factor=self.spin_speed.value(),
                 clear_password=self.edit_password.text() or "0000",
+                station_id=self.edit_station_id.text().strip() or "01",
+                station_name=self.edit_station_name.text().strip() or "机器人测试01工位",
             )
             if self.apply_callback:
                 self.apply_callback()

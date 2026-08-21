@@ -1,0 +1,36 @@
+# 全功能自动测试 loop 数据
+sessions:
+  - name: "Loop电压_正常"
+    path: "/api/voltage"
+    expected: 12
+    lower: 11
+    upper: 13
+    timeout: 3
+  - name: "Loop电压_超上限(应FAIL)"
+    path: "/api/voltage"
+    expected: 12
+    lower: 11
+    upper: 11.1
+    timeout: 3
+  - name: "Loop电流_正常"
+    path: "/api/current"
+    expected: 1
+    lower: 0.6
+    upper: 1.2
+    timeout: 3
+  - name: "Loop温度_正常"
+    path: "/api/temperature"
+    expected: 25
+    lower: 15
+    upper: 35
+    timeout: 3
+  - name: "Loop电量_范围"
+    path: "/api/battery"
+    expected: 80
+    lower: 50
+    upper: 100
+    timeout: 3
+  - name: "Loop求和_1+2=3"
+    path: "/api/sum?a=1&b=2"
+    expected: 3
+    timeout: 3

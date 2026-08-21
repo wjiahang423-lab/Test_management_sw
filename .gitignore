@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Build artifacts
+build/
+dist/
+
+# Deploy build outputs (PyInstaller onedir / cached pkg)
+deploy/build/
+deploy/dist/
+deploy/EOL_CIT.tar.gz
+deploy/EOL_CIT.spec
+
+# Runtime data (generated on first run)
+data/users.json
+data/settings.json
+data/variables.json
+data/stats.json
+data/stats.ini
+data/logs/
+data/reports/
+data/ext_packages/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

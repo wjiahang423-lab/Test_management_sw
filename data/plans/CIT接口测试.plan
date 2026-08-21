@@ -1,0 +1,482 @@
+{
+  "name": "CIT接口测试",
+  "description": "CIT 交互通讯协议 v1.0 测试：list/describe/run/sysinfo/错误码/批量执行。服务 http://10.5.35.49:8090",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "CIT-20260819",
+    "log_dir": "",
+    "report_dir": "",
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": true,
+    "json_upload_url": "http://10.5.35.49:5000/submit",
+    "json_upload_key": "",
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "5e76dab6fd89",
+      "name": "S00_初始化",
+      "cases": [
+        {
+          "id": "f520552e2125",
+          "name": "动作_CIT连通性(list)",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/cit_api.py",
+            "function": "cit_ping"
+          }
+        },
+        {
+          "id": "59b709e76262",
+          "name": "动作_获取板卡系统信息",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/cit_api.py",
+            "function": "cit_sysinfo"
+          }
+        },
+        {
+          "id": "dce3a246b426",
+          "name": "延时_300ms",
+          "type": "delay",
+          "timeout_ms": 2300,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 300,
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "1114001f6c39",
+      "name": "S01_列表与描述",
+      "cases": [
+        {
+          "id": "48fd7cd4129e",
+          "name": "测量_list_测试项数量",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "count",
+                "type": "int",
+                "bind_var": "",
+                "judge": "",
+                "threshold": "9~11"
+              },
+              {
+                "item": "msg",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "44b0c074e4b8",
+          "name": "测量_describe_ver.bsp",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": true,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_describe",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "ver.bsp",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "id",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "ver.bsp"
+              },
+              {
+                "item": "name",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "BSP"
+              },
+              {
+                "item": "desc",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "版本"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f706a8e27589",
+          "name": "测量_describe_hw.cpu_cores",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_describe",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "hw.cpu_cores",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "name",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "CPU"
+              },
+              {
+                "item": "desc",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "核心"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d6ee6752663d",
+          "name": "测量_describe_node.cit",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_describe",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "node.cit",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "name",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "CIT"
+              }
+            ]
+          }
+        },
+        {
+          "id": "439c7bf2a200",
+          "name": "测量_sysinfo_CPU=8",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_sysinfo",
+            "params": [],
+            "returns": [
+              {
+                "item": "cpu_cores",
+                "type": "int",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "8"
+              },
+              {
+                "item": "mem_total_kb",
+                "type": "int",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "1024"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "c78e11e7d2dd",
+      "name": "S02_运行单项PASS",
+      "cases": [
+        {
+          "id": "65a6eb91d0c6",
+          "name": "测量_run_cpu_cores",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_run",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "hw.cpu_cores",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "result",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "PASS"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ee3edcdbbd14",
+          "name": "测量_run_memory",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_run",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "hw.memory",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "result",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "PASS"
+              }
+            ]
+          }
+        },
+        {
+          "id": "3e1d727cc8be",
+          "name": "测量_run_ver.all",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_run",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "ver.all",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "result",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "PASS"
+              },
+              {
+                "item": "summary",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "版本"
+              }
+            ]
+          }
+        },
+        {
+          "id": "803ca0ef246f",
+          "name": "测量_run_net.eth0",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": true,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_run",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "net.eth0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "result",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "PASS"
+              }
+            ]
+          }
+        },
+        {
+          "id": "64ced0ceca89",
+          "name": "测量_run_node.cit_参数覆盖",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/cit_api.py",
+            "function": "cit_run",
+            "params": [
+              {
+                "name": "id",
+                "type": "str",
+                "value": "node.cit",
+                "source": "value"
+              },
+              {
+                "name": "override",
+                "type": "dict",
+                "value": "{\"node\":\"/my_cit_node\"}",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "result",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "PASS"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "060bce7d7417",
+      "name": "S03_Loop批量",
+      "cases": [
+        {
+          "id": "32cb342fd860",
+          "name": "Loop_run_批量执行(含FAIL/ERROR/覆盖)",
+          "type": "loop",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": true,
+          "description": "",
+          "config": {
+            "yaml_path": "scripts/cit_loop_run.yaml",
+            "script": "scripts/cit_api.py",
+            "function": "cit_loop_run",
+            "parser": "",
+            "session_key": "sessions",
+            "overrides": []
+          }
+        },
+        {
+          "id": "8995a0a1fb57",
+          "name": "Loop_describe_批量描述",
+          "type": "loop",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": true,
+          "description": "",
+          "config": {
+            "yaml_path": "scripts/cit_loop_describe.yaml",
+            "script": "scripts/cit_api.py",
+            "function": "cit_loop_describe",
+            "parser": "",
+            "session_key": "sessions",
+            "overrides": []
+          }
+        }
+      ]
+    }
+  ]
+}

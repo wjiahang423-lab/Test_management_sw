@@ -1,0 +1,12 @@
+# CIT 协议 loop 数据
+sessions:
+  - name: "Loop描述_CPU核心数"
+    id: "hw.cpu_cores"
+  - name: "Loop描述_BSP版本"
+    id: "ver.bsp"
+  - name: "Loop描述_以太网"
+    id: "net.eth0"
+  - name: "Loop描述_cit节点"
+    id: "node.cit"
+  - name: "Loop描述_整机版本"
+    id: "ver.all"

@@ -1,0 +1,2950 @@
+{
+  "name": "全功能自动测试",
+  "description": "覆盖全部用例类型与场景的自动测试计划（动作/延时/Pop/测量/Loop，含错误/超时/自描述）。mock 服务：http://10.5.35.49:5000",
+  "variables": {
+    "pop_a": {
+      "type": "str",
+      "value": true,
+      "description": "弹窗结果A"
+    },
+    "pop_b": {
+      "type": "str",
+      "value": true,
+      "description": "弹窗结果B"
+    },
+    "pop_c": {
+      "type": "str",
+      "value": true,
+      "description": "弹窗结果C"
+    }
+  },
+  "settings": {
+    "storage_mode": "local",
+    "batch": "AUTO-20260818",
+    "log_dir": "",
+    "report_dir": "",
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": true,
+    "json_upload_url": "http://10.5.35.49:5000/submit",
+    "json_upload_key": "",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "b758ef7f26b9",
+      "name": "S00_初始化与密钥",
+      "cases": [
+        {
+          "id": "87b481b920ab",
+          "name": "动作_扫描SN(自动)",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "scan_sn_auto",
+            "params": [
+              {
+                "name": "sn",
+                "type": "str",
+                "value": "AUTOTEST-SN-001",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "06d12144fe29",
+          "name": "动作_获取上报密钥并回填",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "fetch_upload_key",
+            "params": [
+              {
+                "name": "sn",
+                "type": "str",
+                "value": "AUTOTEST-SN-001",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "a3db5367de71",
+          "name": "动作_刷新机器人状态栏",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "report_robot"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e46aa17704a3",
+      "name": "S01_动作类",
+      "cases": [
+        {
+          "id": "c9c00e68ce01",
+          "name": "动作_上电_12V",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/demo_instrument.py",
+            "function": "power_on",
+            "params": [
+              {
+                "name": "voltage",
+                "type": "float",
+                "value": "12",
+                "source": "value"
+              },
+              {
+                "name": "current",
+                "type": "float",
+                "value": "1.5",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "494d5c933660",
+          "name": "动作_上电_5V",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/demo_instrument.py",
+            "function": "power_on",
+            "params": [
+              {
+                "name": "voltage",
+                "type": "float",
+                "value": "5",
+                "source": "value"
+              },
+              {
+                "name": "current",
+                "type": "float",
+                "value": "2",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e2858af44558",
+          "name": "动作_执行步骤1",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/demo_instrument.py",
+            "function": "do_action_step",
+            "params": [
+              {
+                "name": "msg",
+                "type": "str",
+                "value": "第1步-初始化",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "22cf6158791e",
+          "name": "动作_执行步骤2",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/demo_instrument.py",
+            "function": "do_action_step",
+            "params": [
+              {
+                "name": "msg",
+                "type": "str",
+                "value": "第2步-加载",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d9eec82421ba",
+          "name": "动作_Ping服务",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "action_ping"
+          }
+        },
+        {
+          "id": "e23dfd045cc6",
+          "name": "动作_GET_字符串接口",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "action_api_get",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/str",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f9268da942a3",
+          "name": "动作_GET_字典接口",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "action_api_get",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/dict",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4d3b50cd7036",
+          "name": "动作_GET_错误接口",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/auto_api.py",
+            "function": "action_api_get",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/error",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ff07f383af92",
+          "name": "动作_返回字符串",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/demo_instrument.py",
+            "function": "say_hello"
+          }
+        },
+        {
+          "id": "e12f9bd8a36e",
+          "name": "动作_返回列表",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/demo_instrument.py",
+            "function": "list_test_"
+          }
+        }
+      ]
+    },
+    {
+      "id": "3009a2c8a0f2",
+      "name": "S02_延时类",
+      "cases": [
+        {
+          "id": "f6d3b4b24591",
+          "name": "延时_100ms",
+          "type": "delay",
+          "timeout_ms": 2100,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": "短延时"
+          }
+        },
+        {
+          "id": "c020551418b9",
+          "name": "延时_300ms",
+          "type": "delay",
+          "timeout_ms": 2300,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 300,
+            "description": ""
+          }
+        },
+        {
+          "id": "908fe31d0c00",
+          "name": "延时_500ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 500,
+            "description": ""
+          }
+        },
+        {
+          "id": "bfc1311fdd2a",
+          "name": "延时_1000ms",
+          "type": "delay",
+          "timeout_ms": 3000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1000,
+            "description": "等待稳定"
+          }
+        },
+        {
+          "id": "840cdb9dc0be",
+          "name": "延时_1500ms",
+          "type": "delay",
+          "timeout_ms": 3500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1500,
+            "description": ""
+          }
+        },
+        {
+          "id": "dfc5f2528666",
+          "name": "延时_2000ms",
+          "type": "delay",
+          "timeout_ms": 4000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 2000,
+            "description": "较长等待"
+          }
+        }
+      ]
+    },
+    {
+      "id": "e02afa09e696",
+      "name": "S03_人机交互Pop",
+      "cases": [
+        {
+          "id": "e8e991fa1346",
+          "name": "弹窗_确认继续",
+          "type": "pop",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "title": "操作确认",
+            "content": "这是自动测试弹窗，请确认",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "pop_a"
+          }
+        },
+        {
+          "id": "c2b7b1d4e139",
+          "name": "弹窗_确认完成",
+          "type": "pop",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "title": "完成确认",
+            "content": "请确认当前步骤完成",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "pop_b"
+          }
+        },
+        {
+          "id": "6e90825c7507",
+          "name": "弹窗_可取消",
+          "type": "pop",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "title": "选择",
+            "content": "点确认继续，点取消则本用例失败",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "pop_c"
+          }
+        }
+      ]
+    },
+    {
+      "id": "0acc6c574508",
+      "name": "S04_测量_模拟量",
+      "cases": [
+        {
+          "id": "4b69dc44bd5a",
+          "name": "测量_电压_正常范围",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电压",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "11~13"
+              }
+            ]
+          }
+        },
+        {
+          "id": "8be659b916ce",
+          "name": "测量_电压_窄范围(可能FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电压",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "12~12.5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "0f0f28d2f7e5",
+          "name": "测量_电压_大于下限",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电压",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "11"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cf2177c6dbe6",
+          "name": "测量_电压_小于上限",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电压",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "13"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9936ec4ea7b8",
+          "name": "测量_电压_约等于(可能FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电压",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "12"
+              }
+            ]
+          }
+        },
+        {
+          "id": "be9a12854435",
+          "name": "测量_电压_不等于",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电压",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "99"
+              }
+            ]
+          }
+        },
+        {
+          "id": "92eddf226959",
+          "name": "测量_电流_正常",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电流",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/current",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0.6~1.0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f4cdc0c231b8",
+          "name": "测量_电流_大于0.5",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电流",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/current",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "0.5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "842e8f8566bd",
+          "name": "测量_电流_小于1.5",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电流",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/current",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "1.5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6eda7c9a7317",
+          "name": "测量_温度_正常(可能FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "温度",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/temperature",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "19~29"
+              }
+            ]
+          }
+        },
+        {
+          "id": "bedf147ae917",
+          "name": "测量_温度_大于18",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "温度",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/temperature",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "18"
+              }
+            ]
+          }
+        },
+        {
+          "id": "974ef2a7328f",
+          "name": "测量_温度_小于32",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "温度",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/temperature",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "32"
+              }
+            ]
+          }
+        },
+        {
+          "id": "42f2b69a5a15",
+          "name": "测量_电量_正常",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电量",
+            "script": "scripts/auto_api.py",
+            "function": "measure_battery",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "50~100"
+              }
+            ]
+          }
+        },
+        {
+          "id": "91ef5086258d",
+          "name": "测量_电量_大于60",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电量",
+            "script": "scripts/auto_api.py",
+            "function": "measure_battery",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "int",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "60"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "78f529c8b83c",
+      "name": "S05_测量_数据类型",
+      "cases": [
+        {
+          "id": "563933d4edc6",
+          "name": "测量_电量_小于100",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "电量",
+            "script": "scripts/auto_api.py",
+            "function": "measure_battery",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "int",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "100"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c3e5a149afe7",
+          "name": "测量_求和_1+2=3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "3"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b5f8c9798c09",
+          "name": "测量_求和_10+5>10",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "10",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "5",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "10"
+              }
+            ]
+          }
+        },
+        {
+          "id": "88c9c598d42e",
+          "name": "测量_求和_3+4∈[6,8]",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "3",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "4",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "6~8"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d921fa54c1f9",
+          "name": "测量_求和_0+0=0",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "0",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6c29ea123aaa",
+          "name": "测量_求和_-5+8=3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "-5",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "8",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "3"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9305c67b4fa1",
+          "name": "测量_列表_长度≥5",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "长度",
+                "threshold": ">=5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "788d089e1663",
+          "name": "测量_列表_包含0~100元素",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "42"
+              }
+            ]
+          }
+        },
+        {
+          "id": "29adea99e437",
+          "name": "测量_列表_元素2",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "0",
+                "type": "int",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "60"
+              }
+            ]
+          }
+        },
+        {
+          "id": "851ae533ee5e",
+          "name": "测量_列表_元素4",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "4",
+                "type": "int",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "acd7ffd772df",
+          "name": "测量_字典_含键nested",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "nested"
+              }
+            ]
+          }
+        },
+        {
+          "id": "a09381207675",
+          "name": "测量_字典_字段a=1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "nested.a",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e1a5bea303b2",
+          "name": "测量_字典_字段b=x",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "nested.b",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "x"
+              }
+            ]
+          }
+        },
+        {
+          "id": "70367ad53a65",
+          "name": "测量_字典_items长度3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "items",
+                "type": "list",
+                "bind_var": "",
+                "judge": "长度",
+                "threshold": "3"
+              }
+            ]
+          }
+        },
+        {
+          "id": "19fc33200404",
+          "name": "测量_状态串_包含run",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "状态",
+            "script": "scripts/auto_api.py",
+            "function": "measure_status",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "run"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e3413499b710",
+          "name": "测量_状态串_等于running",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "状态",
+            "script": "scripts/auto_api.py",
+            "function": "measure_status",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "running"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4d7e47024169",
+          "name": "测量_布尔_flag",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "布尔",
+            "script": "scripts/auto_api.py",
+            "function": "measure_flag",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "24dc5bba7a3a",
+          "name": "测量_超时场景",
+          "type": "measurement",
+          "timeout_ms": 4000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "超时",
+            "script": "scripts/auto_api.py",
+            "function": "measure_timeout",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "88112c033efc",
+          "name": "测量_接口字段_api/voltage_v1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "11~13"
+              }
+            ]
+          }
+        },
+        {
+          "id": "274b7db30462",
+          "name": "测量_接口字段_api/voltage_v2(可能FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "12.5~13.5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b4d655624229",
+          "name": "测量_接口字段_api/voltage_v3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "11.5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ed96fad7be3b",
+          "name": "测量_接口字段_api/voltage_v4",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "12.6"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cdc1dc76b39e",
+          "name": "测量_接口字段_api/voltage_v5",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/voltage",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b19d940cc4b5",
+          "name": "测量_接口字段_api/current_c1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/current",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0.5~1.3"
+              }
+            ]
+          }
+        },
+        {
+          "id": "3dc670bbaf76",
+          "name": "测量_接口字段_api/current_c2",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/current",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "0.6"
+              }
+            ]
+          }
+        },
+        {
+          "id": "7d2c89257201",
+          "name": "测量_接口字段_api/current_c3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/current",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "1.6"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b66ec9c47490",
+          "name": "测量_接口字段_api/temperature_t1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/temperature",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "18"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d2174b31fd2e",
+          "name": "测量_接口字段_api/temperature_t2",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/temperature",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "34"
+              }
+            ]
+          }
+        },
+        {
+          "id": "24ece22ecd0b",
+          "name": "测量_接口字段_api/battery_b1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/battery",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "50~100"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e05cbca2c574",
+          "name": "测量_接口字段_api/battery_b2",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/battery",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "55"
+              }
+            ]
+          }
+        },
+        {
+          "id": "1dafff34fae0",
+          "name": "测量_接口字段_api/battery_b3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/battery",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "101"
+              }
+            ]
+          }
+        },
+        {
+          "id": "7a65a1e7dc2c",
+          "name": "测量_接口字段_api/range_r1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/range?lo=0&hi=50",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~50"
+              }
+            ]
+          }
+        },
+        {
+          "id": "7fcdceb888e5",
+          "name": "测量_接口字段_api/range_r2",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/range?lo=10&hi=20",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "10~20"
+              }
+            ]
+          }
+        },
+        {
+          "id": "8f4dcbf03a85",
+          "name": "测量_接口字段_api/range_r3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/range?lo=10&hi=20",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "value",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "9"
+              }
+            ]
+          }
+        },
+        {
+          "id": "bbb9de9d2f80",
+          "name": "测量_接口字段_api/sum_s1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/sum?a=10&b=20",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "sum",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "30"
+              }
+            ]
+          }
+        },
+        {
+          "id": "0351bddf1d57",
+          "name": "测量_接口字段_api/sum_s2",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/sum?a=2&b=2",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "sum",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "4"
+              }
+            ]
+          }
+        },
+        {
+          "id": "7cfbf647df1a",
+          "name": "测量_接口字段_api/sum_s3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/sum?a=1.5&b=1.5",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "sum",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "3.0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e43a2014a77a",
+          "name": "测量_接口字段_api/sum_s4",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "接口字段",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/sum?a=-1&b=5",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "sum",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "4"
+              }
+            ]
+          }
+        },
+        {
+          "id": "af79f28ccf4e",
+          "name": "测量_列表_非空",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "长度",
+                "threshold": ">=1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4576cccf3ece",
+          "name": "测量_列表_少于10",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "长度",
+                "threshold": "<10"
+              }
+            ]
+          }
+        },
+        {
+          "id": "7febc515ef68",
+          "name": "测量_列表_恰好5个",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "长度",
+                "threshold": "5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "06437ea01fd3",
+          "name": "测量_列表_含0",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "8b490ba71dd1",
+          "name": "测量_列表_可能不含(FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "99"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ca97ef6b32ad",
+          "name": "测量_列表_结构比较(FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "列表",
+            "script": "scripts/auto_api.py",
+            "function": "measure_list",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "list",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "[1, 2, 3]"
+              }
+            ]
+          }
+        },
+        {
+          "id": "bdd26dacbb58",
+          "name": "测量_字典_含nested键",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "nested"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b9b21f50df20",
+          "name": "测量_字典_含items键",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "items"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6da9409884b6",
+          "name": "测量_字典_a==1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "nested.a",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "683a32c8c311",
+          "name": "测量_字典_b==x",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "nested.b",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "x"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4fb816cc23bb",
+          "name": "测量_字典_items长度3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "items",
+                "type": "str",
+                "bind_var": "",
+                "judge": "长度",
+                "threshold": "3"
+              }
+            ]
+          }
+        },
+        {
+          "id": "3f91e6f7b2e4",
+          "name": "测量_字典_items[0]==1",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "items.0",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c2c8153eee84",
+          "name": "测量_字典_items[2]==3",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "items.2",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "3"
+              }
+            ]
+          }
+        },
+        {
+          "id": "2b6df7dec236",
+          "name": "测量_字典_整字典相等",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "字典",
+            "script": "scripts/auto_api.py",
+            "function": "measure_dict",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "{\"nested\": {\"a\": 1, \"b\": \"x\"}, \"items\": [1, 2, 3]}"
+              }
+            ]
+          }
+        },
+        {
+          "id": "21fb30af77ab",
+          "name": "测量_状态串_含run",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "状态",
+            "script": "scripts/auto_api.py",
+            "function": "measure_status",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "run"
+              }
+            ]
+          }
+        },
+        {
+          "id": "069b41200819",
+          "name": "测量_状态串_含ning",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "状态",
+            "script": "scripts/auto_api.py",
+            "function": "measure_status",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "ning"
+              }
+            ]
+          }
+        },
+        {
+          "id": "336f918df86a",
+          "name": "测量_状态串_==running",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "状态",
+            "script": "scripts/auto_api.py",
+            "function": "measure_status",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "running"
+              }
+            ]
+          }
+        },
+        {
+          "id": "272687389249",
+          "name": "测量_状态串_含STOP(FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "状态",
+            "script": "scripts/auto_api.py",
+            "function": "measure_status",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "包含",
+                "threshold": "STOP"
+              }
+            ]
+          }
+        },
+        {
+          "id": "5bb61b0a5a3a",
+          "name": "测量_布尔_==True",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "布尔",
+            "script": "scripts/auto_api.py",
+            "function": "measure_flag",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d3ed5af3af10",
+          "name": "测量_布尔_==False(FAIL)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "布尔",
+            "script": "scripts/auto_api.py",
+            "function": "measure_flag",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "False"
+              }
+            ]
+          }
+        },
+        {
+          "id": "fd1edceeab06",
+          "name": "测量_求和_绑定变量",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "3",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "last_sum",
+                "judge": "等于",
+                "threshold": "5"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f8c81a2b51b0",
+          "name": "测量_读取全局变量",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "求和",
+            "script": "scripts/auto_api.py",
+            "function": "measure_sum",
+            "params": [
+              {
+                "name": "a",
+                "type": "float",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f93dd2a3e7d3",
+          "name": "测量_延时慢接口(1s)",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "慢接口",
+            "script": "scripts/auto_api.py",
+            "function": "measure_json_value",
+            "params": [
+              {
+                "name": "path",
+                "type": "str",
+                "value": "/api/slow?t=1",
+                "source": "value"
+              },
+              {
+                "name": "field",
+                "type": "str",
+                "value": "slept",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1.0"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "5ea7cc7fba60",
+      "name": "S06_Loop",
+      "cases": [
+        {
+          "id": "b56f9a0714ea",
+          "name": "Loop_接口指令(list/describe/run)",
+          "type": "loop",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "dict expected 逐键判定 + 错误场景",
+          "config": {
+            "yaml_path": "scripts/auto_loop_cmd.yaml",
+            "script": "scripts/auto_api.py",
+            "function": "loop_cmd",
+            "parser": "",
+            "session_key": "sessions",
+            "overrides": []
+          }
+        },
+        {
+          "id": "3ee4a8aee19c",
+          "name": "Loop_数值区间(电压/电流/温度/电量/求和)",
+          "type": "loop",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标量 expected/upper/lower 自描述",
+          "config": {
+            "yaml_path": "scripts/auto_loop_value.yaml",
+            "script": "scripts/auto_api.py",
+            "function": "loop_value",
+            "parser": "",
+            "session_key": "sessions",
+            "overrides": []
+          }
+        },
+        {
+          "id": "4dfe50efa2ab",
+          "name": "Loop_自描述测量(内置API全字段)",
+          "type": "loop",
+          "timeout_ms": 30000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "set_measure_result 全字段自描述",
+          "config": {
+            "yaml_path": "scripts/auto_loop_self.yaml",
+            "script": "scripts/auto_api.py",
+            "function": "loop_self",
+            "parser": "",
+            "session_key": "sessions",
+            "overrides": []
+          }
+        },
+        {
+          "id": "61c340d8ee9d",
+          "name": "Loop_边界与超时(404/500/慢响应/超时)",
+          "type": "loop",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "边界/异常场景",
+          "config": {
+            "yaml_path": "scripts/auto_loop_edge.yaml",
+            "script": "scripts/auto_api.py",
+            "function": "loop_edge",
+            "parser": "",
+            "session_key": "sessions",
+            "overrides": []
+          }
+        }
+      ]
+    }
+  ]
+}

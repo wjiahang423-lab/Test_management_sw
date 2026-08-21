@@ -1,0 +1,74 @@
+# demo_items.yaml — Loop 演示测试数据
+# 每个条目代表一次循环展开后的测试项
+#
+# 字段说明：
+#   name   : 测试项名称（将显示在测试报告中）
+#   value  : 模拟测量值
+#   unit   : 单位
+#   min_val: 允许最小值（低于此值则 FAIL）
+#   max_val: 允许最大值（高于此值则 FAIL）
+
+items:
+  - name: "温度_正常值"
+    
+    unit: "°C"
+    min_val: 20.0
+    max_val: 30.0
+
+  - name: "温度_偏低（应 FAIL）"
+    
+    unit: "°C"
+    min_val: 20.0
+    max_val: 30.0
+
+  - name: "温度_偏高（应 FAIL）"
+    
+    unit: "°C"
+    min_val: 20.0
+    max_val: 30.0
+
+  - name: "温度_边界值"
+   
+    unit: "°C"
+    min_val: 20.0
+    max_val: 30.0
+
+  - name: "电压_正常值"
+   
+    unit: "V"
+    min_val: 11.0
+    max_val: 14.0
+
+  - name: "电压_过低（应 FAIL）"
+    
+    unit: "V"
+    min_val: 11.0
+    max_val: 14.0
+
+#  字段 cmd :字符串类型 | 必填项  id：字符串类型 （discribe/run是必填）| param：字典类型 （非必填）  
+
+# 相应 { "code": 0, "msg": "ok", "data": { ... } }
+-list_describe_request:
+# --------------------------CASE——01--------------------------------------————#
+  - name: "板卡硬件检查"
+    url: "192.168.88.10:8090/api/request"
+    Content-Type: "application/json"
+    method: "post"
+    unit: "cmd"
+    # cmd  方式 里面分"list | descrine | run指令"
+    param: {"cmd": "list"} # 请求参数{ 字典类型参数 }
+    timeout: 3             # 请求超时（秒），超时即 FAIL（可配置） 
+    
+    expected: {"code": 0, "msg": "ok"} # { 字典类型参数 }
+# --------------------------CASE——02--------------------------------------————#
+  - name: "BSP固件版本检查"
+    url: "192.168.88.10:8090/api/request"
+    Content-Type: "application/json"
+    method: "post"
+    unit: "cmd"
+    # cmd  方式 里面分"list | descrine | run指令"
+    param: { "cmd": "describe", "id": "ver.bsp" } # 请求参数{ 字典类型参数 }
+    timeout: 3             # 请求超时（秒），超时即 FAIL（可配置）
+    
+    expected: {"code": 0, "msg": "ok"} # { 字典类型参数 }
+

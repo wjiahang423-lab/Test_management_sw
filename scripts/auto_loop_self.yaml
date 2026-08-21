@@ -1,0 +1,33 @@
+# 全功能自动测试 loop 数据
+sessions:
+  - name: "自描述_固定值匹配"
+    value: 25
+    expected: 25
+    unit: "°C"
+    msg: "温度25度"
+  - name: "自描述_区间内"
+    value: 12.2
+    expected: 12
+    lower: 11
+    upper: 13
+    unit: "V"
+  - name: "自描述_超上限(应FAIL)"
+    value: 14.5
+    expected: 12
+    lower: 11
+    upper: 13
+    unit: "V"
+  - name: "自描述_低于下限(应FAIL)"
+    value: 10.2
+    expected: 12
+    lower: 11
+    upper: 13
+    unit: "V"
+  - name: "自描述_字符串匹配"
+    value: "ok"
+    expected: "ok"
+    unit: "cmd"
+  - name: "自描述_字符串不匹配(应FAIL)"
+    value: "ng"
+    expected: "ok"
+    unit: "cmd"

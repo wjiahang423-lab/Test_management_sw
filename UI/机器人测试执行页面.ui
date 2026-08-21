@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EOLRobotTestPage</class>
+ <widget class="QWidget" name="EOLRobotTestPage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1600</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EOL机器人终检站</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget { background-color: #ffffff; color: #2b2b2b; font-family: "Microsoft YaHei"; font-size: 13px; }
+QLabel { background: transparent; }
+QGroupBox { font-size: 14px; font-weight: bold; color: #2b2b2b; border: 1px solid #c8c8c8; border-radius: 6px; margin-top: 10px; padding-top: 8px; }
+QGroupBox::title { subcontrol-origin: margin; left: 12px; padding: 0 6px; color: #2b2b2b; }
+QTableWidget { background-color: #ffffff; alternate-background-color: #f4f6f8; gridline-color: #d8dce0; border: 1px solid #c8c8c8; border-radius: 6px; }
+QTableWidget::item { padding: 6px; }
+QHeaderView::section { background-color: #eef1f4; color: #2b2b2b; border: none; border-right: 1px solid #d8dce0; border-bottom: 1px solid #d8dce0; padding: 8px; font-weight: bold; }
+QListWidget { background-color: #f7f9fb; border: 1px solid #c8c8c8; border-radius: 6px; }
+QListWidget::item { padding: 14px 10px; color: #444444; font-size: 14px; }
+QListWidget::item:selected { background-color: #1e88e5; color: #ffffff; }
+QListWidget::item:hover { background-color: #e3f0fd; }
+QTextEdit { background-color: #fbfbfb; border: 1px solid #c8c8c8; border-radius: 6px; font-family: "Microsoft YaHei"; font-size: 13px; }
+QPushButton { background-color: #eef1f4; color: #2b2b2b; border: 1px solid #b8bcc2; border-radius: 6px; padding: 10px 22px; font-size: 14px; }
+QPushButton:hover { background-color: #e0e4e9; }
+QPushButton#startButton { background-color: #27ae60; color: #ffffff; font-weight: bold; font-size: 16px; padding: 14px 34px; }
+QPushButton#startButton:hover { background-color: #1e9c53; }
+QPushButton#emergencyButton { background-color: #e74c3c; color: #ffffff; font-weight: bold; }
+QPushButton#emergencyButton:hover { background-color: #d03a2a; }
+QPushButton#alarmButton { background-color: #f39c12; color: #ffffff; font-weight: bold; }
+QPushButton#alarmButton:hover { background-color: #e08d0b; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="rootLayout">
+   <item>
+    <layout class="QHBoxLayout" name="headerLayout">
+     <item>
+      <widget class="QLabel" name="titleLabel">
+       <property name="text">
+        <string>&lt;h1 style="color:#1a5276;"&gt;EOL机器人终检站&lt;/h1&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="modelLabel">
+       <property name="text">
+        <string>&lt;b style="color:#2b2b2b; font-size:15px;"&gt;RBT-EOL-003&lt;/b&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="headerSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="modeLabel">
+       <property name="text">
+        <string>&lt;b style="color:#2b2b2b;"&gt;自动模式&lt;/b&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="runStatusLabel">
+       <property name="styleSheet">
+        <string notr="true">color: #27ae60; font-weight: bold; font-size: 14px;</string>
+       </property>
+       <property name="text">
+        <string>RUNNING</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="timeLabel">
+       <property name="styleSheet">
+        <string notr="true">color: #444444; font-size: 13px;</string>
+       </property>
+       <property name="text">
+        <string>2026-03-04 14:30:00</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="mainLayout">
+     <item>
+      <widget class="QListWidget" name="navList">
+       <property name="fixedWidth">
+        <number>140</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>首页</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>测试</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>参数</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>报警</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>日志</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>设置</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="contentLayout">
+       <item>
+        <layout class="QHBoxLayout" name="infoLayout">
+         <item>
+          <widget class="QLabel" name="batchLabel">
+           <property name="styleSheet">
+            <string notr="true">color: #1a5276; font-size: 14px; font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>当前批次：B260304002</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="snLabel">
+           <property name="styleSheet">
+            <string notr="true">color: #1a5276; font-size: 14px; font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>工件条码：SN-0018</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="cycleLabel">
+           <property name="styleSheet">
+            <string notr="true">color: #1a5276; font-size: 14px; font-weight: bold;</string>
+           </property>
+           <property name="text">
+            <string>测试节拍：45 s</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="centerLayout">
+         <item>
+          <widget class="QTableWidget" name="testTable">
+           <property name="rowCount">
+            <number>6</number>
+           </property>
+           <property name="columnCount">
+            <number>4</number>
+           </property>
+           <attribute name="horizontalHeaderVisible">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="horizontalHeaderStretchLastSection">
+            <bool>true</bool>
+           </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string>序号</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>项目</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>状态</string>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>结果</string>
+            </property>
+           </column>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="robotStatusGroup">
+           <property name="title">
+            <string>测试监控 · 机器人状态</string>
+           </property>
+           <layout class="QVBoxLayout" name="robotStatusLayout">
+            <item>
+             <layout class="QGridLayout" name="statusGrid">
+              <item row="0" column="0">
+               <widget class="QLabel" name="servoLabel">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 14px; color: #555555;</string>
+                </property>
+                <property name="text">
+                 <string>伺服</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QLabel" name="servoValue">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 16px; font-weight: bold; color: #27ae60;</string>
+                </property>
+                <property name="text">
+                 <string>使能</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QLabel" name="tempLabel">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 14px; color: #555555;</string>
+                </property>
+                <property name="text">
+                 <string>温度</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QLabel" name="tempValue">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 16px; font-weight: bold; color: #2b2b2b;</string>
+                </property>
+                <property name="text">
+                 <string>38 ℃</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QLabel" name="currentLabel">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 14px; color: #555555;</string>
+                </property>
+                <property name="text">
+                 <string>电流</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QLabel" name="currentValue">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 16px; font-weight: bold; color: #2b2b2b;</string>
+                </property>
+                <property name="text">
+                 <string>2.8 A</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="pressureLabel">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 14px; color: #555555;</string>
+                </property>
+                <property name="text">
+                 <string>压力</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLabel" name="pressureValue">
+                <property name="styleSheet">
+                 <string notr="true">font-size: 16px; font-weight: bold; color: #2b2b2b;</string>
+                </property>
+                <property name="text">
+                 <string>65 N</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="statusSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="startButton">
+              <property name="text">
+               <string>开 始</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="bottomLayout">
+         <item>
+          <widget class="QTextEdit" name="logText">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="buttonLayout">
+           <item>
+            <widget class="QPushButton" name="alarmButton">
+             <property name="text">
+              <string>报警</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="resetButton">
+             <property name="text">
+              <string>复位</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="emergencyButton">
+             <property name="text">
+              <string>急停</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="exportButton">
+             <property name="text">
+              <string>导出报告</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

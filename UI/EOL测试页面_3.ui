@@ -1,0 +1,533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1700</width>
+    <height>920</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EOL机器人终检站</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QMainWindow{background-color:#22262c;color:#ffffff;}
+QPushButton{border-radius:4px;border:1px solid #444852;font-size:14pt;padding:6px;}
+QPushButton#btnNav{background:#3a3f48;color:#ffffff;min-height:60px;font-size:14pt;}
+QPushButton#btnNav:checked{background:#2278dd;color:#ffffff;}
+QTableWidget{background:#333840;color:#ffffff;gridline-color:#444852;border:1px solid #2278dd;}
+QTableWidget::item{background-color:#333840;}
+QHeaderView::section{background:#2278dd;color:#ffffff;font-size:14pt;padding:8px;border:none;}
+QGroupBox{border:1px solid #505660;color:#ffffff;font-size:15pt;}
+QLabel{font-size:14pt;color:#ffffff;}
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayoutMain">
+    <property name="spacing">
+     <number>8</number>
+    </property>
+    <property name="contentsMargins">
+     <!-- <margin>8</margin> -->
+    </property>
+    <item>
+     <!-- ========== 顶部标题栏 ========== -->
+     <widget class="QWidget" name="widgetTopBar">
+      <property name="minimumHeight">
+       <number>70</number>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayoutTop">
+       <item>
+        <widget class="QLabel" name="labelTitle">
+         <property name="text">
+          <string>EOL机器人终检站</string>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>75</weight>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer/>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelDeviceId">
+         <property name="text">
+          <string>RBT‑EOL‑003</string>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>18</pointsize>
+           <weight>75</weight>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer/>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelMode">
+         <property name="text">
+          <string>自动模式 &lt;RUNNING&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer/>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelTime">
+         <property name="text">
+          <string>2026‑03‑04 14:30:00</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <!-- ========== 主体布局：左导航｜中间表格｜右侧监控 ========== -->
+     <widget class="QWidget" name="widgetBody">
+      <layout class="QHBoxLayout" name="horizontalLayoutBody">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       <item>
+        <!-- 左侧导航按钮组 -->
+        <widget class="QWidget" name="widgetLeftNav">
+         <property name="maximumWidth">
+          <number>120</number>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayoutNav">
+          <item>
+           <widget class="QPushButton" name="btnHome">
+            <property name="objectName">
+             <string>btnNav</string>
+            </property>
+            <property name="text">
+             <string>首页</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnTest">
+            <property name="objectName">
+             <string>btnNav</string>
+            </property>
+            <property name="text">
+             <string>测试</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnParam">
+            <property name="objectName">
+             <string>btnNav</string>
+            </property>
+            <property name="text">
+             <string>参数</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnAlarm">
+            <property name="objectName">
+             <string>btnNav</string>
+            </property>
+            <property name="text">
+             <string>报警</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnLog">
+            <property name="objectName">
+             <string>btnNav</string>
+            </property>
+            <property name="text">
+             <string>日志</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnSetting">
+            <property name="objectName">
+             <string>btnNav</string>
+            </property>
+            <property name="text">
+             <string>设置</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacerNav"/>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <!-- 中间区域：批次信息 + 测试表格 -->
+        <widget class="QWidget" name="widgetCenter">
+         <layout class="QVBoxLayout" name="verticalLayoutCenter">
+          <item>
+           <!-- 批次、条码、节拍行 -->
+           <widget class="QWidget" name="widgetBatchInfo">
+            <layout class="QHBoxLayout" name="horizontalLayoutBatch">
+             <item>
+              <widget class="QLabel" name="labelBatch">
+               <property name="text">
+                <string>当前批次: B260304002</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer/>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelSN">
+               <property name="text">
+                <string>工件条码: SN‑0018</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer/>
+             </item>
+             <item>
+              <widget class="QLabel" name="labelCycle">
+               <property name="text">
+                <string>测试节拍: 45 s</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <!-- 测试项目表格 -->
+           <widget class="QTableWidget" name="tableTestItem">
+            <property name="minimumHeight">
+             <number>480</number>
+            </property>
+            <property name="columnCount">
+             <number>4</number>
+            </property>
+            <property name="rowCount">
+             <number>7</number>
+            </property>
+            <column>
+             <property name="text">
+              <string>序号</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>项目</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>状态</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>结果</string>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <!-- 右侧：测试监控面板 -->
+        <widget class="QWidget" name="widgetRight">
+         <property name="maximumWidth">
+          <number>260</number>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayoutRight">
+          <item>
+           <widget class="QGroupBox" name="groupMonitor">
+            <property name="title">
+             <string>测试监控</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayoutGroup">
+             <item>
+              <widget class="QGroupBox" name="groupRobotState">
+               <property name="title">
+                <string>机器人状态</string>
+               </property>
+               <layout class="QFormLayout" name="formLayoutRobot">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lblServo">
+                  <property name="text">
+                   <string>伺服</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLabel" name="lblServoVal">
+                  <property name="text">
+                   <string>使能</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="lblTemp">
+                  <property name="text">
+                   <string>温度</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLabel" name="lblTempVal">
+                  <property name="text">
+                   <string>38℃</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="lblCurrent">
+                  <property name="text">
+                   <string>电流</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLabel" name="lblCurrentVal">
+                  <property name="text">
+                   <string>2.8 A</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="lblPressure">
+                  <property name="text">
+                   <string>压力</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLabel" name="lblPressureVal">
+                  <property name="text">
+                   <string>65 N</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer/>
+             </item>
+             <!-- 关键：QWidget容器固定居中，隔绝layout拉伸 -->
+             <item>
+              <widget class="QWidget" name="containerBtnStart">
+               <property name="minimumSize">
+                <size>
+                 <width>140</width>
+                 <height>140</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>140</width>
+                 <height>140</height>
+                </size>
+               </property>
+               <layout class="QHBoxLayout">
+                <item>
+                 <widget class="QPushButton" name="btnStart">
+                  <property name="fixedSize">
+                   <size>
+                    <width>140</width>
+                    <height>140</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">
+QPushButton#btnStart{
+    background-color:#dd2222;
+    color:#ffffff;
+    font-size:24pt;
+    font-weight:bold;
+    border:none;
+    border‑radius:70px;
+}
+QPushButton#btnStart:hover{background:#ff3333;}
+QPushButton#btnStart:pressed{background:#aa1111;}
+                   </string>
+                  </property>
+                  <property name="text">
+                   <string>开始</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <!-- ========== 底部：报警栏 + 功能按钮 ========== -->
+     <widget class="QWidget" name="widgetBottom">
+      <property name="minimumHeight">
+       <number>90</number>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayoutBottom">
+       <property name="spacing">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="labelError">
+         <property name="minimumSize">
+          <size>
+           <width>180</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background:#bb2222;color:white;padding:8px;</string>
+         </property>
+         <property name="text">
+          <string>ERROR  夹具压力异常</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelWarn">
+         <property name="minimumSize">
+          <size>
+           <width>180</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background:#997700;color:white;padding:8px;</string>
+         </property>
+         <property name="text">
+          <string>WARNING  温度接近阈值</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelInfo">
+         <property name="minimumSize">
+          <size>
+           <width>180</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background:#334455;color:white;padding:8px;</string>
+         </property>
+         <property name="text">
+          <string>INFO  测试完成</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnReset">
+         <property name="minimumSize">
+          <size>
+           <width>140</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>复位</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnEStop">
+         <property name="minimumSize">
+          <size>
+           <width>140</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background:#bb2222;</string>
+         </property>
+         <property name="text">
+          <string>急停</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnExportReport">
+         <property name="minimumSize">
+          <size>
+           <width>180</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background:#2278dd;</string>
+         </property>
+         <property name="text">
+          <string>导出报告</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1700</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

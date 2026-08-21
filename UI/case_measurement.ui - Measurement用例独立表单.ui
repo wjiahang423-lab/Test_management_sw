@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CaseMeasurementForm</class>
+ <widget class="QWidget" name="CaseMeasurementForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>700</width>
+    <height>650</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Measurement 用例配置</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 13px;
+}
+QLabel#hintLabel {
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 6px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+QGroupBox {
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px;
+    font-weight: bold;
+}
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    padding: 6px 10px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background-color: white;
+}
+QLineEdit:focus, QComboBox:focus {
+    border: 1px solid #2c5aa0;
+}
+QPushButton {
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    background-color: #2c5aa0;
+    color: white;
+}
+QPushButton:hover { background-color: #3a6bb8; }
+QPushButton#btn_loadFunc { background-color: #27ae60; }
+QPushButton#btn_loadFunc:hover { background-color: #2ecc71; }
+QTableWidget {
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    gridline-color: #e1e4e8;
+}
+QHeaderView::section {
+    background-color: #f8f9fa;
+    padding: 6px;
+    border: none;
+    border-bottom: 1px solid #e1e4e8;
+    font-weight: bold;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="hintLabel">
+     <property name="text">
+      <string>Measurement 类型说明：执行脚本函数并测量结果。选择脚本后自动列出所有函数，选中后自动加载输入参数和返回值，类型自动识别为 int/str/float/list/dict，返回值可绑定本地变量。</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <!-- 基础配置 -->
+   <item>
+    <layout class="QFormLayout" name="baseFormLayout">
+     <property name="horizontalSpacing">
+      <number>10</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>10</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_display">
+       <property name="text">
+        <string>显示内容：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEdit_display">
+       <property name="placeholderText">
+        <string>执行页面显示的内容，如：读取电压值 / 检测CAN信号</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_script">
+       <property name="text">
+        <string>脚本路径：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <layout class="QHBoxLayout" name="scriptLayout">
+       <property name="spacing">
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_script">
+         <property name="placeholderText">
+          <string>选择 Python 脚本文件 (.py)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_browse">
+         <property name="text">
+          <string>浏览...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_loadFunc">
+         <property name="text">
+          <string>加载函数列表</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_func">
+       <property name="text">
+        <string>函数名称：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QComboBox" name="comboBox_func">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>选择函数后自动解析参数和返回值</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <!-- 输入参数表格 -->
+   <item>
+    <widget class="QGroupBox" name="groupBox_params">
+     <property name="title">
+      <string>输入参数（自动解析，支持 int / str / float / list / dict）</string>
+     </property>
+     <layout class="QVBoxLayout" name="paramsLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>8</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <item>
+       <widget class="QTableWidget" name="tableWidget_params">
+        <property name="columnCount">
+         <number>4</number>
+        </property>
+        <property name="rowCount">
+         <number>0</number>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <column>
+         <property name="text">
+          <string>参数名</string>
+         </property>
+         <property name="width">
+          <number>120</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>类型</string>
+         </property>
+         <property name="width">
+          <number>80</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>值 / 绑定变量</string>
+         </property>
+         <property name="width">
+          <number>200</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>来源</string>
+         </property>
+         <property name="width">
+          <number>100</number>
+         </property>
+        </column>
+       </widget>
+      </item>
+       <item>
+        <layout class="QHBoxLayout" name="paramsBtnLayout">
+         <item>
+          <widget class="QLabel" name="label_paramsHint">
+           <property name="text">
+            <string>来源列可选：直接输入值 / 从全局变量读取；也可手动增删参数行</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: #95a5a6; font-size: 12px;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="hSpacer_params">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_addParam">
+           <property name="text">
+            <string>增加参数</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_delParam">
+           <property name="text">
+            <string>删除参数</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- 返回值表格 -->
+   <item>
+    <widget class="QGroupBox" name="groupBox_returns">
+     <property name="title">
+      <string>返回值（自动解析，可绑定到全局变量，可设置判定阈值）</string>
+     </property>
+     <layout class="QVBoxLayout" name="returnsLayout">
+      <property name="leftMargin">
+       <number>8</number>
+      </property>
+      <property name="topMargin">
+       <number>8</number>
+      </property>
+      <property name="rightMargin">
+       <number>8</number>
+      </property>
+      <property name="bottomMargin">
+       <number>8</number>
+      </property>
+      <item>
+       <widget class="QTableWidget" name="tableWidget_returns">
+        <property name="columnCount">
+         <number>5</number>
+        </property>
+        <property name="rowCount">
+         <number>0</number>
+        </property>
+        <property name="alternatingRowColors">
+         <bool>true</bool>
+        </property>
+        <column>
+         <property name="text">
+          <string>返回项</string>
+         </property>
+         <property name="width">
+          <number>100</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>类型</string>
+         </property>
+         <property name="width">
+          <number>70</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>绑定变量</string>
+         </property>
+         <property name="width">
+          <number>120</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>判定方式</string>
+         </property>
+         <property name="width">
+          <number>100</number>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>阈值/范围</string>
+         </property>
+         <property name="width">
+          <number>120</number>
+         </property>
+        </column>
+       </widget>
+      </item>
+       <item>
+        <layout class="QHBoxLayout" name="returnsBtnLayout">
+         <item>
+          <widget class="QLabel" name="label_returnsHint">
+           <property name="text">
+            <string>判定方式可选：等于 / 不等于 / 大于 / 小于 / 范围内 / 包含；阈值留空则不做判定，仅记录值。</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: #95a5a6; font-size: 12px;</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="hSpacer_returns">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_addReturn">
+           <property name="text">
+            <string>增加返回项</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_delReturn">
+           <property name="text">
+            <string>删除返回项</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

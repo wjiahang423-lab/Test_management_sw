@@ -1,0 +1,26 @@
+# 全功能自动测试 loop 数据
+sessions:
+  - name: "边界_正常接口"
+    path: "/api/str"
+    timeout: 3
+  - name: "边界_慢响应1s"
+    path: "/api/slow?t=1"
+    timeout: 3
+  - name: "边界_慢响应2s"
+    path: "/api/slow?t=2"
+    timeout: 5
+  - name: "边界_404"
+    path: "/api/missing"
+    timeout: 3
+  - name: "边界_500错误"
+    path: "/api/error"
+    timeout: 3
+  - name: "边界_超时(应FAIL)"
+    path: "/api/timeout"
+    timeout: 2
+  - name: "边界_求和接口"
+    path: "/api/sum?a=1&b=2"
+    timeout: 3
+  - name: "边界_字典接口"
+    path: "/api/dict"
+    timeout: 3

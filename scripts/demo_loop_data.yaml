@@ -1,0 +1,16 @@
+sessions:
+  - name: "CAN信号点1"
+    input:
+      signal_ok: true
+    expected:
+      result: pass
+  - name: "CAN信号点2"
+    input:
+      signal_ok: false
+    expected:
+      result: fail
+  - name: "CAN信号点3"
+    input:
+      signal_ok: true
+    expected:
+      result: pass

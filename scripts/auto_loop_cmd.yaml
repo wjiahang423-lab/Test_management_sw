@@ -1,0 +1,19 @@
+# 全功能自动测试 loop 数据
+sessions:
+  - name: "接口_list指令"
+    cmd: "list"
+    timeout: 3
+    expected: {"code": 0, "msg": "ok"}
+  - name: "接口_describe_ver.bsp"
+    cmd: "describe"
+    id: "ver.bsp"
+    timeout: 3
+    expected: {"code": 0, "msg": "ok"}
+  - name: "接口_run指令"
+    cmd: "run"
+    timeout: 5
+    expected: {"code": 0, "msg": "ok"}
+  - name: "接口_未知指令"
+    cmd: "frobnicate"
+    timeout: 3
+    expected: {"code": 0, "msg": "ok"}

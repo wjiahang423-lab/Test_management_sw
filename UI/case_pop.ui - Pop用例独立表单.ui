@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CasePopForm</class>
+ <widget class="QWidget" name="CasePopForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>450</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Pop 用例配置</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 13px;
+}
+QLabel#hintLabel {
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 6px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+QLineEdit, QComboBox, QTextEdit {
+    padding: 6px 10px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background-color: white;
+}
+QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
+    border: 1px solid #2c5aa0;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   <property name="spacing">
+    <number>12</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="hintLabel">
+     <property name="text">
+      <string>Pop 类型说明：弹出人机交互页面，可输入显示内容（长度不限制），带 2 个按钮，返回值 True 或 False。</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="horizontalSpacing">
+      <number>10</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>12</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_title">
+       <property name="text">
+        <string>弹窗标题：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="lineEdit_title">
+       <property name="placeholderText">
+        <string>弹窗标题，如：操作确认 / 请检查设备</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_content">
+       <property name="text">
+        <string>显示内容：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QTextEdit" name="textEdit_content">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>120</height>
+        </size>
+       </property>
+       <property name="placeholderText">
+        <string>输入弹窗中显示给操作员的提示内容，长度不限...
+支持多行文本，可包含操作指引、注意事项等。</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_btnTrue">
+       <property name="text">
+        <string>按钮1文本(返回True)：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="lineEdit_btnTrue">
+       <property name="text">
+        <string>确认</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_btnFalse">
+       <property name="text">
+        <string>按钮2文本(返回False)：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="lineEdit_btnFalse">
+       <property name="text">
+        <string>取消</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="label_resultVar">
+       <property name="text">
+        <string>结果存入变量：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QComboBox" name="comboBox_resultVar">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>选择全局变量存储返回值（可选，留空则不存储）</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_modal">
+       <property name="text">
+        <string>是否模态阻塞：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QComboBox" name="comboBox_modal">
+       <item>
+        <property name="text">
+         <string>是（阻塞等待操作员点击）</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>否（非模态，超时自动继续）</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

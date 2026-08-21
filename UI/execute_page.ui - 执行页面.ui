@@ -1,0 +1,880 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ExecutePage</class>
+ <widget class="QWidget" name="ExecutePage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>测试执行页面</string>
+  </property>
+   <property name="styleSheet">
+   <string notr="true">QWidget {
+    background-color: #f5f7fa;
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 15px;
+    color: #333;
+}
+QFrame#topBar {
+    background-color: white;
+    border-bottom: 1px solid #e1e4e8;
+}
+QFrame#statCard {
+    background-color: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+}
+QFrame#logFrame {
+    background-color: #1e1e1e;
+    border-radius: 4px;
+}
+QPushButton {
+    border: none;
+    border-radius: 6px;
+    padding: 12px 22px;
+    font-size: 15px;
+    min-height: 44px;
+}
+QPushButton:focus { outline: none; }
+QPushButton#startBtn {
+    background-color: #27ae60;
+    color: white;
+    font-weight: bold;
+}
+QPushButton#startBtn:hover { background-color: #2ecc71; }
+QPushButton#startBtn:disabled { background-color: #95a5a6; }
+QPushButton#pauseBtn {
+    background-color: #f39c12;
+    color: white;
+    font-weight: bold;
+}
+QPushButton#pauseBtn:hover { background-color: #f5b041; }
+QPushButton#stopBtn {
+    background-color: #e74c3c;
+    color: white;
+    font-weight: bold;
+}
+QPushButton#stopBtn:hover { background-color: #ec7063; }
+QPushButton#openPlanBtn {
+    background-color: #2c5aa0;
+    color: white;
+}
+QPushButton#openPlanBtn:hover { background-color: #3a6bb8; }
+QPushButton#resetBtn {
+    background-color: #95a5a6;
+    color: white;
+}
+QPushButton#resetBtn:hover { background-color: #aab7b8; }
+QPushButton#logToggleBtn {
+    background-color: #34495e;
+    color: white;
+}
+QTreeWidget {
+    background-color: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    alternate-background-color: #f8f9fa;
+}
+QTreeWidget::item {
+    padding: 9px 16px;
+    height: 42px;
+}
+QTextEdit#logText {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: none;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13px;
+}
+QLabel#statValue {
+    font-size: 26px;
+    font-weight: bold;
+}
+QLabel#statLabel {
+    font-size: 13px;
+    color: #7f8c8d;
+}
+QLineEdit {
+    padding: 11px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 15px;
+}
+QComboBox {
+    padding: 11px 12px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 15px;
+}
+QGroupBox {
+    font-weight: bold;
+    font-size: 15px;
+    padding-top: 14px;
+}
+QHeaderView::section {
+    font-size: 14px;
+    padding: 8px;
+}</string>
+  </property>
+   <layout class="QVBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <property name="leftMargin">
+     <number>14</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>14</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
+   <!-- 顶部工具栏 -->
+   <item>
+    <widget class="QFrame" name="topBar">
+     <layout class="QHBoxLayout" name="topBarLayout">
+      <property name="leftMargin">
+       <number>12</number>
+      </property>
+      <property name="topMargin">
+       <number>10</number>
+      </property>
+      <property name="rightMargin">
+       <number>12</number>
+      </property>
+      <property name="bottomMargin">
+       <number>10</number>
+      </property>
+      <property name="spacing">
+       <number>12</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label_planPath">
+        <property name="text">
+         <string>测试计划：</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="lineEdit_planPath">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="placeholderText">
+         <string>未加载测试计划，请点击"打开计划"选择</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="openPlanBtn">
+        <property name="text">
+         <string>打开计划</string>
+        </property>
+       </widget>
+      </item>
+       <item>
+        <widget class="QFrame" name="separator1">
+         <property name="frameShape">
+          <enum>QFrame::VLine</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pauseBtn">
+         <property name="text">
+          <string>⏸ 暂停</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="stopBtn">
+         <property name="text">
+          <string>⏹ 停止</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="hSpacer1">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   <!-- 主体区域：左步骤树 + 右统计/日志 -->
+   <item>
+    <layout class="QHBoxLayout" name="bodyLayout">
+     <property name="spacing">
+      <number>12</number>
+     </property>
+     <!-- 左侧：测试步骤树 -->
+     <item>
+      <widget class="QGroupBox" name="groupBox_steps">
+       <property name="title">
+        <string>测试步骤（可展开查看运行状态）</string>
+       </property>
+       <layout class="QVBoxLayout" name="stepsLayout">
+        <property name="leftMargin">
+         <number>8</number>
+        </property>
+        <property name="topMargin">
+         <number>8</number>
+        </property>
+        <property name="rightMargin">
+         <number>8</number>
+        </property>
+        <property name="bottomMargin">
+         <number>8</number>
+        </property>
+        <item>
+         <widget class="QTreeWidget" name="treeWidget_steps">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="headerHidden">
+           <bool>false</bool>
+          </property>
+           <column>
+            <property name="text">
+             <string>序号</string>
+            </property>
+            <property name="width">
+             <number>70</number>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>测试项名称</string>
+            </property>
+            <property name="width">
+             <number>300</number>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>类型</string>
+            </property>
+            <property name="width">
+             <number>120</number>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>状态</string>
+            </property>
+            <property name="width">
+             <number>100</number>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>耗时</string>
+            </property>
+            <property name="width">
+             <number>100</number>
+            </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <!-- 右侧：统计 + 日志 -->
+     <item>
+       <layout class="QVBoxLayout" name="rightLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+       <!-- SN码输入区 -->
+       <item>
+        <widget class="QGroupBox" name="groupBox_sn">
+         <property name="title">
+          <string>产品信息</string>
+         </property>
+         <layout class="QVBoxLayout" name="snLayout">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="snRow1">
+            <item>
+             <widget class="QLabel" name="label_sn">
+              <property name="text">
+               <string>SN码：</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLineEdit" name="lineEdit_sn">
+              <property name="placeholderText">
+               <string>请扫描或输入产品SN码</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_startBig">
+               <property name="minimumSize">
+                <size>
+                 <width>170</width>
+                 <height>56</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QPushButton#btn_startBig {
+    background-color: #27ae60;
+    color: white;
+    font-size: 22px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    min-height: 52px;
+}
+QPushButton#btn_startBig:hover { background-color: #2ecc71; }
+QPushButton#btn_startBig:disabled { background-color: #95a5a6; }</string>
+               </property>
+              <property name="text">
+               <string>▶ 开始</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="snRow2">
+            <item>
+             <widget class="QLabel" name="label_batch">
+              <property name="text">
+               <string>当前批次：--</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_takt">
+              <property name="text">
+               <string>测试节拍：--</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="hSpacer_sn2">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <!-- 统计卡片 -->
+       <item>
+        <widget class="QGroupBox" name="groupBox_stats">
+         <property name="title">
+          <string>生产统计</string>
+         </property>
+         <layout class="QGridLayout" name="statsGrid">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <!-- 总数量 -->
+          <item row="0" column="0">
+           <widget class="QFrame" name="statCard_total">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <layout class="QVBoxLayout" name="layout_total">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="statValue_total">
+               <property name="text">
+                <string>0</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 24px; font-weight: bold; color: #2c3e50;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="statLabel_total">
+               <property name="text">
+                <string>总数量</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 12px; color: #7f8c8d;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <!-- 良品数 -->
+          <item row="0" column="1">
+           <widget class="QFrame" name="statCard_pass">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <layout class="QVBoxLayout" name="layout_pass">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="statValue_pass">
+               <property name="text">
+                <string>0</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 24px; font-weight: bold; color: #27ae60;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="statLabel_pass">
+               <property name="text">
+                <string>良品数</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 12px; color: #7f8c8d;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <!-- 不良品数 -->
+          <item row="0" column="2">
+           <widget class="QFrame" name="statCard_fail">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <layout class="QVBoxLayout" name="layout_fail">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="statValue_fail">
+               <property name="text">
+                <string>0</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 24px; font-weight: bold; color: #e74c3c;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="statLabel_fail">
+               <property name="text">
+                <string>不良品数</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 12px; color: #7f8c8d;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <!-- 良率 -->
+          <item row="1" column="0">
+           <widget class="QFrame" name="statCard_yield">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <layout class="QVBoxLayout" name="layout_yield">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="statValue_yield">
+               <property name="text">
+                <string>0.00%</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 24px; font-weight: bold; color: #27ae60;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="statLabel_yield">
+               <property name="text">
+                <string>良率</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 12px; color: #7f8c8d;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <!-- 不良率 -->
+          <item row="1" column="1">
+           <widget class="QFrame" name="statCard_defectRate">
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <layout class="QVBoxLayout" name="layout_defectRate">
+             <property name="spacing">
+              <number>2</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="statValue_defectRate">
+               <property name="text">
+                <string>0.00%</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 24px; font-weight: bold; color: #e74c3c;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="statLabel_defectRate">
+               <property name="text">
+                <string>不良率</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size: 12px; color: #7f8c8d;</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <!-- 清零按钮 -->
+          <item row="1" column="2">
+           <widget class="QPushButton" name="resetBtn">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>64</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>清零统计
+ （需密码）</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <!-- 总执行状态 -->
+       <item>
+        <widget class="QGroupBox" name="groupBox_overallStatus">
+         <property name="title">
+          <string>总体执行状态</string>
+         </property>
+         <layout class="QHBoxLayout" name="overallStatusLayout">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_overallStatus">
+            <property name="text">
+             <string>● 待机中</string>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">font-size: 16px; font-weight: bold; color: #95a5a6;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="hSpacer_status">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_progress">
+            <property name="text">
+             <string>进度：0 / 0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QProgressBar" name="progressBar">
+            <property name="value">
+             <number>0</number>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>150</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <!-- 日志区域（默认隐藏） -->
+       <item>
+        <widget class="QGroupBox" name="groupBox_log">
+         <property name="title">
+          <string>执行日志</string>
+         </property>
+         <layout class="QVBoxLayout" name="logLayout">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="logToolbarLayout">
+            <item>
+             <widget class="QPushButton" name="logToggleBtn">
+              <property name="text">
+               <string>▼ 显示日志</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="logClearBtn">
+              <property name="text">
+               <string>清空日志</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="hSpacer_log">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QFrame" name="logFrame">
+            <property name="visible">
+             <bool>false</bool>
+            </property>
+            <layout class="QVBoxLayout" name="logFrameLayout">
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <item>
+              <widget class="QTextEdit" name="logText">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <!-- 底部机器人状态栏 -->
+    <item>
+     <widget class="QFrame" name="bottomStatusBar">
+       <property name="styleSheet">
+        <string notr="true">QFrame#bottomStatusBar {
+    background-color: #f5f7fa;
+    border-top: 1px solid #e1e4e8;
+}
+QLabel { font-size: 15px; color: #333; padding: 6px 0; }
+QLabel#statusTitle { font-weight: bold; color: #2c5aa0; }
+QLabel#robotValue { font-size: 18px; font-weight: bold; color: #1F5AA8; }</string>
+       </property>
+      <layout class="QHBoxLayout" name="bottomStatusLayout">
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>6</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>6</number>
+       </property>
+       <property name="spacing">
+        <number>18</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="statusTitle">
+         <property name="text">
+          <string>机器人状态</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_robotTemp">
+         <property name="text">
+          <string>温度: --</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_robotCurrent">
+         <property name="text">
+          <string>电流: --</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_robotVoltage">
+         <property name="text">
+          <string>电压: --</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_robotBattery">
+         <property name="text">
+          <string>电池: --</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="hSpacer_robot">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <resources/>
+  <connections/>
+ </ui>

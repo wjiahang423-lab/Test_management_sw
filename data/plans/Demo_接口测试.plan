@@ -1,0 +1,48 @@
+{
+  "name": "Demo_接口测试",
+  "description": "演示 Loop 接口测试（robot_test_001）：请求接口并判定 code==0/msg==ok，逐键上报与报告展示。超时/失败由函数判定并强制 FAIL",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "",
+    "log_dir": "",
+    "report_dir": "",
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "apiseq000001",
+      "name": "001_接口指令测试(HTTP)",
+      "cases": [
+        {
+          "id": "apicase000001",
+          "name": "001_板卡接口list/describe",
+          "type": "loop",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "robot_test_001：发送 list/describe 指令，判定 code==0、msg==ok",
+          "config": {
+            "yaml_path": "scripts/demo_items.yaml",
+            "script": "scripts/demo_instrument.py",
+            "function": "robot_test_001",
+            "parser": "robot_test_001",
+            "session_key": "list_describe_request",
+            "overrides": []
+          }
+        }
+      ]
+    }
+  ]
+}

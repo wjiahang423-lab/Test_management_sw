@@ -1,0 +1,1381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ManagePage</class>
+ <widget class="QWidget" name="ManagePage">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1400</width>
+    <height>850</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>测试计划管理页面</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+    background-color: #f5f7fa;
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 13px;
+    color: #333;
+}
+QFrame#sidebar {
+    background-color: #2c3e50;
+}
+QListWidget#navList {
+    background-color: #2c3e50;
+    border: none;
+    color: #ecf0f1;
+    font-size: 14px;
+    outline: none;
+}
+QListWidget#navList::item {
+    padding: 12px 16px;
+    border-left: 3px solid transparent;
+}
+QListWidget#navList::item:hover {
+    background-color: #34495e;
+}
+QListWidget#navList::item:selected {
+    background-color: #34495e;
+    border-left: 3px solid #3498db;
+    color: white;
+}
+QFrame#topBar {
+    background-color: white;
+    border-bottom: 1px solid #e1e4e8;
+}
+QPushButton {
+    border: none;
+    border-radius: 4px;
+    padding: 7px 14px;
+    font-size: 13px;
+}
+QPushButton#btn_newPlan { background-color: #27ae60; color: white; }
+QPushButton#btn_newPlan:hover { background-color: #2ecc71; }
+QPushButton#btn_openPlan { background-color: #2c5aa0; color: white; }
+QPushButton#btn_openPlan:hover { background-color: #3a6bb8; }
+QPushButton#btn_savePlan { background-color: #f39c12; color: white; }
+QPushButton#btn_savePlan:hover { background-color: #f5b041; }
+QPushButton#btn_saveAs { background-color: #16a085; color: white; }
+QPushButton#btn_saveAs:hover { background-color: #1abc9c; }
+QPushButton#btn_deletePlan { background-color: #e74c3c; color: white; }
+QPushButton#btn_deletePlan:hover { background-color: #ec7063; }
+QPushButton#btn_planSettings { background-color: #8e44ad; color: white; }
+QPushButton#btn_planSettings:hover { background-color: #9b59b6; }
+QPushButton#btn_addSeq { background-color: #3498db; color: white; }
+QPushButton#btn_addSeq:hover { background-color: #5dade2; }
+QPushButton#btn_addCase { background-color: #3498db; color: white; }
+QPushButton#btn_addCase:hover { background-color: #5dade2; }
+QPushButton#btn_editItem { background-color: #95a5a6; color: white; }
+QPushButton#btn_editItem:hover { background-color: #aab7b8; }
+QPushButton#btn_deleteItem { background-color: #e74c3c; color: white; }
+QPushButton#btn_deleteItem:hover { background-color: #ec7063; }
+QTreeWidget {
+    background-color: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 14px;
+    alternate-background-color: #f8f9fa;
+}
+QTreeWidget::item {
+    padding: 4px 16px;
+    height: 34px;
+}
+QGroupBox {
+    background-color: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 5px;
+    font-weight: bold;
+}
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox, QTextEdit {
+    padding: 6px 10px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background-color: white;
+}
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 1px solid #2c5aa0;
+}
+QTableWidget {
+    background-color: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    gridline-color: #e1e4e8;
+}
+QHeaderView::section {
+    background-color: #f8f9fa;
+    padding: 6px;
+    border: none;
+    border-bottom: 1px solid #e1e4e8;
+    font-weight: bold;
+}</string>
+  </property>
+  <layout class="QHBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="sidebar">
+     <property name="minimumSize">
+      <size>
+       <width>180</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>180</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <layout class="QVBoxLayout" name="sidebarLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="logoFrame">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>60</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">background-color: #1a252f;</string>
+        </property>
+        <layout class="QVBoxLayout" name="logoLayout">
+         <item>
+          <widget class="QLabel" name="label_logo">
+           <property name="text">
+            <string>测试用例管理系统</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">color: white; font-size: 15px; font-weight: bold;</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="navList">
+        <property name="currentRow">
+         <number>0</number>
+        </property>
+        <item>
+         <property name="text">
+          <string>测试计划管理🔧</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>全局变量管理📦</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>系统设置⚙️</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>用户管理👤</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <spacer name="vSpacer_nav">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="contentLayout">
+     <property name="spacing">
+      <number>8</number>
+     </property>
+     <property name="leftMargin">
+      <number>12</number>
+     </property>
+     <property name="topMargin">
+      <number>8</number>
+     </property>
+     <property name="rightMargin">
+      <number>12</number>
+     </property>
+     <property name="bottomMargin">
+      <number>8</number>
+     </property>
+     <item>
+      <widget class="QFrame" name="topBar">
+       <layout class="QHBoxLayout" name="topBarLayout">
+        <property name="leftMargin">
+         <number>12</number>
+        </property>
+        <property name="topMargin">
+         <number>8</number>
+        </property>
+        <property name="rightMargin">
+         <number>12</number>
+        </property>
+        <property name="bottomMargin">
+         <number>8</number>
+        </property>
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_currentPlan">
+          <property name="text">
+           <string>当前计划：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEdit_currentPlan">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="placeholderText">
+           <string>未加载测试计划</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="sep1">
+          <property name="frameShape">
+           <enum>QFrame::VLine</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Sunken</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_newPlan">
+          <property name="text">
+           <string>新建计划</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_openPlan">
+          <property name="text">
+           <string>打开计划</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_savePlan">
+          <property name="text">
+           <string>保存💾</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_saveAs">
+          <property name="text">
+           <string>另存为📄</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_deletePlan">
+          <property name="text">
+           <string>删除计划🗑️</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_planSettings">
+          <property name="text">
+           <string>计划设置⚙️</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="hSpacer_top">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="bodyLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_tree">
+         <property name="title">
+          <string>测试计划结构（PLAN -&gt; 序列 -&gt; 用例）</string>
+         </property>
+         <layout class="QVBoxLayout" name="treeLayout">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <property name="spacing">
+           <number>6</number>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="treeBtnLayout">
+            <item>
+             <widget class="QPushButton" name="btn_addSeq">
+              <property name="text">
+               <string>+ 新增序列</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_addCase">
+              <property name="text">
+               <string>+ 新增用例</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_editItem">
+              <property name="text">
+               <string>编辑✏️ </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_deleteItem">
+              <property name="text">
+               <string>删除</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QTreeWidget" name="treeWidget_plan">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <column>
+             <property name="text">
+              <string>名称</string>
+             </property>
+             <property name="width">
+              <number>260</number>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>类型</string>
+             </property>
+             <property name="width">
+              <number>140</number>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>超时(ms)</string>
+             </property>
+             <property name="width">
+              <number>120</number>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>重试</string>
+             </property>
+             <property name="width">
+              <number>90</number>
+             </property>
+            </column>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_editor">
+         <property name="title">
+          <string>用例编辑✏️ </string>
+         </property>
+         <layout class="QVBoxLayout" name="editorLayout">
+          <property name="leftMargin">
+           <number>8</number>
+          </property>
+          <property name="topMargin">
+           <number>8</number>
+          </property>
+          <property name="rightMargin">
+           <number>8</number>
+          </property>
+          <property name="bottomMargin">
+           <number>8</number>
+          </property>
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QGroupBox" name="groupBox_common">
+            <property name="title">
+             <string>通用配置</string>
+            </property>
+            <layout class="QGridLayout" name="commonGrid">
+             <property name="leftMargin">
+              <number>10</number>
+             </property>
+             <property name="topMargin">
+              <number>10</number>
+             </property>
+             <property name="rightMargin">
+              <number>10</number>
+             </property>
+             <property name="bottomMargin">
+              <number>10</number>
+             </property>
+             <property name="spacing">
+              <number>10</number>
+             </property>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_caseName">
+               <property name="text">
+                <string>用例名称：</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="lineEdit_caseName">
+               <property name="placeholderText">
+                <string>请输入用例名称</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="label_caseType">
+               <property name="text">
+                <string>执行类型：</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QComboBox" name="comboBox_caseType">
+               <item>
+                <property name="text">
+                 <string>Action（仅执行）</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Delay（延时）</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Pop（人机交互）</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Measurement（测量）</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>Loop（循环批量）</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_timeout">
+               <property name="text">
+                <string>超时时间(ms)：</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="spinBox_timeout">
+               <property name="minimum">
+                <number>-1</number>
+               </property>
+               <property name="maximum">
+                <number>99999999</number>
+               </property>
+               <property name="value">
+                <number>5000</number>
+               </property>
+               <property name="specialValueText">
+                <string>-1 (无限等待)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="label_retry">
+               <property name="text">
+                <string>失败重试次数：</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QSpinBox" name="spinBox_retry">
+               <property name="minimum">
+                <number>0</number>
+               </property>
+               <property name="maximum">
+                <number>10</number>
+               </property>
+               <property name="value">
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_failPolicy">
+               <property name="text">
+                <string>失败策略：</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1" colspan="3">
+              <widget class="QComboBox" name="comboBox_failPolicy">
+               <item>
+                <property name="text">
+                 <string>失败后暂停执行</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>失败后继续下一条</string>
+                </property>
+               </item>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QStackedWidget" name="stackedWidget_caseForm">
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="page_action">
+             <layout class="QVBoxLayout" name="actionPageLayout">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_actionHint">
+                <property name="text">
+                 <string>Action 类型：仅执行指定函数，不判断结果。报告中显示执行函数名和类型。</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: #7f8c8d; font-style: italic; padding: 4px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="actionFormLayout">
+                <property name="horizontalSpacing">
+                 <number>10</number>
+                </property>
+                <property name="verticalSpacing">
+                 <number>12</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_actionScript">
+                  <property name="text">
+                   <string>脚本路径：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <layout class="QHBoxLayout" name="actionScriptLayout">
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_actionScript">
+                    <property name="placeholderText">
+                     <string>选择Python脚本文件 (.py)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_browseActionScript">
+                    <property name="text">
+                     <string>浏览...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_actionFunc">
+                  <property name="text">
+                   <string>函数名称：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QComboBox" name="comboBox_actionFunc">
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="placeholderText">
+                   <string>选择脚本后自动列出函数，也可手动输入</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <spacer name="vSpacer_action">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_delay">
+             <layout class="QVBoxLayout" name="delayPageLayout">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_delayHint">
+                <property name="text">
+                 <string>Delay 类型：按输入时间执行延时，ms级别。报告中显示实际执行时间。</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: #7f8c8d; font-style: italic; padding: 4px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="delayFormLayout">
+                <property name="horizontalSpacing">
+                 <number>10</number>
+                </property>
+                <property name="verticalSpacing">
+                 <number>12</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_delayTime">
+                  <property name="text">
+                   <string>延时时长(ms)：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_delayTime">
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>99999999</number>
+                  </property>
+                  <property name="value">
+                   <number>1000</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_delayDesc">
+                  <property name="text">
+                   <string>延时说明：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_delayDesc">
+                  <property name="placeholderText">
+                   <string>可选，描述此延时的用途</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <spacer name="vSpacer_delay">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_pop">
+             <layout class="QVBoxLayout" name="popPageLayout">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_popHint">
+                <property name="text">
+                 <string>Pop 类型：弹出人机交互窗口，可输入显示内容（长度不限），带2个按钮，返回 True/False。</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: #7f8c8d; font-style: italic; padding: 4px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="popFormLayout">
+                <property name="horizontalSpacing">
+                 <number>10</number>
+                </property>
+                <property name="verticalSpacing">
+                 <number>12</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_popTitle">
+                  <property name="text">
+                   <string>弹窗标题：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_popTitle">
+                  <property name="placeholderText">
+                   <string>弹窗标题</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_popContent">
+                  <property name="text">
+                   <string>显示内容：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QTextEdit" name="textEdit_popContent">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>100</height>
+                   </size>
+                  </property>
+                  <property name="placeholderText">
+                   <string>输入弹窗中显示给操作员的提示内容，长度不限...</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_popBtnTrue">
+                  <property name="text">
+                   <string>按钮1文本(返回True)：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QLineEdit" name="lineEdit_popBtnTrue">
+                  <property name="text">
+                   <string>确认</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="label_popBtnFalse">
+                  <property name="text">
+                   <string>按钮2文本(返回False)：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QLineEdit" name="lineEdit_popBtnFalse">
+                  <property name="text">
+                   <string>取消</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QLabel" name="label_popResultVar">
+                  <property name="text">
+                   <string>结果存入变量：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="1">
+                 <widget class="QComboBox" name="comboBox_popResultVar">
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="placeholderText">
+                   <string>选择全局变量存储返回值（可选）</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_measurement">
+             <layout class="QVBoxLayout" name="measPageLayout">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_measHint">
+                <property name="text">
+                 <string>Measurement 类型：执行脚本函数并测量结果，自动解析函数参数和返回值类型，支持绑定全局变量。</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: #7f8c8d; font-style: italic; padding: 4px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="measFormLayout">
+                <property name="horizontalSpacing">
+                 <number>10</number>
+                </property>
+                <property name="verticalSpacing">
+                 <number>10</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_measDisplay">
+                  <property name="text">
+                   <string>显示内容：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_measDisplay">
+                  <property name="placeholderText">
+                   <string>执行页面显示的内容</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_measScript">
+                  <property name="text">
+                   <string>脚本路径：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <layout class="QHBoxLayout" name="measScriptLayout">
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_measScript">
+                    <property name="placeholderText">
+                     <string>选择Python脚本文件 (.py)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_browseMeasScript">
+                    <property name="text">
+                     <string>浏览...</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_loadMeasFunc">
+                    <property name="text">
+                     <string>加载函数</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_measFunc">
+                  <property name="text">
+                   <string>函数名称：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QComboBox" name="comboBox_measFunc">
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="placeholderText">
+                   <string>选择函数后自动解析参数和返回值</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_params">
+                <property name="title">
+                 <string>输入参数（自动解析，类型：int/str/float/list/dict）</string>
+                </property>
+                <layout class="QVBoxLayout" name="paramsLayout">
+                 <property name="leftMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>8</number>
+                 </property>
+                 <item>
+                  <widget class="QTableWidget" name="tableWidget_params">
+                   <property name="columnCount">
+                    <number>4</number>
+                   </property>
+                   <property name="rowCount">
+                    <number>0</number>
+                   </property>
+                   <column>
+                    <property name="text">
+                     <string>参数名</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>类型</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>值/绑定变量</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>来源</string>
+                    </property>
+                   </column>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_returns">
+                <property name="title">
+                 <string>返回值（自动解析，可绑定到全局变量）</string>
+                </property>
+                <layout class="QVBoxLayout" name="returnsLayout">
+                 <property name="leftMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>8</number>
+                 </property>
+                 <item>
+                  <widget class="QTableWidget" name="tableWidget_returns">
+                   <property name="columnCount">
+                    <number>4</number>
+                   </property>
+                   <property name="rowCount">
+                    <number>0</number>
+                   </property>
+                   <column>
+                    <property name="text">
+                     <string>返回项</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>类型</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>绑定变量</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>判定阈值(可选)</string>
+                    </property>
+                   </column>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="page_loop">
+             <layout class="QVBoxLayout" name="loopPageLayout">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QLabel" name="label_loopHint">
+                <property name="text">
+                 <string>Loop 类型：重复执行相同函数，参数不同。测试数据和判断值写入YAML，执行页面平铺展示，报告显示所有结果。</string>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">color: #7f8c8d; font-style: italic; padding: 4px;</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QFormLayout" name="loopFormLayout">
+                <property name="horizontalSpacing">
+                 <number>10</number>
+                </property>
+                <property name="verticalSpacing">
+                 <number>10</number>
+                </property>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_loopYaml">
+                  <property name="text">
+                   <string>YAML数据路径：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <layout class="QHBoxLayout" name="loopYamlLayout">
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_loopYaml">
+                    <property name="placeholderText">
+                     <string>选择YAML数据文件 (.yaml/.yml)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_browseLoopYaml">
+                    <property name="text">
+                     <string>浏览...</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_loopScript">
+                  <property name="text">
+                   <string>脚本路径：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <layout class="QHBoxLayout" name="loopScriptLayout">
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_loopScript">
+                    <property name="placeholderText">
+                     <string>选择Python脚本文件 (.py)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_browseLoopScript">
+                    <property name="text">
+                     <string>浏览...</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="btn_loadLoopFunc">
+                    <property name="text">
+                     <string>加载函数</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_loopFunc">
+                  <property name="text">
+                   <string>函数名称：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QComboBox" name="comboBox_loopFunc">
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="placeholderText">
+                   <string>选择脚本后自动列出函数</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="0">
+                 <widget class="QLabel" name="label_loopParser">
+                  <property name="text">
+                   <string>解析函数：</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="1">
+                 <widget class="QComboBox" name="comboBox_loopParser">
+                  <property name="editable">
+                   <bool>true</bool>
+                  </property>
+                  <property name="placeholderText">
+                   <string>读取每个session后用于解析的相同函数名</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_loopOverride">
+                <property name="title">
+                 <string>页面覆盖配置（可选，设置后优先于YAML；不设置则使用YAML内定义）</string>
+                </property>
+                <layout class="QVBoxLayout" name="loopOverrideLayout">
+                 <property name="leftMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>8</number>
+                 </property>
+                 <property name="spacing">
+                  <number>6</number>
+                 </property>
+                 <item>
+                  <widget class="QTableWidget" name="tableWidget_loopOverride">
+                   <property name="columnCount">
+                    <number>3</number>
+                   </property>
+                   <property name="rowCount">
+                    <number>0</number>
+                   </property>
+                   <column>
+                    <property name="text">
+                     <string>配置项</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>类型</string>
+                    </property>
+                   </column>
+                   <column>
+                    <property name="text">
+                     <string>值</string>
+                    </property>
+                   </column>
+                  </widget>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="loopBtnLayout">
+                   <item>
+                    <widget class="QPushButton" name="btn_addLoopOverride">
+                     <property name="text">
+                      <string>+ 添加覆盖项</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btn_delLoopOverride">
+                     <property name="text">
+                      <string>删除选中</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="hSpacer_loop">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="editorBtnLayout">
+            <item>
+             <spacer name="hSpacer_editor">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_saveCase">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #27ae60; color: white; font-weight: bold; padding: 10px 20px;</string>
+              </property>
+              <property name="text">
+               <string>保存用例</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_cancelEdit">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">background-color: #95a5a6; color: white; padding: 10px 20px;</string>
+              </property>
+              <property name="text">
+               <string>取消</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CaseActionForm</class>
+ <widget class="QWidget" name="CaseActionForm">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Action 用例配置</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QWidget {
+    font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+    font-size: 13px;
+}
+QLabel#hintLabel {
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 6px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+QLineEdit, QComboBox {
+    padding: 6px 10px;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    background-color: white;
+}
+QLineEdit:focus, QComboBox:focus {
+    border: 1px solid #2c5aa0;
+}
+QPushButton {
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    background-color: #2c5aa0;
+    color: white;
+}
+QPushButton:hover { background-color: #3a6bb8; }</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="leftMargin">
+    <number>12</number>
+   </property>
+   <property name="topMargin">
+    <number>12</number>
+   </property>
+   <property name="rightMargin">
+    <number>12</number>
+   </property>
+   <property name="bottomMargin">
+    <number>12</number>
+   </property>
+   <property name="spacing">
+    <number>14</number>
+   </property>
+   <item>
+    <widget class="QLabel" name="hintLabel">
+     <property name="text">
+      <string>Action 类型说明：仅执行选择的函数，不需要判断结果。报告中显示执行的函数名称和类型即可。</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <property name="horizontalSpacing">
+      <number>10</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>14</number>
+     </property>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_script">
+       <property name="text">
+        <string>脚本路径：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <layout class="QHBoxLayout" name="scriptLayout">
+       <property name="spacing">
+        <number>6</number>
+       </property>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_script">
+         <property name="placeholderText">
+          <string>选择 Python 脚本文件 (.py)</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_browse">
+         <property name="text">
+          <string>浏览...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_func">
+       <property name="text">
+        <string>函数名称：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="comboBox_func">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>选择脚本后自动列出所有函数，也可手动输入</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_desc">
+       <property name="text">
+        <string>用例描述：</string>
+       </property>
+      </widget>
+     </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEdit_desc">
+        <property name="placeholderText">
+         <string>可选，描述此用例的用途</string>
+        </property>
+       </widget>
+      </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

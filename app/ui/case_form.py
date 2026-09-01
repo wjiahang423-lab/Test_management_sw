@@ -8,13 +8,13 @@ import json
 import os
 
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QEvent, QObject, Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
-                             QFileDialog, QFormLayout, QGroupBox, QHBoxLayout,
-                             QLabel, QLineEdit, QMessageBox, QPushButton,
-                             QSizePolicy, QSpinBox, QTableWidget, QTableWidgetItem,
-                             QVBoxLayout)
+from PyQt5.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox, QDialog,
+                             QDialogButtonBox, QFileDialog, QFormLayout,
+                             QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+                             QMessageBox, QPushButton, QSizePolicy, QSpinBox,
+                             QTableWidget, QTableWidgetItem, QVBoxLayout)
 
 from app.core.paths import CASE_TYPE_NAMES, UI_FILES
 from app.core.script_loader import get_function_info, list_functions
@@ -23,8 +23,72 @@ JUDGE_OPTIONS = ["", "等于", "不等于", "大于", "小于", "范围内", "�
 OVERRIDE_TYPES = ["str", "int", "float", "list", "dict"]
 
 
+class _WheelGuardMixin:
+    """Guard against accidental value changes while scrolling the form.
+
+    Qt changes the value of a combo/spin box under the mouse cursor on every
+    wheel notch even without keyboard focus, so scrolling the editor dialog can
+    silently modify function names and other dropdown/setpoint fields.  Wheel
+    events on an unfocused combo/spin are forwarded to the nearest scrollable
+    ancestor, which scrolls by the same amount Qt normally would.
+    """
+
+    def wheelEvent(self, event):
+        if self.hasFocus():
+            super().wheelEvent(event)
+        else:
+            _forward_wheel(self, event)
+
+
+class GuardedComboBox(_WheelGuardMixin, QComboBox):
+    pass
+
+
+class GuardedSpinBox(_WheelGuardMixin, QSpinBox):
+    pass
+
+
+def _forward_wheel(widget, event):
+    """Scroll the nearest scrollable ancestor by the wheel delta.
+
+    Qt scrolls a scroll area by ``delta / 120 * singleStep`` per wheel notch;
+    replicate that so a wheel over an unfocused combo/spin scrolls the form
+    instead of mutating the field.
+    """
+    event.accept()
+    delta = event.angleDelta().y()
+    if delta == 0:
+        return
+    p = widget.parentWidget()
+    while p is not None:
+        if isinstance(p, QAbstractScrollArea):
+            bar = p.verticalScrollBar()
+            if bar.maximum() > bar.minimum():
+                bar.setValue(bar.value() - delta * bar.singleStep() // 120)
+                return
+        p = p.parentWidget()
+
+
+class _WheelGuardFilter(QObject):
+    """Event filter guarding combos/spins loaded from .ui files (unfocusable
+    subclasses cannot be installed after the fact)."""
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Wheel and not obj.hasFocus():
+            _forward_wheel(obj, event)
+            return True
+        return super().eventFilter(obj, event)
+
+
+def _guard_widgets(widget):
+    for w in widget.findChildren((QComboBox, QSpinBox)):
+        if isinstance(w, _WheelGuardMixin):
+            continue
+        w.installEventFilter(_WheelGuardFilter(w))
+
+
 def _make_combo(items, editable=True, default=""):
-    cb = QComboBox()
+    cb = GuardedComboBox()
     cb.setEditable(editable)
     for it in items:
         cb.addItem(it)
@@ -36,7 +100,7 @@ def _make_combo(items, editable=True, default=""):
 
 
 def _make_type_combo(default="str"):
-    cb = QComboBox()
+    cb = GuardedComboBox()
     cb.addItems(OVERRIDE_TYPES)
     cb.setCurrentText(default if default in OVERRIDE_TYPES else "str")
     return cb
@@ -66,6 +130,7 @@ class BaseCaseForm:
 
     def __init__(self):
         self.widget = uic.loadUi(self.form_file)
+        _guard_widgets(self.widget)
         self._after_load()
         self.refresh([])
 
@@ -232,7 +297,7 @@ class MeasurementForm(BaseCaseForm):
             table.setItem(row, 0, QTableWidgetItem(p["name"]))
             table.setCellWidget(row, 1, _make_type_combo(p.get("type", "str")))
             table.setItem(row, 2, QTableWidgetItem(_cast_str(p.get("default", "")) if p.get("default") is not None else ""))
-            combo = QComboBox()
+            combo = GuardedComboBox()
             combo.addItems(["值", "变量"])
             combo.setCurrentIndex(0)
             table.setCellWidget(row, 3, combo)
@@ -243,7 +308,7 @@ class MeasurementForm(BaseCaseForm):
             rtable.setItem(row, 0, QTableWidgetItem(r.get("item", "return")))
             rtable.setCellWidget(row, 1, _make_type_combo(r.get("type", "str")))
             rtable.setItem(row, 2, QTableWidgetItem(""))
-            judge = QComboBox()
+            judge = GuardedComboBox()
             judge.addItems(JUDGE_OPTIONS)
             rtable.setCellWidget(row, 3, judge)
             rtable.setItem(row, 4, QTableWidgetItem(""))
@@ -257,7 +322,7 @@ class MeasurementForm(BaseCaseForm):
         table.setItem(row, 0, QTableWidgetItem(""))
         table.setCellWidget(row, 1, _make_type_combo("str"))
         table.setItem(row, 2, QTableWidgetItem(""))
-        combo = QComboBox()
+        combo = GuardedComboBox()
         combo.addItems(["值", "变量"])
         table.setCellWidget(row, 3, combo)
         _align_cell_widgets(table)
@@ -279,7 +344,7 @@ class MeasurementForm(BaseCaseForm):
         table.setCellWidget(row, 1, _make_type_combo("str"))
         bind = _make_combo([], editable=True)
         table.setCellWidget(row, 2, bind)
-        judge = QComboBox()
+        judge = GuardedComboBox()
         judge.addItems(JUDGE_OPTIONS)
         table.setCellWidget(row, 3, judge)
         table.setItem(row, 4, QTableWidgetItem(""))
@@ -360,7 +425,7 @@ class MeasurementForm(BaseCaseForm):
             table.setItem(row, 0, QTableWidgetItem(p.get("name", "")))
             table.setCellWidget(row, 1, _make_type_combo(p.get("type", "str")))
             table.setItem(row, 2, QTableWidgetItem(_cast_str(p.get("value", ""))))
-            combo = QComboBox()
+            combo = GuardedComboBox()
             combo.addItems(["值", "变量"])
             combo.setCurrentIndex(1 if p.get("source") == "variable" else 0)
             table.setCellWidget(row, 3, combo)
@@ -372,7 +437,7 @@ class MeasurementForm(BaseCaseForm):
             rtable.setCellWidget(row, 1, _make_type_combo(r.get("type", "str")))
             bind = _make_combo([], editable=True, default=r.get("bind_var", ""))
             rtable.setCellWidget(row, 2, bind)
-            judge = QComboBox()
+            judge = GuardedComboBox()
             judge.addItems(JUDGE_OPTIONS)
             if r.get("judge"):
                 judge.setCurrentText(r.get("judge", ""))
@@ -423,7 +488,7 @@ class LoopForm(BaseCaseForm):
         row = table.rowCount()
         table.insertRow(row)
         table.setItem(row, 0, QTableWidgetItem(""))
-        combo = QComboBox()
+        combo = GuardedComboBox()
         combo.addItems(OVERRIDE_TYPES)
         table.setCellWidget(row, 1, combo)
         table.setItem(row, 2, QTableWidgetItem(""))
@@ -475,7 +540,7 @@ class LoopForm(BaseCaseForm):
             row = table.rowCount()
             table.insertRow(row)
             table.setItem(row, 0, QTableWidgetItem(ov.get("item", "")))
-            combo = QComboBox()
+            combo = GuardedComboBox()
             combo.addItems(OVERRIDE_TYPES)
             combo.setCurrentText(ov.get("type", "str"))
             table.setCellWidget(row, 1, combo)
@@ -511,22 +576,22 @@ class CaseEditorDialog(QDialog):
         form = QFormLayout(common)
         self.lineEdit_name = QLineEdit()
         form.addRow("用例名称：", self.lineEdit_name)
-        self.combo_type = QComboBox()
+        self.combo_type = GuardedComboBox()
         for key, name in CASE_TYPE_NAMES.items():
             self.combo_type.addItem(name, key)
         self.combo_type.currentIndexChanged.connect(self._switch_type)
         form.addRow("执行类型：", self.combo_type)
-        self.spin_timeout = QSpinBox()
+        self.spin_timeout = GuardedSpinBox()
         self.spin_timeout.setMinimum(-1)
         self.spin_timeout.setMaximum(99999999)
         self.spin_timeout.setValue(5000)
         self.spin_timeout.setSpecialValueText("-1 (无限等待)")
         self.spin_timeout.setSuffix(" ms")
         form.addRow("超时时间：", self.spin_timeout)
-        self.spin_retry = QSpinBox()
+        self.spin_retry = GuardedSpinBox()
         self.spin_retry.setRange(0, 10)
         form.addRow("失败重试次数：", self.spin_retry)
-        self.combo_fail = QComboBox()
+        self.combo_fail = GuardedComboBox()
         self.combo_fail.addItem("失败后暂停执行", "pause")
         self.combo_fail.addItem("失败后继续下一条", "continue")
         form.addRow("失败策略：", self.combo_fail)
@@ -538,6 +603,7 @@ class CaseEditorDialog(QDialog):
 
         self.stack = None
         layout.addWidget(self._build_stack(), 1)
+        _guard_widgets(self)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.button(QDialogButtonBox.Save).setText("保存")

@@ -60,6 +60,7 @@ class EngineWorker(QThread):
         self.stop_requested = False
         self.last_elapsed = 0.0
         self._loop_sessions = {}
+        self._last_action_payload = None
         self._logger = None
         self._log_script_cb = None
 
@@ -359,6 +360,10 @@ class EngineWorker(QThread):
         sessions = self._loop_sessions.pop(case.id, None)
         if sessions:
             result_entry["sessions"] = sessions
+        payload = self._last_action_payload
+        if payload:
+            result_entry["payload"] = payload
+            self._last_action_payload = None
         measurements = getattr(self, "_last_measurement_rows", None)
         if measurements:
             result_entry["measurements"] = list(measurements)
@@ -400,6 +405,10 @@ class EngineWorker(QThread):
             self._logger.error("{}".format(error))
             return False, error
         self._logger.info("Action 实际输出：{}".format(self._fmt_value(result)))
+        # Action 函数返回的 dict 视为该用例的结构化结果（如标定参数），
+        # 挂到本用例结果上，随报告展示与逐用例 JSON 上报。
+        if isinstance(result, dict):
+            self._last_action_payload = result
         return True, "执行函数：{}".format(func_name)
 
     def _handle_delay(self, case):

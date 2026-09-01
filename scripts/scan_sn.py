@@ -225,6 +225,23 @@ scan = scan_sn
 scan_loop = scan_sn_for_loop
 
 
+# 增加测试查重 和跳站查询 ，查询原理 将SN扫描之后交给后端，后端来判断是否重复，是否跳站，返回结果给前端，前端根据结果来决定是否继续测试
+database_url = "http://backend.example.com/check_sn"  # 后端API地址
+
+def check_sn_in_database(sn):
+    # 这里应该调用后端API来检查SN是否在数据库中
+    import requests
+    try:
+        response = requests.post(database_url, json={"sn": sn})
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("exists", False), data.get("message", "")
+        else:
+            return False, "后端服务错误"
+    except Exception as e:  
+
+        return False, f"请求后端服务失败: {str(e)}"
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     result = scan_sn()

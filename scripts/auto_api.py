@@ -4,10 +4,12 @@
 覆盖动作、延时、人机交互(Pop 自动确认)、测量(各种判定)、Loop(接口/数值/错误/自描述)
 等软件的全部用例类型与内置 API。
 """
+import os
+
 import test_api
 import requests
 
-MOCK_BASE = "http://10.5.35.49:5000"
+MOCK_BASE = os.environ.get("EOL_MOCK_BASE", "http://10.5.35.49:5000")
 
 
 def _req(path, method="GET", body=None, timeout=5):

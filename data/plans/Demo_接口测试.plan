@@ -12,6 +12,8 @@
     "json_upload_enabled": false,
     "json_upload_url": "",
     "json_upload_key": "",
+    "server_username": "root",
+    "server_password": "root",
     "mes_server": "",
     "mes_interface": "",
     "mes_template": "",
@@ -31,7 +33,7 @@
           "timeout_ms": 5000,
           "retry": 0,
           "fail_policy": "continue",
-          "skip": false,
+          "skip": true,
           "description": "robot_test_001：发送 list/describe 指令，判定 code==0、msg==ok",
           "config": {
             "yaml_path": "scripts/demo_items.yaml",
@@ -40,6 +42,42 @@
             "parser": "robot_test_001",
             "session_key": "list_describe_request",
             "overrides": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "bd7b6479ef9e",
+      "name": "标定确认_rviz2",
+      "cases": [
+        {
+          "id": "4023f3edf60d",
+          "name": "Test1_打开验证视图",
+          "type": "action",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定完成后弹出 RViz2 验证视图，展示雷达/相机轮廓",
+          "config": {
+            "script": "scripts/地盘标定/calib_rviz.py",
+            "function": "open_rviz_view",
+            "description": ""
+          }
+        },
+        {
+          "id": "4023f3edf610",
+          "name": "Test2_查看截图并保存",
+          "type": "action",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "等待操作员确认轮廓重合后截图存档、保存外参 JSON 并自动关闭",
+          "config": {
+            "script": "scripts/地盘标定/calib_rviz.py",
+            "function": "verify_and_save",
+            "description": ""
           }
         }
       ]

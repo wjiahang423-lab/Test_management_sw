@@ -92,16 +92,20 @@ class ExecutePage:
         for i in range(top.count() - 1, -1, -1):
             if isinstance(top.itemAt(i), QSpacerItem):
                 top.removeItem(top.itemAt(i))
-        self.ui.label_title = QLabel(host)
-        self.ui.label_title.setAlignment(Qt.AlignCenter)
-        self.ui.label_title.setStyleSheet(
+        # 工位标题（.ui 已预置；旧 .ui 缺失时兜底动态创建）
+        if not hasattr(self.ui, "label_title") or self.ui.label_title is None:
+            self.ui.label_title = QLabel(host)
+        title = self.ui.label_title
+        top.removeWidget(title)
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet(
             "font-size: 28px; font-weight: bold; color: #1F5AA8; letter-spacing: 2px;")
         self.refresh_station_title()
-        top.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        top.addWidget(self.ui.label_title, 1)
-        top.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
-        # 返回管理页面按钮（仅管理员显示，默认隐藏）
-        self.btn_manage = QPushButton("管理页面")
+        # 返回管理页面按钮（.ui 已预置；仅管理员显示，默认隐藏）
+        if not hasattr(self.ui, "btn_manage") or self.ui.btn_manage is None:
+            self.ui.btn_manage = QPushButton("管理页面")
+        self.btn_manage = self.ui.btn_manage
+        top.removeWidget(self.btn_manage)
         self.btn_manage.setToolTip("返回管理页面（仅管理员）")
         self.btn_manage.setStyleSheet(
             "QPushButton { background-color: #2c5aa0; color: white; font-weight: bold;"
@@ -110,11 +114,19 @@ class ExecutePage:
             "QPushButton:pressed { background-color: #3a6bb8; }")
         self.btn_manage.clicked.connect(self._switch_manage)
         self.btn_manage.hide()
-        top.addWidget(self.btn_manage)
-        self.ui.label_time = QLabel("")
-        self.ui.label_time.setStyleSheet(
+        # 时钟（.ui 已预置；旧 .ui 缺失时兜底动态创建）
+        if not hasattr(self.ui, "label_time") or self.ui.label_time is None:
+            self.ui.label_time = QLabel("")
+        tlabel = self.ui.label_time
+        top.removeWidget(tlabel)
+        tlabel.setStyleSheet(
             "font-size: 16px; font-weight: bold; color: #1F5AA8; padding: 0 10px;")
-        top.addWidget(self.ui.label_time)
+        # 重新按顺序摆放：两个弹性spacer包裹标题
+        top.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        top.addWidget(title, 1)
+        top.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        top.addWidget(self.btn_manage)
+        top.addWidget(tlabel)
 
         # ---------- 左侧：测试步骤(上，约80%) + 执行日志(下，约20%，默认隐藏) ----------
         self.ui.stepsLayout.addWidget(self.ui.groupBox_log)
@@ -130,11 +142,15 @@ class ExecutePage:
         sn_row.removeWidget(self.ui.lineEdit_sn)
         sn_row.removeWidget(self.ui.btn_startBig)
         self.ui.lineEdit_sn.hide()
-        self.ui.label_sn_value = QLabel("--")
-        self.ui.label_sn_value.setStyleSheet(
+        # 当前SN显示（.ui 已预置；旧 .ui 缺失时兜底动态创建）
+        if not hasattr(self.ui, "label_sn_value") or self.ui.label_sn_value is None:
+            self.ui.label_sn_value = QLabel("--")
+        sn_value = self.ui.label_sn_value
+        sn_row.removeWidget(sn_value)
+        sn_value.setStyleSheet(
             "font-size: 22px; font-weight: bold; color: #1F5AA8;")
-        self.ui.label_sn_value.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
-        sn_row.insertWidget(1, self.ui.label_sn_value, 1)
+        sn_value.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        sn_row.insertWidget(1, sn_value, 1)
         # 当前批次 / 测试节拍改为上下排列（原为同一行），减少空间占用
         self.ui.snLayout.removeItem(self.ui.snRow2)
         for label in (self.ui.label_batch, self.ui.label_takt):

@@ -185,6 +185,19 @@ def _fmt_expected(exp):
     return str(exp)
 
 
+def _fmt_calib_value(value):
+    """把结构化结果里的任意值转成报告可读字符串（dict/list 转 compact JSON）。"""
+    if value is None:
+        return ""
+    if isinstance(value, (dict, list)):
+        try:
+            import json
+            return json.dumps(value, ensure_ascii=False, default=str)
+        except Exception:
+            return str(value)
+    return str(value)
+
+
 def _session_expected(s):
     """报告显示用：优先取页面/YAML 配置的 expected；没有时回退函数自描述的 expected。"""
     exp = s.get("expected") or {}
@@ -236,6 +249,16 @@ class ReportBuilder:
                      "超时": "#f39c12", "运行中": "#3498db", "待执行": "#95a5a6"}.get(status, "#333")
             details = (r.get("detail") or "").replace("\n", "<br/>")
             sub = ""
+            if r.get("payload"):
+                payload_sub = "".join(
+                    "<tr><td>{}</td><td>{}</td></tr>".format(
+                        html.escape(str(k)),
+                        html.escape(_fmt_calib_value(v)))
+                    for k, v in r["payload"].items()
+                )
+                sub += ("<tr><td colspan='6'><table border='1' cellpadding='4' "
+                        "style='border-collapse:collapse;width:100%'><tr bgcolor='#eaf3fb'>"
+                        "<th>参数</th><th>值</th></tr>{}</table></td></tr>").format(payload_sub)
             if r.get("sessions"):
                 sub_rows = "".join(
                     "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>"
@@ -457,9 +480,19 @@ def send_json_cases(plan, context, results, sn=None):
                                           m.get("upper"), m.get("lower"),
                                           m.get("expected"), case_type, state))
             continue
-        # 其它类型：一条记录，实际值记结果状态
-        records.append(_sn_record(test_time, batch, sn, name, state, None, None,
-                                  None, case_type, state))
+        # 其它类型：一条记录，实际值记结果状态；若该用例带有结构化结果（如标定参数），
+        # 一并附到记录里并展开到顶层，便于后端直接入库标定数据。
+        rec = _sn_record(test_time, batch, sn, name, state, None, None,
+                         None, case_type, state)
+        payload = r.get("payload")
+        if isinstance(payload, dict):
+            flat = {k: payload[k] for k in payload if k in (
+                "sn", "passed", "rmse", "threshold", "note") and payload[k] is not None}
+            if flat:
+                rec.update(flat)
+            if payload.get("extrinsic") is not None:
+                rec["extrinsic"] = payload["extrinsic"]
+        records.append(rec)
     if not records:
         return False, "没有可上报的用例数据"
 

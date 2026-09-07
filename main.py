@@ -41,10 +41,10 @@ def main():
     app.setStyle("Fusion")
     try:
         win = bootstrap(app)
-    except Exception:
+    except Exception as e:
         syslog.exception("启动失败")
         import PyQt5.QtWidgets as qtw
-        qtw.QMessageBox.critical(None, "错误", "程序启动失败，详情请查看 data/logs/ 下的系统日志")
+        qtw.QMessageBox.critical(None, "错误", "程序启动失败：{}\n\n详情请查看 data/logs/ 下的系统日志".format(e))
         sys.exit(1)
     if win is None:
         sys.exit(0)

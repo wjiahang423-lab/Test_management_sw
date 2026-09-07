@@ -17,6 +17,7 @@ from PyQt5.QtWidgets import (QAbstractScrollArea, QCheckBox, QComboBox, QDialog,
                              QTableWidget, QTableWidgetItem, QVBoxLayout)
 
 from app.core.paths import CASE_TYPE_NAMES, UI_FILES
+from app.core import syslog
 from app.core.script_loader import get_function_info, list_functions
 
 JUDGE_OPTIONS = ["", "等于", "不等于", "大于", "小于", "范围内", "包含", "长度"]
@@ -129,7 +130,11 @@ class BaseCaseForm:
     form_file = None
 
     def __init__(self):
-        self.widget = uic.loadUi(self.form_file)
+        try:
+            self.widget = uic.loadUi(self.form_file)
+        except Exception as e:
+            syslog.exception("加载用例表单失败：{}".format(self.form_file))
+            raise RuntimeError("加载用例表单失败：{}".format(e))
         _guard_widgets(self.widget)
         self._after_load()
         self.refresh([])
@@ -650,7 +655,7 @@ class CaseEditorDialog(QDialog):
             try:
                 form.set_config(case.config or {})
             except Exception:
-                pass
+                syslog.exception("应用用例配置失败：{} - {}".format(case.type, case.name))
 
     def _on_save(self):
         name = self.lineEdit_name.text().strip()

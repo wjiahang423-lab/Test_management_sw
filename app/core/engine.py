@@ -16,7 +16,7 @@ from . import report as report_mod
 from . import syslog
 from .context import RuntimeContext
 from .paths import CASE_TYPES, resolve_root_path
-from .script_loader import load_function, invalidate_script_cache
+from .script_loader import load_function, invalidate_script_cache, last_load_error
 
 TYPE_CAST = {
     "int": int,
@@ -382,6 +382,23 @@ class EngineWorker(QThread):
         return state
 
     # ---------------- type handlers ----------------
+    def _script_not_loaded(self, func_name, kind):
+        """脚本/函数无法加载：把详细原因写入运行日志并从 UI 输出。
+
+        kind: 'Action' / 'Measurement' / 'Loop'。
+        """
+        detail = last_load_error()
+        msg = "无法加载脚本函数：{}（{}）".format(func_name, kind)
+        if detail:
+            self._logger.error("{}\n{}".format(msg, detail))
+            # 取首两行作为 UI 简洁提示，完整堆栈写入运行日志文件
+            brief = "\n".join(detail.splitlines()[:2])
+            self.sig_log.emit("{}：\n{}".format(msg, brief))
+            return False, "{}\n{}".format(msg, brief)
+        self._logger.error(msg)
+        self.sig_log.emit(msg)
+        return False, msg
+
     def _handle_action(self, case):
         cfg = case.config or {}
         script = cfg.get("script", "")
@@ -390,7 +407,7 @@ class EngineWorker(QThread):
             return False, "未配置脚本或函数"
         func = load_function(script, func_name)
         if func is None:
-            return False, "无法加载脚本函数：{}".format(func_name)
+            return self._script_not_loaded(func_name, "Action")
         self._logger.info("Action 函数：{}.{}".format(script, func_name))
         self._logger.info("Action 输入参数：无（Action 仅执行）")
         future = self._pool.submit(self._safe_call, func, {}, "Action")
@@ -456,7 +473,7 @@ class EngineWorker(QThread):
             return False, "未配置脚本或函数"
         func = load_function(script, func_name)
         if func is None:
-            return False, "无法加载脚本函数：{}".format(func_name)
+            return self._script_not_loaded(func_name, "Measurement")
         kwargs = self._build_args(cfg.get("params", []))
         self._logger.info("Measurement 函数：{}.{}".format(script, func_name))
         self._logger.info("Measurement 输入参数：{}".format(self._fmt_value(kwargs)))
@@ -488,7 +505,7 @@ class EngineWorker(QThread):
             return False, "无法加载 YAML 数据：{}".format(yaml_path)
         func = load_function(script, func_name)
         if func is None:
-            return False, "无法加载脚本函数：{}".format(func_name)
+            return self._script_not_loaded(func_name, "Loop")
         self._logger.info("Loop 函数：{}.{}".format(script, func_name))
         if parser_name:
             self._logger.info("Loop 解析函数：{}".format(parser_name))

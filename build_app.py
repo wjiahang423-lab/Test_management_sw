@@ -57,6 +57,7 @@ def build():
         add_data("UI"),
         add_data("scripts"),
         add_data("assets"),
+        add_data("library"),
     ]
     # exclude unused heavy modules to keep the folder smaller
     for mod in ("tkinter", "matplotlib", "scipy", "numpy", "pandas", "PIL"):

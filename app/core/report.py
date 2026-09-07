@@ -5,6 +5,7 @@ import json
 import os
 import threading
 
+from . import syslog
 from .paths import LOGS_DIR, REPORTS_DIR
 
 
@@ -127,14 +128,21 @@ def _stamp():
 
 
 def ensure_dirs():
-    os.makedirs(LOGS_DIR, exist_ok=True)
-    os.makedirs(REPORTS_DIR, exist_ok=True)
+    for d in (LOGS_DIR, REPORTS_DIR):
+        try:
+            os.makedirs(d, exist_ok=True)
+        except Exception:
+            syslog.exception("创建目录失败：{}".format(d))
 
 
 def _log_file_path(plan_settings, plan_name):
     ensure_dirs()
     base = plan_settings.get("log_dir") or LOGS_DIR
-    os.makedirs(base, exist_ok=True)
+    try:
+        os.makedirs(base, exist_ok=True)
+    except Exception:
+        syslog.exception("日志目录不可用，回退默认目录：{}".format(base))
+        base = LOGS_DIR
     return os.path.join(base, "{}_{}.log".format(plan_name or "plan", _stamp()))
 
 
@@ -173,7 +181,11 @@ class NullLogger:
 def _report_file_path(plan_settings, plan_name, sn):
     ensure_dirs()
     base = plan_settings.get("report_dir") or REPORTS_DIR
-    os.makedirs(base, exist_ok=True)
+    try:
+        os.makedirs(base, exist_ok=True)
+    except Exception:
+        syslog.exception("报告目录不可用，回退默认目录：{}".format(base))
+        base = REPORTS_DIR
     sn_part = (sn or "NOSN").replace("/", "_").replace("\\", "_")
     return os.path.join(base, "{}_{}_{}.html".format(plan_name or "plan", sn_part, _stamp()))
 
@@ -325,10 +337,32 @@ class ReportBuilder:
         return html_doc
 
 
+def _fallback_report(plan, results, sn, reason):
+    """HTML 报告生成异常时输出的最小降级报告，保证有内容可看且不中断流程。"""
+    items = "".join(
+        "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>".format(
+            html.escape(str(r.get("index", ""))),
+            html.escape(str(r.get("name", ""))),
+            html.escape(str(r.get("type", ""))),
+            html.escape(str(r.get("state", ""))))
+        for r in results)
+    return ("<!DOCTYPE html><html lang='zh'><head><meta charset='UTF-8'>"
+            "<title>测试报告（降级）</title></head><body>"
+            "<h1>测试报告（降级）</h1><p>SN：{}</p><p>生成失败原因：{}</p>"
+            "<table border='1' cellpadding='4' style='border-collapse:collapse'>"
+            "<tr><th>序号</th><th>名称</th><th>类型</th><th>状态</th></tr>"
+            "{}</table></body></html>").format(
+        html.escape(str(sn or "")), html.escape(str(reason)), items)
+
+
 def save_local_report(plan, context, results, sn=None, speed=1.0, log_path=None):
     ensure_dirs()
     builder = ReportBuilder(plan, context, results, sn=sn, speed=speed)
-    html_doc = builder.build_html()
+    try:
+        html_doc = builder.build_html()
+    except Exception as e:
+        syslog.exception("生成 HTML 报告失败")
+        html_doc = _fallback_report(plan, results, sn, str(e))
     report_path = _report_file_path(plan.settings, plan.name, sn)
     try:
         with open(report_path, "w", encoding="utf-8") as f:

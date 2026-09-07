@@ -4,6 +4,7 @@ import inspect
 import os
 import sys
 import threading
+import traceback
 
 from . import api as _api
 from . import syslog
@@ -13,6 +14,12 @@ from .paths import EXT_PACKAGES_DIR, SCRIPTS_DIR, resolve_root_path
 _cache_lock = threading.Lock()
 _module_cache = {}
 _runtime_paths_ready = False
+_last_load_error = ""   # 最近一次脚本加载失败的详细原因（供 UI/运行日志展示）
+
+
+def last_load_error():
+    """返回最近一次脚本加载失败的详细原因；无失败则返回空串。"""
+    return _last_load_error
 
 
 def ensure_runtime_paths():
@@ -42,9 +49,11 @@ def ensure_runtime_paths():
 
 def load_script_module(script_path):
     """Load a .py file as a module. Cached. Returns module or None on error."""
+    global _last_load_error
     ensure_runtime_paths()
     script_path = resolve_root_path(script_path)
     if not os.path.isfile(script_path):
+        _last_load_error = "脚本文件不存在：{}".format(script_path)
         return None
     mtime = os.path.getmtime(script_path)
     with _cache_lock:
@@ -63,6 +72,7 @@ def load_script_module(script_path):
             _module_cache[script_path] = (mtime, module)
         return module
     except Exception as e:
+        _last_load_error = traceback.format_exc().rstrip()
         syslog.error("加载脚本失败：{}（{}{}{}）".format(
             script_path, type(e).__name__, ": " if str(e) else "", e))
         syslog.exception()
@@ -147,33 +157,47 @@ def get_function_info(func):
 
 def list_functions(script_path):
     """Return list of {name, doc} for callable public functions in the script."""
-    module = load_script_module(script_path)
-    if module is None:
+    try:
+        module = load_script_module(script_path)
+        if module is None:
+            return []
+        builtin_names = set(_api._registered.keys())
+        result = []
+        for name, obj in inspect.getmembers(module, inspect.isfunction):
+            if name.startswith("_"):
+                continue
+            if name in builtin_names:
+                continue
+            try:
+                doc = (inspect.getdoc(obj) or "").strip().splitlines()
+                doc = doc[0] if doc else ""
+            except Exception:
+                doc = ""
+            result.append({"name": name, "doc": doc, "params": get_function_info(obj)})
+        return result
+    except Exception:
+        syslog.exception("解析脚本函数列表失败：{}".format(script_path))
         return []
-    builtin_names = set(_api._registered.keys())
-    result = []
-    for name, obj in inspect.getmembers(module, inspect.isfunction):
-        if name.startswith("_"):
-            continue
-        if name in builtin_names:
-            continue
-        try:
-            doc = (inspect.getdoc(obj) or "").strip().splitlines()
-            doc = doc[0] if doc else ""
-        except Exception:
-            doc = ""
-        result.append({"name": name, "doc": doc, "params": get_function_info(obj)})
-    return result
 
 
 def load_function(script_path, func_name):
     """Return the callable function object, or None if not found."""
     module = load_script_module(script_path)
     if module is None:
+        global _last_load_error
+        if not _last_load_error:
+            _last_load_error = "脚本加载失败（无详细原因）"
         syslog.error("无法加载脚本函数：{}（脚本加载失败）{}".format(func_name, script_path))
         return None
     func = getattr(module, func_name, None)
     if callable(func):
+        _clear_last_load_error()
         return func
     syslog.error("脚本中未找到函数：{}（{}）".format(func_name, script_path))
+    _last_load_error = "脚本中未找到函数：{}".format(func_name)
     return None
+
+
+def _clear_last_load_error():
+    global _last_load_error
+    _last_load_error = ""

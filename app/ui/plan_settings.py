@@ -1,7 +1,9 @@
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QDialog, QDialogButtonBox,
                              QFileDialog, QFormLayout, QGroupBox, QHBoxLayout,
-                             QLabel, QLineEdit, QPushButton, QScrollArea,
-                             QTextEdit, QVBoxLayout, QWidget)
+                             QLabel, QLineEdit, QMessageBox, QPushButton,
+                             QScrollArea, QTextEdit, QVBoxLayout, QWidget)
+
+from app.core import syslog
 
 
 class PlanSettingsDialog(QDialog):
@@ -166,23 +168,27 @@ class PlanSettingsDialog(QDialog):
             edit.setText(path)
 
     def _on_save(self):
-        self.settings["storage_mode"] = self.combo_mode.currentData()
-        self.settings["batch"] = self.edit_batch.text().strip()
-        self.settings["log_dir"] = self.edit_log_dir.text().strip()
-        self.settings["report_dir"] = self.edit_report_dir.text().strip()
-        self.settings["remote_storage_enabled"] = self.chk_remote_file.isChecked()
-        self.settings["remote_storage_url"] = self.edit_remote_storage_url.text().strip()
-        self.settings["json_upload_enabled"] = self.chk_json.isChecked()
-        self.settings["json_upload_url"] = self.edit_json_url.text().strip()
-        self.settings["server_username"] = self.edit_server_user.text().strip()
-        self.settings["server_password"] = self.edit_server_pwd.text()
-        self.settings["mes_server"] = self.edit_mes_server.text().strip()
-        self.settings["mes_interface"] = self.edit_mes_interface.text().strip()
-        self.settings["remote_file_server"] = self.edit_remote_file_server.text().strip()
-        self.settings["remote_db_ip"] = self.edit_remote_db_ip.text().strip()
-        self.settings["remote_db_table"] = self.edit_remote_db_table.text().strip()
-        self.settings["mes_template"] = self.edit_template.toPlainText()
-        self.accept()
+        try:
+            self.settings["storage_mode"] = self.combo_mode.currentData()
+            self.settings["batch"] = self.edit_batch.text().strip()
+            self.settings["log_dir"] = self.edit_log_dir.text().strip()
+            self.settings["report_dir"] = self.edit_report_dir.text().strip()
+            self.settings["remote_storage_enabled"] = self.chk_remote_file.isChecked()
+            self.settings["remote_storage_url"] = self.edit_remote_storage_url.text().strip()
+            self.settings["json_upload_enabled"] = self.chk_json.isChecked()
+            self.settings["json_upload_url"] = self.edit_json_url.text().strip()
+            self.settings["server_username"] = self.edit_server_user.text().strip()
+            self.settings["server_password"] = self.edit_server_pwd.text()
+            self.settings["mes_server"] = self.edit_mes_server.text().strip()
+            self.settings["mes_interface"] = self.edit_mes_interface.text().strip()
+            self.settings["remote_file_server"] = self.edit_remote_file_server.text().strip()
+            self.settings["remote_db_ip"] = self.edit_remote_db_ip.text().strip()
+            self.settings["remote_db_table"] = self.edit_remote_db_table.text().strip()
+            self.settings["mes_template"] = self.edit_template.toPlainText()
+            self.accept()
+        except Exception:
+            syslog.exception("保存计划设置失败")
+            QMessageBox.critical(self, "错误", "保存计划设置失败，详情见系统日志（data/logs/）")
 
     def get_settings(self):
         return self.settings

@@ -1,0 +1,1703 @@
+{
+  "name": "吉翼灵巧手_RS485功能测试",
+  "description": "吉翼灵巧手 RS485 功能测试（USB-485）。测量类读取并判定；写类判定 ok==1。连接默认：port=/dev/ttyUSB0, baud=1Mbps, dev_id=0x20。可按需修改。",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "",
+    "log_dir": "",
+    "report_dir": "",
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "c586336472594f07b0a3a0faec1664e8",
+      "name": "读类功能测试(R)",
+      "cases": [
+        {
+          "id": "7f9f0b64ce4e433a8b81bf82c38a40a9",
+          "name": "测量_产品信息",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x00 读产品信息（R）",
+          "config": {
+            "display": "产品信息",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_info",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0",
+                "display": "产品信息"
+              }
+            ]
+          }
+        },
+        {
+          "id": "3555f8a847f34d87bcf234be8424218e",
+          "name": "测量_关节故障码",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x01 关节故障码,期望0（R）",
+          "config": {
+            "display": "故障码",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_fault",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "0",
+                "display": "故障码"
+              }
+            ]
+          }
+        },
+        {
+          "id": "26e608e08e6d4175a83f0d68dc39f5e1",
+          "name": "测量_直流总线电压",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x30 总线电压（R）",
+          "config": {
+            "display": "直流总线电压",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_bus_voltage",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "1~65535",
+                "display": "电压"
+              }
+            ]
+          }
+        },
+        {
+          "id": "20355d03b6094a04839daabd52981353",
+          "name": "测量_关节电流",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x31 关节电流（R）",
+          "config": {
+            "display": "关节电流",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_current",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "电流"
+              }
+            ]
+          }
+        },
+        {
+          "id": "8dbd3d6a464f4915b6ef1492aa4d9cdf",
+          "name": "测量_关节温度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x32 关节温度（R）",
+          "config": {
+            "display": "关节温度",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_temp",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "温度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "2320ecdfccee48ac9837029d21a123ae",
+          "name": "测量_工作模式",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x33 工作模式（R）",
+          "config": {
+            "display": "工作模式",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_mode",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "模式"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c65263ad29b24dc7a4d50f911c38136f",
+          "name": "测量_手指0压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x09 手指0压力（R）",
+          "config": {
+            "display": "手指0压力",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 0,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b9aebe11915a45f89abe54613f5ed599",
+          "name": "测量_手指1压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0A 手指1压力（R）",
+          "config": {
+            "display": "手指1压力",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d8429b733899421285dc8fbe861d072b",
+          "name": "测量_手指2压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0B 手指2压力（R）",
+          "config": {
+            "display": "手指2压力",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6e30b66393d241269fd22abb1edce910",
+          "name": "测量_手指3压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0C 手指3压力（R）",
+          "config": {
+            "display": "手指3压力",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9d3b88b6d4d54813ba2610a414958c5f",
+          "name": "测量_手指4压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0D 手指4压力（R）",
+          "config": {
+            "display": "手指4压力",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "a44b9309d5d84ed08568752f59d10345",
+          "name": "测量_关节1位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节1当前位置（R）",
+          "config": {
+            "display": "关节1当前位置",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "879e23bd1ac04f66944965552ba4cb11",
+          "name": "测量_关节1速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节1当前速度（R）",
+          "config": {
+            "display": "关节1当前速度",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "508938fbdba34f3a87b777ee63a96328",
+          "name": "测量_关节1扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节1当前扭矩（R）",
+          "config": {
+            "display": "关节1当前扭矩",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "56f1909ca6f94cda88e322b85a186e81",
+          "name": "测量_关节2位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节2当前位置（R）",
+          "config": {
+            "display": "关节2当前位置",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f28251fc99634f00bf6fdd0d26399e45",
+          "name": "测量_关节2速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节2当前速度（R）",
+          "config": {
+            "display": "关节2当前速度",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "66a1213144e9403d9dbc75da6a31438b",
+          "name": "测量_关节2扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节2当前扭矩（R）",
+          "config": {
+            "display": "关节2当前扭矩",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f7e35520845243f6b06fc460dd20f441",
+          "name": "测量_关节3位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节3当前位置（R）",
+          "config": {
+            "display": "关节3当前位置",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "771c18307d2d422aa420a7ad19b2ae7d",
+          "name": "测量_关节3速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节3当前速度（R）",
+          "config": {
+            "display": "关节3当前速度",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e400076c606a454086c0e349dd314b51",
+          "name": "测量_关节3扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节3当前扭矩（R）",
+          "config": {
+            "display": "关节3当前扭矩",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "08213b8de93641e7b3423b8cc710c5af",
+          "name": "测量_关节4位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节4当前位置（R）",
+          "config": {
+            "display": "关节4当前位置",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "085532add62a4bfcbdb2ec6cd9ac7b9f",
+          "name": "测量_关节4速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节4当前速度（R）",
+          "config": {
+            "display": "关节4当前速度",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ddbb8b82c7d64e448fe6b02e256d1dd2",
+          "name": "测量_关节4扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节4当前扭矩（R）",
+          "config": {
+            "display": "关节4当前扭矩",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "582b0f2e2bce46ff8830a9f431d7ccd7",
+          "name": "测量_关节0位标定数据",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x20 关节0位标定数据（R/W）",
+          "config": {
+            "display": "关节0位标定数据",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_read_calib",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "标定数据"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "5d03fbd0dd8c48c685fd3266d0811226",
+      "name": "参数读写类(R/W)",
+      "cases": [
+        {
+          "id": "0db26c97a96843da839ecda833d5bb29",
+          "name": "测量_堵转时间读写",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC0 堵转时间读写（R/W）",
+          "config": {
+            "display": "堵转时间",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_write_param",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "addr",
+                "type": "str",
+                "value": "0xC0",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "int",
+                "value": 50,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "50",
+                "display": "堵转时间"
+              }
+            ]
+          }
+        },
+        {
+          "id": "3353c39ff43a424cbcb5e031619d70ef",
+          "name": "测量_堵转阈值读写",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC1 堵转阈值读写（R/W）",
+          "config": {
+            "display": "堵转阈值",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_write_param",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "addr",
+                "type": "str",
+                "value": "0xC1",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "int",
+                "value": 500,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "500",
+                "display": "堵转阈值"
+              }
+            ]
+          }
+        },
+        {
+          "id": "3d9207cb34314a0288c8b62c7291f7aa",
+          "name": "测量_堵转扭矩读写",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC2 堵转扭矩读写（R/W）",
+          "config": {
+            "display": "堵转扭矩",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_write_param",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "addr",
+                "type": "str",
+                "value": "0xC2",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "int",
+                "value": 700,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "700",
+                "display": "堵转扭矩"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "250425e899b144c98a50f11c5a28e960",
+      "name": "写类控制(W)",
+      "cases": [
+        {
+          "id": "ba8e73d99360400aab5a04ae4d876193",
+          "name": "动作_0位标定(使能)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x02 0位标定 0x03使能（W）",
+          "config": {
+            "display": "0位标定",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_zero_calib",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "a7dd0409bf7c403189adc33b2ccf1b83",
+          "name": "动作_关节1目标位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x03 关节1目标位置=100（W）",
+          "config": {
+            "display": "关节1目标位置",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_set_position",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              },
+              {
+                "name": "position",
+                "type": "int",
+                "value": 100,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "0e8f050ed24a453f887c6b3f494558ba",
+          "name": "动作_关节1目标速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x04 关节1目标速度=100（W）",
+          "config": {
+            "display": "关节1目标速度",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_set_speed",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              },
+              {
+                "name": "speed",
+                "type": "int",
+                "value": 100,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "8a68ab6b07a74a4da5dde6998c6db5cf",
+          "name": "动作_关节1目标扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x05 关节1目标扭矩=100（W）",
+          "config": {
+            "display": "关节1目标扭矩",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_set_torque",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              },
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              },
+              {
+                "name": "torque",
+                "type": "int",
+                "value": 100,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "753548bf63a14208b223a33c7628496f",
+          "name": "动作_保存参数",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xCF 保存参数（W）",
+          "config": {
+            "display": "保存参数",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_save_params",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "66b93c83e07a40e4a1c927603d6dec4d",
+          "name": "动作_恢复出厂设置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC8 恢复出厂设置（W，慎用）",
+          "config": {
+            "display": "恢复出厂设置",
+            "script": "scripts/灵巧手/rs485_test.py",
+            "function": "mea_factory_reset",
+            "params": [
+              {
+                "name": "port",
+                "type": "str",
+                "value": "/dev/ttyUSB0",
+                "source": "value"
+              },
+              {
+                "name": "baud",
+                "type": "int",
+                "value": 1000000,
+                "source": "value"
+              },
+              {
+                "name": "dev_id",
+                "type": "int",
+                "value": 32,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

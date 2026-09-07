@@ -5,7 +5,7 @@ a = Analysis(
     ['/home/jyzn/Test_management_sw/main.py'],
     pathex=[],
     binaries=[],
-    datas=[('/home/jyzn/Test_management_sw/UI', 'UI'), ('/home/jyzn/Test_management_sw/scripts', 'scripts'), ('/home/jyzn/Test_management_sw/assets', 'assets')],
+    datas=[('/home/jyzn/Test_management_sw/UI', 'UI'), ('/home/jyzn/Test_management_sw/scripts', 'scripts'), ('/home/jyzn/Test_management_sw/assets', 'assets'), ('/home/jyzn/Test_management_sw/library', 'library')],
     hiddenimports=['requests', 'yaml', 'paramiko'],
     hookspath=[],
     hooksconfig={},

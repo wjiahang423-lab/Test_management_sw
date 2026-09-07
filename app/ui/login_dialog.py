@@ -28,7 +28,11 @@ class LoginDialog(QDialog):
             if not pm.isNull():
                 self._bg_pixmap = pm
 
-        uic.loadUi(UI_FILES["login"], self)
+        try:
+            uic.loadUi(UI_FILES["login"], self)
+        except Exception as e:
+            syslog.exception("加载登录界面失败：{}".format(UI_FILES["login"]))
+            raise RuntimeError("加载登录界面失败（UI/login.ui 缺失或损坏）：{}".format(e))
         self.setWindowTitle("测试用例管理系统 - 登录")
         self._form = self.formContainer
         self.logo_label = make_logo_label(72)

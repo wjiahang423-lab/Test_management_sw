@@ -418,8 +418,13 @@ class ExecutePage:
         self.append_log("测试开始执行")
 
     def _on_pop_requested(self, config):
-        dlg = PopDialog(config, self.ui)
-        result = dlg.exec_() == QDialog.Accepted
+        try:
+            dlg = PopDialog(config, self.ui)
+            result = dlg.exec_() == QDialog.Accepted
+        except Exception:
+            syslog.exception("弹出人机交互窗口失败，按取消处理")
+            self.append_log("弹窗显示异常，已按（取消）继续执行")
+            result = False
         self.engine.pop_result = result
         self.engine.pop_requested.set()
 

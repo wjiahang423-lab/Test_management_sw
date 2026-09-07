@@ -1,0 +1,1106 @@
+{
+  "name": "吉翼灵巧手_CANFD功能测试",
+  "description": "吉翼灵巧手 CANFD 功能测试（ZLG USB-CANFD-200U）。测量类：读取寄存器并数值判定；写类：判定 value/ok。CAN 连接参数（dev_id/channel/interface/bitrate/等）统一在 scripts/灵巧手/canfd_test.py 顶部「公共全局前置参数设置」中配置，PLAN 仅传测量/写入数据参数。",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "",
+    "log_dir": "",
+    "report_dir": "",
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "5d69c4a364e9426ea163ded70ab04700",
+      "name": "读类功能测试(R)",
+      "cases": [
+        {
+          "id": "5009dd213ef5422c9aef85616ae7a1c3",
+          "name": "测量_产品信息",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x00 读产品信息（R）",
+          "config": {
+            "display": "产品信息",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_info",
+            "params": [],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0",
+                "display": "产品信息"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c2d9ebd58ce844be805aa9d4c1727d82",
+          "name": "测量_关节故障码",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x01 关节故障码,期望0（R）",
+          "config": {
+            "display": "故障码",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_fault",
+            "params": [
+              {
+                "name": "joints",
+                "type": "int",
+                "value": 16,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "0",
+                "display": "故障码"
+              }
+            ]
+          }
+        },
+        {
+          "id": "68dd86b056dc4fcfb92b6a18f44d6707",
+          "name": "测量_直流总线电压",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x30 总线电压（R）",
+          "config": {
+            "display": "直流总线电压",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_bus_voltage",
+            "params": [],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "1~65535",
+                "display": "电压"
+              }
+            ]
+          }
+        },
+        {
+          "id": "fcb178a437da4346b1e457710af8c679",
+          "name": "测量_关节电流",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x31 关节电流（R）",
+          "config": {
+            "display": "关节电流",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_current",
+            "params": [],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "电流"
+              }
+            ]
+          }
+        },
+        {
+          "id": "2d66315c534e45da86269667103037b9",
+          "name": "测量_关节温度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x32 关节温度（R）",
+          "config": {
+            "display": "关节温度",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_temp",
+            "params": [],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "温度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "72cafa6a5dfe4a79be52ca92154d3590",
+          "name": "测量_工作模式",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x33 工作模式（R）",
+          "config": {
+            "display": "工作模式",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_mode",
+            "params": [],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "模式"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b0687760e97c4029a22d9bef8c077f09",
+          "name": "测量_手指0压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x09 手指0压力（R）",
+          "config": {
+            "display": "手指0压力",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 0,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "5388260056ea41248889d3e8b1025c7e",
+          "name": "测量_手指1压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0A 手指1压力（R）",
+          "config": {
+            "display": "手指1压力",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9cc773e8d0d54aa2864743b10d66ca91",
+          "name": "测量_手指2压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0B 手指2压力（R）",
+          "config": {
+            "display": "手指2压力",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d32c23cf21274a7d8e793dc447ff7777",
+          "name": "测量_手指3压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0C 手指3压力（R）",
+          "config": {
+            "display": "手指3压力",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "5c1514f9c8fc4eb48c932fb4c053529d",
+          "name": "测量_手指4压力",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x0D 手指4压力（R）",
+          "config": {
+            "display": "手指4压力",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_pressure",
+            "params": [
+              {
+                "name": "finger",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "压力"
+              }
+            ]
+          }
+        },
+        {
+          "id": "bc0de95f3b7e4bf49e4b9758b3bebdc2",
+          "name": "测量_关节1位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节1当前位置（R）",
+          "config": {
+            "display": "关节1当前位置",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "b6faa423045b485596a4fc5e5316331b",
+          "name": "测量_关节1速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节1当前速度（R）",
+          "config": {
+            "display": "关节1当前速度",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "636a2c9790ad441a9682de420b346f90",
+          "name": "测量_关节1扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节1当前扭矩（R）",
+          "config": {
+            "display": "关节1当前扭矩",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "53723a389a534fd5b48e3a1896db7e34",
+          "name": "测量_关节2位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节2当前位置（R）",
+          "config": {
+            "display": "关节2当前位置",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "a2a6286df3e540caaa1c96d888b55795",
+          "name": "测量_关节2速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节2当前速度（R）",
+          "config": {
+            "display": "关节2当前速度",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6fd67bab730e46f3b36c77a8ce2c6153",
+          "name": "测量_关节2扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节2当前扭矩（R）",
+          "config": {
+            "display": "关节2当前扭矩",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 2,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "350dc80c86844c66ba82214b89de02d9",
+          "name": "测量_关节3位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节3当前位置（R）",
+          "config": {
+            "display": "关节3当前位置",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4be817f1961144c098a35f1908807066",
+          "name": "测量_关节3速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节3当前速度（R）",
+          "config": {
+            "display": "关节3当前速度",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "0e67e094e67b42a2afb9446816332d74",
+          "name": "测量_关节3扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节3当前扭矩（R）",
+          "config": {
+            "display": "关节3当前扭矩",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 3,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9f00f268a6df4682ae5c88af5c2bb2d9",
+          "name": "测量_关节4位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x06 关节4当前位置（R）",
+          "config": {
+            "display": "关节4当前位置",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_position",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "位置"
+              }
+            ]
+          }
+        },
+        {
+          "id": "1427f6aac32f41c9b9a1fad985ef7b60",
+          "name": "测量_关节4速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x07 关节4当前速度（R）",
+          "config": {
+            "display": "关节4当前速度",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_speed",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "速度"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6bc5ce367b2044a7889c67125cafe615",
+          "name": "测量_关节4扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x08 关节4当前扭矩（R）",
+          "config": {
+            "display": "关节4当前扭矩",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_torque",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 4,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "扭矩"
+              }
+            ]
+          }
+        },
+        {
+          "id": "e5c0301827d940f8b98f6bcf97b88655",
+          "name": "测量_关节0位标定数据",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x20 关节0位标定数据（R/W）",
+          "config": {
+            "display": "关节0位标定数据",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_read_calib",
+            "params": [],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "0~65535",
+                "display": "标定数据"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "31b44b27f0cc4769af065e3fb8181330",
+      "name": "参数读写类(R/W)",
+      "cases": [
+        {
+          "id": "6baf70ebc4cc4488a9b9885602736774",
+          "name": "测量_堵转时间读写",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC0 堵转时间读写（R/W）",
+          "config": {
+            "display": "堵转时间",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_write_param",
+            "params": [
+              {
+                "name": "addr",
+                "type": "str",
+                "value": "0xC0",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "int",
+                "value": 50,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "50",
+                "display": "堵转时间"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4c24565d19ea484d82f802a5efd84a8c",
+          "name": "测量_堵转阈值读写",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC1 堵转阈值读写（R/W）",
+          "config": {
+            "display": "堵转阈值",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_write_param",
+            "params": [
+              {
+                "name": "addr",
+                "type": "str",
+                "value": "0xC1",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "int",
+                "value": 500,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "500",
+                "display": "堵转阈值"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9e674693dc944e2baf14f605975bb05c",
+          "name": "测量_堵转扭矩读写",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC2 堵转扭矩读写（R/W）",
+          "config": {
+            "display": "堵转扭矩",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_write_param",
+            "params": [
+              {
+                "name": "addr",
+                "type": "str",
+                "value": "0xC2",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "int",
+                "value": 700,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "700",
+                "display": "堵转扭矩"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "55516fbe3f134e0a9a002c4d355e1549",
+      "name": "写类控制(W)",
+      "cases": [
+        {
+          "id": "acd42605578e4b62a5c7dc3dba720dfb",
+          "name": "动作_0位标定(使能)",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x02 0位标定 0x03使能（W）",
+          "config": {
+            "display": "0位标定",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_zero_calib",
+            "params": [],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "81ca9d8d2cea4065bf99160df3ef5b17",
+          "name": "动作_关节1目标位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x03 关节1目标位置=100（W）",
+          "config": {
+            "display": "关节1目标位置",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_set_position",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              },
+              {
+                "name": "position",
+                "type": "int",
+                "value": 100,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "34493541008247baa3bff46ac53ad386",
+          "name": "动作_关节1目标速度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x04 关节1目标速度=100（W）",
+          "config": {
+            "display": "关节1目标速度",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_set_speed",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              },
+              {
+                "name": "speed",
+                "type": "int",
+                "value": 100,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "14c6149ea31540e2aaeba75c0eb1ed9a",
+          "name": "动作_关节1目标扭矩",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0x05 关节1目标扭矩=100（W）",
+          "config": {
+            "display": "关节1目标扭矩",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_set_torque",
+            "params": [
+              {
+                "name": "joint",
+                "type": "int",
+                "value": 1,
+                "source": "value"
+              },
+              {
+                "name": "torque",
+                "type": "int",
+                "value": 100,
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "5e7f7f2204dd4f26904b3a651c930944",
+          "name": "动作_保存参数",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xCF 保存参数（W）",
+          "config": {
+            "display": "保存参数",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_save_params",
+            "params": [],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        },
+        {
+          "id": "be06fb5c245c4366a3d1fcfe794948d4",
+          "name": "动作_恢复出厂设置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "0xC8 恢复出厂设置（W，慎用）",
+          "config": {
+            "display": "恢复出厂设置",
+            "script": "scripts/灵巧手/canfd_test.py",
+            "function": "mea_factory_reset",
+            "params": [],
+            "returns": [
+              {
+                "item": "ok",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "1",
+                "display": "ok"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

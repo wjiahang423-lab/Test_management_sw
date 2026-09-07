@@ -12,22 +12,28 @@ class GridLineDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         super().paint(painter, option, index)
-        painter.save()
-        pen = QPen(self.line_color, 1)
-        pen.setStyle(Qt.SolidLine)
-        painter.setPen(pen)
-        rect = option.rect
+        try:
+            painter.save()
+            pen = QPen(self.line_color, 1)
+            pen.setStyle(Qt.SolidLine)
+            painter.setPen(pen)
+            rect = option.rect
 
-        tree = self.parent()
-        header = tree.header() if tree is not None else None
+            tree = self.parent()
+            header = tree.header() if tree is not None else None
 
-        # vertical separator at each column boundary
-        if header is not None:
-            for col in range(header.count() - 1):
-                x = header.sectionViewportPosition(col) + header.sectionSize(col)
-                painter.drawLine(x, rect.top(), x, rect.bottom() + 1)
+            # vertical separator at each column boundary
+            if header is not None:
+                for col in range(header.count() - 1):
+                    x = header.sectionViewportPosition(col) + header.sectionSize(col)
+                    painter.drawLine(x, rect.top(), x, rect.bottom() + 1)
 
-        # horizontal separator under each row
-        painter.drawLine(rect.left(), rect.bottom(), rect.right(), rect.bottom())
+            # horizontal separator under each row
+            painter.drawLine(rect.left(), rect.bottom(), rect.right(), rect.bottom())
 
-        painter.restore()
+            painter.restore()
+        except Exception:
+            try:
+                painter.restore()
+            except Exception:
+                pass

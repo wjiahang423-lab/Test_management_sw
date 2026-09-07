@@ -57,18 +57,21 @@ class SettingsManager:
 
     def update(self, **kwargs):
         with self._lock:
-            if "font_size" in kwargs:
-                self.font_size = int(kwargs["font_size"])
-            if "window_width" in kwargs:
-                self.window_width = int(kwargs["window_width"])
-            if "window_height" in kwargs:
-                self.window_height = int(kwargs["window_height"])
-            if "speed_factor" in kwargs:
-                self.speed_factor = float(kwargs["speed_factor"])
-            if "clear_password" in kwargs:
-                self.clear_password = str(kwargs["clear_password"])
-            if "station_id" in kwargs:
-                self.station_id = str(kwargs["station_id"])
-            if "station_name" in kwargs:
-                self.station_name = str(kwargs["station_name"])
-            self.save()
+            try:
+                if "font_size" in kwargs:
+                    self.font_size = max(9, min(32, int(kwargs["font_size"])))
+                if "window_width" in kwargs:
+                    self.window_width = max(800, int(kwargs["window_width"]))
+                if "window_height" in kwargs:
+                    self.window_height = max(600, int(kwargs["window_height"]))
+                if "speed_factor" in kwargs:
+                    self.speed_factor = max(0.01, min(10.0, float(kwargs["speed_factor"])))
+                if "clear_password" in kwargs:
+                    self.clear_password = str(kwargs["clear_password"])
+                if "station_id" in kwargs:
+                    self.station_id = str(kwargs["station_id"])
+                if "station_name" in kwargs:
+                    self.station_name = str(kwargs["station_name"])
+                self.save()
+            except Exception:
+                syslog.exception("更新全局设置失败")

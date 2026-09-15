@@ -11,8 +11,8 @@ class GridLineDelegate(QStyledItemDelegate):
         self.line_color = QColor(color)
 
     def paint(self, painter, option, index):
-        super().paint(painter, option, index)
         try:
+            super().paint(painter, option, index)
             painter.save()
             pen = QPen(self.line_color, 1)
             pen.setStyle(Qt.SolidLine)

@@ -1,0 +1,82 @@
+{
+  "name": "扫码(一维/二维码)控制测试",
+  "description": "演示如何用软件启动扫码模块：点【开始】→ 用例调用 scripts/scan_sn.py 的 scan_sn → 弹出扫码框并聚焦输入框 → 新大陆 NLS-N1 扫码枪扫描任意一维码/二维码，内容自动输入并回车 → SN 回填执行面板。扫码枪为 USB 键盘楔入模式（需按扳机扫描，属正常扫码方式）。",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "SCAN-DEMO",
+    "log_dir": "",
+    "report_dir": "",
+    "continuous": false,
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "scan00000001",
+      "name": "扫码流程",
+      "cases": [
+        {
+          "id": "scan00000002",
+          "name": "扫码录入(软件触发)",
+          "type": "measurement",
+          "timeout_ms": 30000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "软件先触发扫码枪出光(SCNTRG1)，弹出扫码框；扫到条码/二维码后自动点【确认】并关闭；扫码超时 15 秒自动关闭。SN 回填执行页面。",
+          "config": {
+            "script": "scripts/scan_sn.py",
+            "function": "scan_sn",
+            "params": [
+              { "name": "soft_trigger", "source": "value", "type": "str", "value": "true", "description": "软件触发扫码枪" },
+              { "name": "auto_confirm", "source": "value", "type": "str", "value": "true", "description": "扫码成功自动确认" },
+              { "name": "scan_timeout_s", "source": "value", "type": "str", "value": "15", "description": "扫码等待秒数" }
+            ]
+          }
+        },
+        {
+          "id": "scan00000003",
+          "name": "延时500ms",
+          "type": "delay",
+          "timeout_ms": 2000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": { "delay_ms": 500 }
+        },
+        {
+          "id": "scan00000004",
+          "name": "再次扫码(循环验证)",
+          "type": "measurement",
+          "timeout_ms": 30000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "再次软件触发扫码，验证连续多张条码/二维码。",
+          "config": {
+            "script": "scripts/scan_sn.py",
+            "function": "scan_sn",
+            "params": [
+              { "name": "soft_trigger", "source": "value", "type": "str", "value": "true" },
+              { "name": "auto_confirm", "source": "value", "type": "str", "value": "true" },
+              { "name": "scan_timeout_s", "source": "value", "type": "str", "value": "15" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

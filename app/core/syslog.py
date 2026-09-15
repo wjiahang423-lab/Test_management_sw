@@ -80,8 +80,14 @@ def exception(tag="", exc=None):
 
 def log_exception_hook(exc_type, exc_value, exc_tb):
     """sys.excepthook-compatible: never crash, log everything."""
-    if issubclass(exc_type, KeyboardInterrupt):
-        _write("INFO", "程序被用户中断（Ctrl+C）")
-        return
-    lines = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
-    _write("ERROR", "未捕获异常（主线程）：\n{}".format(lines.rstrip()))
+    try:
+        if issubclass(exc_type, KeyboardInterrupt):
+            _write("INFO", "程序被用户中断（Ctrl+C）")
+            return
+        lines = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        _write("ERROR", "未捕获异常（主线程）：\n{}".format(lines.rstrip()))
+    except Exception:
+        try:
+            _write("ERROR", "异常处理钩子自身出错")
+        except Exception:
+            pass

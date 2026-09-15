@@ -1,3 +1,5 @@
+import time
+
 from PyQt5.QtCore import QEvent, QObject, Qt, QTimer, pyqtSignal
 from PyQt5.QtWidgets import (QAbstractButton, QAbstractItemView, QAbstractSlider,
                              QAbstractSpinBox, QAction, QApplication, QComboBox,
@@ -68,13 +70,11 @@ class _WindowDragFilter(QObject):
         if et == QEvent.MouseMove:
             if self._press_pos is not None and (event.buttons() & Qt.LeftButton):
                 if self._drag_offset is None:
-                    # 仅在真正拖动（移动超过阈值）时才还原并移动窗口，
-                    # 否则普通点击的微小位移会把最大化窗口误还原
+                    # 仅在真正拖动（移动超过阈值）时才开始移动窗口，
+                    # 否则普通点击的微小位移会被当作拖动
                     if (event.globalPos() - self._press_pos).manhattanLength() < QApplication.startDragDistance() * 5:
                         return False
                     win = self._window
-                    if win.isMaximized():
-                        win.showNormal()
                     self._drag_offset = event.globalPos() - win.frameGeometry().topLeft()
                 win = self._window
                 win.move(event.globalPos() - self._drag_offset)
@@ -105,6 +105,11 @@ class MainWindow(QMainWindow):
         # 窗口全屏（产线触屏 Kiosk 模式：系统顶栏与左侧坞自动隐藏）
         self.setWindowState(Qt.WindowFullScreen)
         self.resize(settings.window_width, settings.window_height)
+        # 全屏守护：防止触摸屏从顶部下滑/拖拽把全屏窗口还原或最小化
+        self._windowed_until = 0.0
+        self._kiosk_timer = QTimer(self)
+        self._kiosk_timer.timeout.connect(self._kiosk_guard)
+        self._kiosk_timer.start(800)
         icon = load_icon()
         if not icon.isNull():
             self.setWindowIcon(icon)
@@ -220,9 +225,20 @@ class MainWindow(QMainWindow):
 
     def _toggle_fullscreen(self):
         if self.isFullScreen():
+            self._windowed_until = time.time() + 60
             self.showMaximized()
         else:
+            self._windowed_until = 0
             self.showFullScreen()
+
+    def _kiosk_guard(self):
+        """Kiosk 全屏守护：窗口若被系统手势还原/最小化，自动恢复全屏。
+        F11 手动退出后 60 秒内不自动回全屏，便于维护。"""
+        try:
+            if not self.isFullScreen() and time.time() > self._windowed_until:
+                self.showFullScreen()
+        except Exception:
+            syslog.exception("全屏守护异常")
 
     def switch_to_execute(self):
         self.stack.setCurrentWidget(self.execute_host)
@@ -234,12 +250,13 @@ class MainWindow(QMainWindow):
 
     def apply_settings(self, init=False):
         try:
-            font = self.font()
-            font.setPointSize(self.settings.font_size)
-            self.setFont(font)
             if init:
                 self.resize(self.settings.window_width, self.settings.window_height)
+            self.execute_page.apply_font_scale()
+            self.execute_page.apply_small_font()
             self.execute_page.refresh_station_title()
+            # 应用管理页面字体缩放
+            self.manage_page.apply_font_scale()
         except Exception:
             syslog.exception("应用全局设置失败")
 

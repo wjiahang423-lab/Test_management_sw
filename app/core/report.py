@@ -4,9 +4,13 @@ import html
 import json
 import os
 import threading
+import time
 
 from . import syslog
 from .paths import LOGS_DIR, REPORTS_DIR
+
+# 待上报数据缓存目录
+PENDING_UPLOAD_DIR = os.path.join(os.path.dirname(REPORTS_DIR), "pending_uploads")
 
 
 class RunLogger:
@@ -78,16 +82,18 @@ class RunLogger:
             self._fh = None
 
 
-def _today_start():
+def _cutoff_ts(retention_days=1):
+    """计算截止时间戳：retention_days 天前的凌晨0点。"""
     now = datetime.datetime.now()
-    return datetime.datetime(now.year, now.month, now.day).timestamp()
+    cutoff = now - datetime.timedelta(days=retention_days)
+    return datetime.datetime(cutoff.year, cutoff.month, cutoff.day).timestamp()
 
 
-def _cleanup_dir(directory):
-    """删除目录中修改时间早于今天凌晨的文件（保留当天报告/日志）。"""
+def _cleanup_dir(directory, retention_days=1):
+    """删除目录中修改时间早于截止时间的文件。"""
     if not directory or not os.path.isdir(directory):
         return
-    cutoff = _today_start()
+    cutoff = _cutoff_ts(retention_days)
     try:
         for name in os.listdir(directory):
             path = os.path.join(directory, name)
@@ -100,8 +106,8 @@ def _cleanup_dir(directory):
         pass
 
 
-def cleanup_old_reports(dirs=None):
-    """本地只保留当天报告与日志，清理之前日期的文件。"""
+def cleanup_old_reports(dirs=None, retention_days=1):
+    """清理旧报告与日志，保留指定天数。"""
     targets = list(dirs or [])
     targets.extend([LOGS_DIR, REPORTS_DIR])
     seen = set()
@@ -110,7 +116,7 @@ def cleanup_old_reports(dirs=None):
         if key in seen:
             continue
         seen.add(key)
-        _cleanup_dir(d)
+        _cleanup_dir(d, retention_days)
 
 
 def _now_str():
@@ -395,11 +401,12 @@ def save_local_report(plan, context, results, sn=None, speed=1.0, log_path=None)
 
 
 def _sn_record(test_time, batch, sn, case_name, value, upper, lower, expected=None,
-               type_="", status=""):
+               type_="", status="", case_no=""):
     return {
         "test_time": test_time,
         "batch": batch,
         "sn": sn or "",
+        "case_no": case_no,
         "case_name": case_name,
         "type": type_,
         "status": status,
@@ -427,6 +434,143 @@ def basic_auth(settings):
     if not user and not psw:
         return None
     return (user, psw)
+
+
+def login_token(settings):
+    """登录服务器获取Token。
+
+    返回 (token, message)。token为None表示登录失败。
+    """
+    login_url = settings.get("login_url", "")
+    username = settings.get("login_username", "")
+    password = settings.get("login_password", "")
+
+    if not login_url:
+        return None, "未配置登录接口地址"
+
+    try:
+        import requests
+        payload = {"username": username, "password": password}
+        resp = requests.post(login_url, json=payload, timeout=10)
+
+        if not resp.ok:
+            return None, "登录失败: HTTP {}".format(resp.status_code)
+
+        data = resp.json()
+        # 尝试从常见的响应结构中提取token
+        token = data.get("token") or data.get("access_token") or data.get("data", {}).get("token")
+        if not token:
+            return None, "登录响应中未找到token字段"
+
+        syslog.info("登录成功，已获取Token")
+        return token, "登录成功"
+    except requests.exceptions.Timeout:
+        return None, "登录请求超时"
+    except requests.exceptions.ConnectionError as e:
+        return None, "登录连接失败: {}".format(str(e))
+    except Exception as e:
+        return None, "登录异常: {}".format(str(e))
+
+
+def token_auth(settings):
+    """获取Token认证的请求头。
+
+    返回 headers dict，如果未启用Token认证则返回None。
+    """
+    if not settings.get("use_token_auth"):
+        return None
+
+    token, msg = login_token(settings)
+    if not token:
+        syslog.warn("Token认证失败: {}".format(msg))
+        return None
+
+    header_name = settings.get("token_header", "Authorization")
+    prefix = settings.get("token_prefix", "Bearer ")
+    return {header_name: "{}{}".format(prefix, token)}
+
+
+def ensure_pending_dir():
+    """确保待上报数据缓存目录存在。"""
+    try:
+        os.makedirs(PENDING_UPLOAD_DIR, exist_ok=True)
+    except Exception:
+        syslog.exception("创建待上报数据目录失败")
+
+
+def save_pending_data(data, plan_name, sn):
+    """暂存待上报数据到本地文件。
+
+    文件名格式: {plan_name}_{sn}_{timestamp}.json
+    """
+    ensure_pending_dir()
+    timestamp = int(time.time() * 1000)
+    filename = "{}_{}_{}.json".format(
+        plan_name.replace("/", "_").replace("\\", "_"),
+        (sn or "NOSN").replace("/", "_").replace("\\", "_"),
+        timestamp
+    )
+    filepath = os.path.join(PENDING_UPLOAD_DIR, filename)
+
+    try:
+        pending_info = {
+            "plan_name": plan_name,
+            "sn": sn,
+            "create_time": _now_str(),
+            "retry_count": 0,
+            "data": data,
+        }
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(pending_info, f, ensure_ascii=False, indent=2)
+        syslog.info("数据已暂存: {}".format(filepath))
+        return filepath
+    except Exception as e:
+        syslog.exception("暂存数据失败")
+        return None
+
+
+def load_pending_data():
+    """加载所有待上报的数据。
+
+    返回 [(filepath, pending_info), ...] 列表。
+    """
+    ensure_pending_dir()
+    result = []
+    try:
+        for filename in os.listdir(PENDING_UPLOAD_DIR):
+            if not filename.endswith(".json"):
+                continue
+            filepath = os.path.join(PENDING_UPLOAD_DIR, filename)
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    pending_info = json.load(f)
+                result.append((filepath, pending_info))
+            except Exception:
+                syslog.warn("读取待上报文件失败: {}".format(filepath))
+    except Exception:
+        syslog.exception("扫描待上报数据目录失败")
+    return result
+
+
+def delete_pending_data(filepath):
+    """删除已上报成功的待上报数据文件。"""
+    try:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+            syslog.info("已删除待上报文件: {}".format(filepath))
+    except Exception as e:
+        syslog.warn("删除待上报文件失败: {}".format(str(e)))
+
+
+def update_pending_retry(filepath, pending_info):
+    """更新待上报数据的重试次数。"""
+    try:
+        pending_info["retry_count"] = pending_info.get("retry_count", 0) + 1
+        pending_info["last_retry_time"] = _now_str()
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(pending_info, f, ensure_ascii=False, indent=2)
+    except Exception:
+        pass
 
 
 def send_json_cases(plan, context, results, sn=None):
@@ -457,7 +601,6 @@ def send_json_cases(plan, context, results, sn=None):
     key = (context.get_upload_key() if context is not None else "") or settings.get("json_upload_key", "")
     if not url:
         return False, "未配置 JSON 上报接口地址（计划设置→逐用例JSON上报）"
-    auth = basic_auth(settings)
 
     batch = settings.get("batch", "") or ""
     test_time = _now_ms_str()
@@ -466,12 +609,14 @@ def send_json_cases(plan, context, results, sn=None):
         if r.get("skipped"):
             continue
         name = r.get("name", "")
+        case_no = r.get("case_no", "")
         case_type = r.get("type", "")
         state = r.get("state", "")
         base = {
             "test_time": test_time,
             "batch": batch,
             "sn": sn or "",
+            "case_no": case_no,
             "case_name": name,
             "type": case_type,
             "status": state,
@@ -512,12 +657,12 @@ def send_json_cases(plan, context, results, sn=None):
                 records.append(_sn_record(test_time, batch, sn, name,
                                           m.get("value"),
                                           m.get("upper"), m.get("lower"),
-                                          m.get("expected"), case_type, state))
+                                          m.get("expected"), case_type, state, case_no))
             continue
         # 其它类型：一条记录，实际值记结果状态；若该用例带有结构化结果（如标定参数），
         # 一并附到记录里并展开到顶层，便于后端直接入库标定数据。
         rec = _sn_record(test_time, batch, sn, name, state, None, None,
-                         None, case_type, state)
+                         None, case_type, state, case_no)
         payload = r.get("payload")
         if isinstance(payload, dict):
             flat = {k: payload[k] for k in payload if k in (
@@ -538,12 +683,67 @@ def send_json_cases(plan, context, results, sn=None):
         "test_time": test_time,
         "records": records,
     }
-    try:
-        import requests
-        resp = requests.post(url, json=payload, timeout=15, auth=auth)
-        return resp.ok, "HTTP {}".format(resp.status_code)
-    except Exception as e:
-        return False, str(e)
+    return _send_with_retry(url, payload, settings, plan.name, sn)
+
+
+def _send_with_retry(url, payload, settings, plan_name, sn):
+    """发送数据到服务器，支持Token认证、重试和数据暂存。
+
+    返回 (ok, message)。
+    """
+    import requests
+
+    # 确定认证方式：Token认证优先
+    use_token = settings.get("use_token_auth", False)
+    auth = None
+    headers = {}
+
+    if use_token:
+        # Token认证：先登录获取token
+        token, msg = login_token(settings)
+        if token:
+            header_name = settings.get("token_header", "Authorization")
+            prefix = settings.get("token_prefix", "Bearer ")
+            headers[header_name] = "{}{}".format(prefix, token)
+            syslog.info("使用Token认证进行数据上报")
+        else:
+            syslog.warn("Token获取失败({})，尝试使用基本认证".format(msg))
+            auth = basic_auth(settings)
+    else:
+        # 使用基本认证
+        auth = basic_auth(settings)
+
+    max_retries = 3
+    last_error = ""
+
+    for attempt in range(max_retries):
+        try:
+            resp = requests.post(url, json=payload, timeout=15, auth=auth, headers=headers)
+            if resp.ok:
+                syslog.info("数据上报成功: HTTP {}".format(resp.status_code))
+                return True, "HTTP {}".format(resp.status_code)
+            else:
+                last_error = "HTTP {}".format(resp.status_code)
+                syslog.warn("数据上报失败(第{}次): {}".format(attempt + 1, last_error))
+        except requests.exceptions.Timeout:
+            last_error = "请求超时"
+            syslog.warn("数据上报超时(第{}次)".format(attempt + 1))
+        except requests.exceptions.ConnectionError as e:
+            last_error = "连接失败: {}".format(str(e)[:100])
+            syslog.warn("数据上报连接失败(第{}次): {}".format(attempt + 1, last_error))
+        except Exception as e:
+            last_error = str(e)
+            syslog.warn("数据上报异常(第{}次): {}".format(attempt + 1, last_error))
+
+        # 如果不是最后一次尝试，等待1秒后重试
+        if attempt < max_retries - 1:
+            time.sleep(1)
+
+    # 3次重试都失败，暂存数据
+    syslog.error("数据上报{}次均失败，暂存数据".format(max_retries))
+    save_pending_data(payload, plan_name, sn)
+
+    return False, "上报失败({})，数据已暂存，将在下次测试时重试".format(last_error)
 
 
 def send_remote_report(plan, context, results, sn=None):

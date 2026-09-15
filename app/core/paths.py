@@ -62,28 +62,31 @@ def resolve_root_path(path):
     """把计划中存储的路径解析为绝对路径（自动识别根目录，保证移植后可找到）。
 
     规则：
-    1. 相对路径 -> 优先相对 BASE_DIR（源码根目录/程序目录），其次相对打包资源目录
+    1. 相对路径 -> 优先相对 BASE_DIR（源码根目录/程序目录），其次相对打包资源目录。
+       不依赖当前工作目录（cwd），因此程序从任意位置（如桌面）启动也能找到脚本。
     2. 绝对路径存在 -> 直接用
     3. 绝对路径不存在 -> 按文件名在根目录 scripts/ 下回退查找
     """
     if not path:
         return path
-    expanded = os.path.abspath(os.path.expanduser(str(path)))
-    if os.path.isabs(expanded):
-        if os.path.exists(expanded):
-            return expanded
-        base = os.path.basename(expanded)
-        for cand in (os.path.join(BASE_DIR, "scripts", base),
-                     os.path.join(BASE_DIR, base),
-                     os.path.join(BUNDLE_DIR, "scripts", base)):
-            if os.path.exists(cand):
-                return cand
+    raw = str(path)
+    userexp = os.path.expanduser(raw)
+    if not os.path.isabs(userexp):
+        for root in (BASE_DIR, BUNDLE_DIR):
+            candidate = os.path.join(root, userexp)
+            if os.path.exists(candidate):
+                return candidate
+        return os.path.join(BASE_DIR, userexp)
+    expanded = os.path.abspath(userexp)
+    if os.path.exists(expanded):
         return expanded
-    for root in (BASE_DIR, BUNDLE_DIR):
-        candidate = os.path.join(root, expanded)
-        if os.path.exists(candidate):
-            return candidate
-    return os.path.join(BASE_DIR, expanded)
+    base = os.path.basename(expanded)
+    for cand in (os.path.join(BASE_DIR, "scripts", base),
+                 os.path.join(BASE_DIR, base),
+                 os.path.join(BUNDLE_DIR, "scripts", base)):
+        if os.path.exists(cand):
+            return cand
+    return expanded
 
 UI_FILES = {
     "login": os.path.join(UI_DIR, "login.ui - 登录页.ui"),

@@ -7,8 +7,11 @@
     "batch": "CIT-20260819",
     "log_dir": "",
     "report_dir": "",
+    "continuous": false,
     "remote_storage_enabled": false,
     "remote_storage_url": "",
+    "remote_storage_content": "both",
+    "remote_storage_strategy": "always",
     "json_upload_enabled": true,
     "json_upload_url": "http://10.5.35.49:5000/submit",
     "json_upload_key": "",
@@ -19,7 +22,12 @@
     "mes_template": "",
     "remote_file_server": "",
     "remote_db_ip": "",
-    "remote_db_table": ""
+    "remote_db_table": "",
+    "login_url": "",
+    "login_username": "",
+    "login_password": "",
+    "token_header": "Authorization",
+    "token_prefix": "Bearer "
   },
   "sequences": [
     {
@@ -28,6 +36,7 @@
       "cases": [
         {
           "id": "f520552e2125",
+          "case_no": "110001",
           "name": "动作_CIT连通性(list)",
           "type": "action",
           "timeout_ms": 6000,
@@ -37,11 +46,13 @@
           "description": "",
           "config": {
             "script": "scripts/cit_api.py",
-            "function": "cit_ping"
+            "function": "cit_ping",
+            "description": ""
           }
         },
         {
           "id": "59b709e76262",
+          "case_no": "",
           "name": "动作_获取板卡系统信息",
           "type": "action",
           "timeout_ms": 6000,
@@ -56,6 +67,7 @@
         },
         {
           "id": "dce3a246b426",
+          "case_no": "",
           "name": "延时_300ms",
           "type": "delay",
           "timeout_ms": 2300,
@@ -76,6 +88,7 @@
       "cases": [
         {
           "id": "48fd7cd4129e",
+          "case_no": "",
           "name": "测量_list_测试项数量",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -108,6 +121,7 @@
         },
         {
           "id": "44b0c074e4b8",
+          "case_no": "",
           "name": "测量_describe_ver.bsp",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -154,6 +168,7 @@
         },
         {
           "id": "f706a8e27589",
+          "case_no": "",
           "name": "测量_describe_hw.cpu_cores",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -193,6 +208,7 @@
         },
         {
           "id": "d6ee6752663d",
+          "case_no": "",
           "name": "测量_describe_node.cit",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -225,6 +241,7 @@
         },
         {
           "id": "439c7bf2a200",
+          "case_no": "",
           "name": "测量_sysinfo_CPU=8",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -263,6 +280,7 @@
       "cases": [
         {
           "id": "65a6eb91d0c6",
+          "case_no": "",
           "name": "测量_run_cpu_cores",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -295,6 +313,7 @@
         },
         {
           "id": "ee3edcdbbd14",
+          "case_no": "",
           "name": "测量_run_memory",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -327,6 +346,7 @@
         },
         {
           "id": "3e1d727cc8be",
+          "case_no": "",
           "name": "测量_run_ver.all",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -366,6 +386,7 @@
         },
         {
           "id": "803ca0ef246f",
+          "case_no": "",
           "name": "测量_run_net.eth0",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -398,6 +419,7 @@
         },
         {
           "id": "64ced0ceca89",
+          "case_no": "",
           "name": "测量_run_node.cit_参数覆盖",
           "type": "measurement",
           "timeout_ms": 10000,
@@ -442,6 +464,7 @@
       "cases": [
         {
           "id": "32cb342fd860",
+          "case_no": "",
           "name": "Loop_run_批量执行(含FAIL/ERROR/覆盖)",
           "type": "loop",
           "timeout_ms": 60000,
@@ -460,6 +483,7 @@
         },
         {
           "id": "8995a0a1fb57",
+          "case_no": "",
           "name": "Loop_describe_批量描述",
           "type": "loop",
           "timeout_ms": 60000,

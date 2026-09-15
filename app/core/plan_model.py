@@ -18,6 +18,7 @@ def new_id():
 class TestCase:
     def __init__(self):
         self.id = new_id()
+        self.case_no = ""  # 测试编号（可选）
         self.name = ""
         self.type = "action"
         self.timeout_ms = 5000
@@ -34,6 +35,7 @@ class TestCase:
                 config[key] = relpath_from_root(config[key])
         return {
             "id": self.id,
+            "case_no": self.case_no,
             "name": self.name,
             "type": self.type,
             "timeout_ms": self.timeout_ms,
@@ -49,6 +51,7 @@ class TestCase:
         try:
             case = cls()
             case.id = d.get("id") or new_id()
+            case.case_no = d.get("case_no", "")
             case.name = d.get("name", "")
             case.type = d.get("type", "action")
             case.timeout_ms = int(d.get("timeout_ms", 5000))
@@ -100,10 +103,13 @@ class TestPlan:
             "batch": "",  # 当前批次
             "log_dir": "",
             "report_dir": "",
+            "continuous": False,  # 连续循环：清空完成后自动从头再执行，直到强制停止/退出
             "remote_storage_enabled": False,  # 启用远程文件存储（报告/日志上传）
             "remote_storage_url": "",         # 远程文件上传接口地址
-            "json_upload_enabled": False,     # 启用逐用例 JSON 数据上报
-            "json_upload_url": "",            # 逐用例 JSON 上报接口地址
+            "remote_storage_content": "both", # 上传内容：both/report_only/log_only
+            "remote_storage_strategy": "always",  # 上传策略：always/on_failure
+            "json_upload_enabled": False,     # 启用测试结果上报（JSON）
+            "json_upload_url": "",            # 测试结果上报接口地址
             "json_upload_key": "",            # 上报密钥（可为空，服务器认证见下）
             "server_username": "root",        # 服务器登录用户名（HTTP 基本认证）
             "server_password": "root",        # 服务器登录密码
@@ -113,6 +119,12 @@ class TestPlan:
             "remote_file_server": "",
             "remote_db_ip": "",
             "remote_db_table": "",
+            # Token认证相关配置
+            "login_url": "",                  # 登录接口地址
+            "login_username": "",             # 登录用户名
+            "login_password": "",             # 登录密码
+            "token_header": "Authorization",  # Token在请求头中的字段名
+            "token_prefix": "Bearer ",        # Token前缀
         }
         self.file_path = None
 

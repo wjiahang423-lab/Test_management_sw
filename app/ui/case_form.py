@@ -579,6 +579,9 @@ class CaseEditorDialog(QDialog):
 
         common = QGroupBox("通用配置")
         form = QFormLayout(common)
+        self.lineEdit_case_no = QLineEdit()
+        self.lineEdit_case_no.setPlaceholderText("可选，如 TC001")
+        form.addRow("测试编号：", self.lineEdit_case_no)
         self.lineEdit_name = QLineEdit()
         form.addRow("用例名称：", self.lineEdit_name)
         self.combo_type = GuardedComboBox()
@@ -643,6 +646,7 @@ class CaseEditorDialog(QDialog):
         return self.combo_type.currentData()
 
     def _load_case(self, case):
+        self.lineEdit_case_no.setText(getattr(case, "case_no", ""))
         self.lineEdit_name.setText(case.name)
         self.combo_type.setCurrentIndex(list(CASE_TYPE_NAMES.keys()).index(case.type) if case.type in CASE_TYPE_NAMES else 0)
         self.spin_timeout.setValue(int(case.timeout_ms))
@@ -669,6 +673,7 @@ class CaseEditorDialog(QDialog):
         form = self.forms.get(case_type)
         config = form.get_config() if form else {}
         return {
+            "case_no": self.lineEdit_case_no.text().strip(),
             "name": self.lineEdit_name.text().strip(),
             "type": case_type,
             "timeout_ms": int(self.spin_timeout.value()),

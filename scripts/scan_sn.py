@@ -8,7 +8,7 @@ SN扫描脚本 - 前置步骤
 """
 
 import sys
-from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, QObject, QMetaObject, QThread
+from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, QObject, QMetaObject, QThread, QTimer
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QFont, QColor
 from PyQt5.QtWidgets import (
     QApplication, QDialog, QVBoxLayout, QHBoxLayout,
@@ -20,15 +20,18 @@ from PyQt5.QtWidgets import (
 class _SNRunner(QObject):
     """在 GUI 线程创建并运行 SN 输入对话框（跨线程安全桥接）。"""
 
-    def __init__(self, prompt):
+    def __init__(self, prompt, auto_confirm=False, close_timeout_s=0):
         super().__init__()
         self.prompt = prompt
+        self.auto_confirm = auto_confirm
+        self.close_timeout_s = close_timeout_s
         self.sn = ""
         self.accepted = False
 
     @pyqtSlot()
     def run(self):
-        dlg = SNInputDialog(prompt=self.prompt)
+        dlg = SNInputDialog(prompt=self.prompt, auto_confirm=self.auto_confirm,
+                            close_timeout_s=self.close_timeout_s)
         self.accepted = False
         if dlg.exec_() == QDialog.Accepted:
             self.sn = dlg.get_sn()
@@ -58,7 +61,8 @@ class SNInputDialog(QDialog):
     sn_received = pyqtSignal(str)
     abort_requested = pyqtSignal()
 
-    def __init__(self, parent=None, prompt="请扫描或输入SN码:"):
+    def __init__(self, parent=None, prompt="请扫描或输入SN码:", auto_confirm=False,
+                 close_timeout_s=0):
         super().__init__(parent)
         self.setWindowTitle("SN码扫描")
         self.setFixedSize(520, 380)          # 高度略增以容纳菜单栏
@@ -66,6 +70,9 @@ class SNInputDialog(QDialog):
 
         self._sn = ""
         self._aborted = False
+        self._auto_confirm = auto_confirm
+        self._close_timeout_s = max(0, int(close_timeout_s or 0))
+        self._left_s = self._close_timeout_s
         self._build_ui(prompt)
 
     def _build_ui(self, prompt: str) -> None:
@@ -94,6 +101,25 @@ class SNInputDialog(QDialog):
         self._sn_input.setFixedHeight(50)
         self._sn_input.setStyleSheet("font-size: 14px; padding: 6px;")
         main_layout.addWidget(self._sn_input)
+
+        # 扫码状态 / 倒计时提示
+        self._status_label = QLabel("")
+        self._status_label.setStyleSheet("color: #C0392B; font-size: 13px;")
+        main_layout.addWidget(self._status_label)
+
+        # 自动确认：扫码内容输入完成后自动点击“确认”（相当于按页面确认按钮）
+        if self._auto_confirm:
+            self._auto_timer = QTimer(self)
+            self._auto_timer.setSingleShot(True)
+            self._auto_timer.timeout.connect(self._on_submit)
+            self._sn_input.textChanged.connect(self._schedule_auto)
+
+        # 超时自动关闭：扫码等待超过 xx 秒仍未读到，则自动关闭按“取消”处理
+        if self._close_timeout_s > 0:
+            self._countdown = QTimer(self)
+            self._countdown.timeout.connect(self._tick)
+            self._countdown.start(1000)
+            self._update_countdown_label()
 
         # 中间弹性间距
         main_layout.addSpacerItem(QSpacerItem(20, 30, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -126,6 +152,30 @@ class SNInputDialog(QDialog):
             self.sn_received.emit(sn)
             self.accept()
 
+    def _schedule_auto(self) -> None:
+        """扫码枪把条码敲入输入框后，文字停止变化约0.4秒即自动点“确认”。"""
+        if not self._sn_input.text().strip():
+            return
+        try:
+            self._auto_timer.start(400)
+        except Exception:
+            pass
+
+    def _tick(self) -> None:
+        self._left_s -= 1
+        self._update_countdown_label()
+        if self._left_s <= 0:
+            try:
+                self._countdown.stop()
+            except Exception:
+                pass
+            self._status_label.setText("扫码等待超时")
+            self.reject()
+
+    def _update_countdown_label(self) -> None:
+        if self._close_timeout_s > 0:
+            self._status_label.setText("等待扫码：剩余 {} 秒（扫码成功后自动确认）".format(max(self._left_s, 0)))
+
     def _on_abort(self) -> None:
         """中止测试"""
         self._aborted = True
@@ -152,7 +202,7 @@ class SNScanner:
         self._dialog = None
         self._app = None
 
-    def get_sn_sync(self, prompt="请扫描或输入SN码:") -> str:
+    def get_sn_sync(self, prompt="请扫描或输入SN码:", auto_confirm=False, close_timeout_s=0) -> str:
         app = QApplication.instance()
         if app is None:
             app = QApplication(sys.argv)
@@ -161,14 +211,15 @@ class SNScanner:
         main_thread = app.thread()
         if QThread.currentThread() is main_thread:
             # 已在 GUI 线程：直接显示对话框
-            dialog = SNInputDialog(prompt=prompt)
+            dialog = SNInputDialog(prompt=prompt, auto_confirm=auto_confirm,
+                                   close_timeout_s=close_timeout_s)
             self._dialog = dialog
             if dialog.exec_() == QDialog.Accepted:
                 return dialog.get_sn()
             return ""
 
         # 引擎工作线程：把对话框委托到 GUI 线程执行（避免跨线程创建 Qt 窗口导致崩溃）
-        runner = _SNRunner(prompt)
+        runner = _SNRunner(prompt, auto_confirm=auto_confirm, close_timeout_s=close_timeout_s)
         runner.moveToThread(main_thread)
         QMetaObject.invokeMethod(runner, "run", Qt.BlockingQueuedConnection)
         self._dialog = runner
@@ -178,18 +229,42 @@ class SNScanner:
 _scanner = SNScanner()
 
 
-def scan_sn(params: dict = None) -> dict:
-    if params is None:
-        params = {}
+def _toint(value, default=0):
+    try:
+        return int(float(str(value)))
+    except Exception:
+        return default
 
-    prompt = params.get("prompt", "请扫描或输入SN码:")
+
+def scan_sn(params: dict = None, **kwargs) -> dict:
+    p = dict(params or {})
+    p.update(kwargs)
+
+    prompt = p.get("prompt", "请扫描或输入SN码:")
+
+    # 软件触发参数：soft_trigger=True 时先发 SCNTRG1 让扫码枪自动出光扫描
+    soft_trigger = str(p.get("soft_trigger", "false")).lower() in ("true", "1", "yes", "on")
+    # 扫码成功自动点“确认”，对话框自动关闭
+    auto_confirm = str(p.get("auto_confirm", "true" if soft_trigger else "false")).lower() \
+        in ("true", "1", "yes", "on")
+    # 扫码等待超时秒数（0 = 不限时，等用户操作）
+    close_timeout_s = _toint(p.get("scan_timeout_s", 0), 0)
+
+    if soft_trigger:
+        try:
+            import nls_trigger
+            ok, msg = nls_trigger.fire()
+            if not ok:
+                return {"sn": "", "success": False, "message": "软件触发扫码失败: {}".format(msg)}
+            print("[SN扫描] 已软件触发扫码枪（SCNTRG1），等待扫码...", flush=True)
+        except Exception as e:
+            return {"sn": "", "success": False, "message": "软件触发扫码异常: {}".format(e)}
 
     print(f"\n{'='*50}")
     print(f"[SN扫描] {prompt}")
     print(f"{'='*50}")
-   
 
-    show_dialog = params.get("_show_sn_dialog")
+    show_dialog = p.get("_show_sn_dialog")
     if show_dialog is not None:
         try:
             sn = show_dialog(prompt)
@@ -197,8 +272,9 @@ def scan_sn(params: dict = None) -> dict:
             return {"sn": "", "success": False, "message": f"SN扫描出错: {str(e)}"}
     else:
         try:
-            sn = _scanner.get_sn_sync(prompt)
-             # 设置sn到面板
+            sn = _scanner.get_sn_sync(prompt, auto_confirm=auto_confirm,
+                                      close_timeout_s=close_timeout_s)
+            # 设置sn到面板
             set_sn_to_Panel(sn)
         except Exception as e:
             return {"sn": "", "success": False, "message": f"SN扫描出错: {str(e)}"}

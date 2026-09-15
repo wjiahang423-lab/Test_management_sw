@@ -24,6 +24,9 @@ NAV_VARIABLES = 1
 NAV_SETTINGS = 2
 NAV_USERS = 3
 
+# 管理页面字体基准值（与 .ui 文件中的原始值一致）
+FONT_BASE = 14  # 基准 font_size
+
 
 class ManagePage:
     def __init__(self, context, variables, settings, user_manager, settings_apply_cb=None, window=None):
@@ -47,14 +50,16 @@ class ManagePage:
         self._plan_delegate = GridLineDelegate("#b3d4fc", self.ui.treeWidget_plan)
         self.ui.treeWidget_plan.setItemDelegate(self._plan_delegate)
         self.ui.treeWidget_plan.setContextMenuPolicy(Qt.CustomContextMenu)
-        # 列宽（.ui 中的 width 不生效，必须用代码设置）：0名称拉伸，其余固定
+        # 列宽（.ui 中的 width 不生效，必须用代码设置）：0编号，1名称拉伸，其余固定
         tree = self.ui.treeWidget_plan
+        tree.setColumnCount(5)
+        tree.setHeaderLabels(["测试编号", "用例名称", "类型", "超时(ms)", "重试"])
         header = tree.header()
         header.setStretchLastSection(False)
-        for col, width in ((1, 380), (2, 320), (3, 120)):
+        for col, width in ((0, 100), (2, 120), (3, 100), (4, 60)):
             tree.setColumnWidth(col, width)
             header.setSectionResizeMode(col, QHeaderView.Fixed)
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
         self._add_sidebar_logo()
         self._restructure()
         self._add_toolbar_buttons()
@@ -228,6 +233,103 @@ class ManagePage:
         # 当前用户统一显示在菜单栏右侧（main_window），此处保留接口不显示
         pass
 
+    def apply_font_scale(self):
+        """按 manage_font_size 缩放管理页面的字体和控件大小。"""
+        if not self.settings or not self.ui:
+            return
+
+        font_size = self.settings.manage_font_size if self.settings else FONT_BASE
+        scale = font_size / float(FONT_BASE)
+
+        def px(base):
+            return int(round(base * scale))
+
+        # 导航列表字体和间距
+        nav_list = self.ui.navList
+        if nav_list:
+            nav_list.setStyleSheet(
+                "QListWidget#navList { background-color: #2c3e50; border: none; color: #ecf0f1; "
+                "font-size: {}px; outline: none; }"
+                "QListWidget#navList::item {{ padding: {}px {}px; border-left: 3px solid transparent; }}"
+                "QListWidget#navList::item:hover {{ background-color: #34495e; }}"
+                "QListWidget#navList::item:selected {{ background-color: #34495e; "
+                "border-left: 3px solid #3498db; color: white; }}".format(
+                    px(14), px(12), px(16)))
+
+        # 工具栏按钮字体和大小
+        btn_names = [
+            "btn_newPlan", "btn_openPlan", "btn_savePlan", "btn_saveAs",
+            "btn_deletePlan", "btn_planSettings", "btn_addSeq", "btn_addCase",
+            "btn_editItem", "btn_deleteItem"
+        ]
+        btn_colors = {
+            "btn_newPlan": "#27ae60", "btn_openPlan": "#2c5aa0",
+            "btn_savePlan": "#f39c12", "btn_saveAs": "#16a085",
+            "btn_deletePlan": "#e74c3c", "btn_planSettings": "#8e44ad",
+            "btn_addSeq": "#3498db", "btn_addCase": "#3498db",
+            "btn_editItem": "#95a5a6", "btn_deleteItem": "#e74c3c",
+        }
+        for name in btn_names:
+            btn = getattr(self.ui, name, None)
+            if btn:
+                color = btn_colors.get(name, "#3498db")
+                btn.setFixedSize(px(100), px(32))
+                btn.setStyleSheet(
+                    "QPushButton {{ background-color: {0}; color: white; border: none; "
+                    "border-radius: {1}px; padding: {2}px {3}px; font-size: {4}px; }}"
+                    "QPushButton:hover {{ background-color: {0}cc; }}".format(
+                        color, px(4), px(7), px(14), px(13)))
+
+        # 窗口控制按钮字体和大小
+        if hasattr(self, "_win_max_btn") and self._win_max_btn:
+            layout = self.ui.topBarLayout
+            btn_size = px(32)
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if item and item.widget():
+                    w = item.widget()
+                    if isinstance(w, QPushButton) and w.text() in ("－", "□", "❐", "✕"):
+                        w.setFixedSize(btn_size, btn_size)
+                        text = w.text()
+                        if text == "✕":
+                            w.setStyleSheet(
+                                "QPushButton {{ background: rgba(231,76,60,230); color: white;"
+                                " border: none; border-radius: {0}px; font-size: {1}px;"
+                                " font-weight: bold; }}"
+                                "QPushButton:hover {{ background: rgba(200,40,30,255); color: white; }}".format(
+                                    px(6), px(16)))
+                        else:
+                            w.setStyleSheet(
+                                "QPushButton {{ background: rgba(255,255,255,220); color: #333;"
+                                " border: none; border-radius: {0}px; font-size: {1}px;"
+                                " font-weight: bold; }}"
+                                "QPushButton:hover {{ background: rgba(44,90,160,220); color: white; }}".format(
+                                    px(6), px(16)))
+
+        # 切换/帮助按钮字体和大小
+        for btn in [self.btn_debug, self.btn_switch_execute, self.btn_help]:
+            if btn:
+                btn.setFixedSize(px(110), px(32))
+                old_style = btn.styleSheet() or ""
+                import re
+                if "font-size:" in old_style:
+                    new_style = re.sub(r"font-size:\s*\d+px", "font-size: {}px".format(px(13)), old_style)
+                else:
+                    new_style = old_style + " font-size: {}px;".format(px(13))
+                btn.setStyleSheet(new_style)
+
+        # 输入框和表格字体
+        line_edit = getattr(self.ui, "lineEdit_currentPlan", None)
+        if line_edit:
+            line_edit.setStyleSheet("font-size: {}px; padding: {}px;".format(px(13), px(6)))
+
+        tree = self.ui.treeWidget_plan
+        if tree:
+            tree.setStyleSheet(
+                "QTreeWidget {{ background-color: white; border: 1px solid #e1e4e8; "
+                "border-radius: 14px; font-size: {}px; }}"
+                "QTreeWidget::item {{ padding: {}px; }}".format(px(13), px(4)))
+
     # ---------------- plan CRUD ----------------
     def new_plan(self):
         name, ok = QInputDialog.getText(self.ui, "新建计划", "计划名称：")
@@ -357,6 +459,7 @@ class ManagePage:
             data = dlg.get_result()
             from app.core.plan_model import TestCase
             case = TestCase()
+            case.case_no = data.get("case_no", "")
             case.name = data["name"]
             case.type = data["type"]
             case.timeout_ms = data["timeout_ms"]
@@ -397,6 +500,7 @@ class ManagePage:
             dlg = CaseEditorDialog(self.variables, case=case, parent=self.ui)
             if dlg.exec_() == dlg.Accepted:
                 data = dlg.get_result()
+                case.case_no = data.get("case_no", "")
                 case.name = data["name"]
                 case.type = data["type"]
                 case.timeout_ms = data["timeout_ms"]
@@ -494,18 +598,20 @@ class ManagePage:
         if not self.plan:
             return
         for si, seq in enumerate(self.plan.sequences):
-            seq_item = QTreeWidgetItem([seq.name, "序列", "", ""])
+            seq_item = QTreeWidgetItem(["", seq.name, "序列", "", ""])
             seq_item.setData(0, Qt.UserRole, {"kind": "sequence", "seq": si})
             for ci, case in enumerate(seq.cases):
+                case_no = getattr(case, "case_no", "")
                 name_text = case.name + ("  [跳过]" if getattr(case, "skip", False) else "")
                 case_item = QTreeWidgetItem([
+                    case_no,
                     name_text,
                     CASE_TYPE_NAMES.get(case.type, case.type),
                     str(case.timeout_ms),
                     str(case.retry),
                 ])
                 if getattr(case, "skip", False):
-                    case_item.setForeground(0, Qt.gray)
+                    case_item.setForeground(1, Qt.gray)
                 case_item.setData(0, Qt.UserRole, {"kind": "case", "seq": si, "case": ci})
                 seq_item.addChild(case_item)
             tree.addTopLevelItem(seq_item)

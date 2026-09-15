@@ -19,9 +19,11 @@ USBCANFD: &USBCANFD
   bitrate:
     500000: { tseg1: 2, tseg2: 0, sjw: 0, smp: 80, brp: 23 }
     1000000: { tseg1: 2, tseg2: 0, sjw: 0, smp: 80, brp: 11 }
+    5000000: { tseg1: 4, tseg2: 1, sjw: 1, smp: 80, brp: 2 }
   data_bitrate:
     500000: { tseg1: 2, tseg2: 0, sjw: 0, smp: 80, brp: 23 }
     1000000: { tseg1: 2, tseg2: 0, sjw: 0, smp: 80, brp: 11 }
+    5000000: { tseg1: 4, tseg2: 1, sjw: 1, smp: 80, brp: 2 }
 USBCANFD800U: &USBCANFD800U
   bitrate:
     500000: { tseg1: 31, tseg2: 8, sjw: 8, smp: 0, brp: 2 }

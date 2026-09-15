@@ -17,9 +17,17 @@ class SettingsPage(QWidget):
         grp = QGroupBox("全局基础设置")
         form = QFormLayout(grp)
 
-        self.spin_font = QSpinBox()
-        self.spin_font.setRange(9, 32)
-        form.addRow("UI字体大小：", self.spin_font)
+        self.spin_manage_font = QSpinBox()
+        self.spin_manage_font.setRange(9, 32)
+        form.addRow("管理页面字体大小：", self.spin_manage_font)
+
+        self.spin_exec_font = QSpinBox()
+        self.spin_exec_font.setRange(9, 32)
+        form.addRow("执行页面字体大小：", self.spin_exec_font)
+
+        self.spin_small_font = QSpinBox()
+        self.spin_small_font.setRange(8, 40)
+        form.addRow("执行页小字体号(px)：", self.spin_small_font)
 
         row_size = QHBoxLayout()
         self.spin_width = QSpinBox()
@@ -47,6 +55,11 @@ class SettingsPage(QWidget):
         self.edit_station_name = QLineEdit()
         form.addRow("工位名称：", self.edit_station_name)
 
+        self.spin_retention_days = QSpinBox()
+        self.spin_retention_days.setRange(1, 365)
+        self.spin_retention_days.setSuffix(" 天")
+        form.addRow("报告保留天数：", self.spin_retention_days)
+
         layout.addWidget(grp)
 
         btn_row = QHBoxLayout()
@@ -58,13 +71,16 @@ class SettingsPage(QWidget):
         layout.addLayout(btn_row)
         layout.addStretch(1)
 
-        self.spin_font.setValue(self.settings.font_size)
+        self.spin_manage_font.setValue(self.settings.manage_font_size)
+        self.spin_exec_font.setValue(self.settings.font_size)
+        self.spin_small_font.setValue(self.settings.exec_small_font)
         self.spin_width.setValue(self.settings.window_width)
         self.spin_height.setValue(self.settings.window_height)
         self.spin_speed.setValue(self.settings.speed_factor)
         self.edit_password.setText(self.settings.clear_password)
         self.edit_station_id.setText(self.settings.station_id)
         self.edit_station_name.setText(self.settings.station_name)
+        self.spin_retention_days.setValue(self.settings.report_retention_days)
 
         self.btn_apply.clicked.connect(self.apply_now)
         self.btn_save.clicked.connect(self.save_now)
@@ -72,13 +88,16 @@ class SettingsPage(QWidget):
     def apply_now(self):
         try:
             self.settings.update(
-                font_size=self.spin_font.value(),
+                font_size=self.spin_exec_font.value(),
+                manage_font_size=self.spin_manage_font.value(),
+                exec_small_font=self.spin_small_font.value(),
                 window_width=self.spin_width.value(),
                 window_height=self.spin_height.value(),
                 speed_factor=self.spin_speed.value(),
                 clear_password=self.edit_password.text() or "0000",
                 station_id=self.edit_station_id.text().strip() or "01",
                 station_name=self.edit_station_name.text().strip() or "机器人测试01工位",
+                report_retention_days=self.spin_retention_days.value(),
             )
             if self.apply_callback:
                 self.apply_callback()

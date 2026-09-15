@@ -11,13 +11,16 @@ class SettingsManager:
     def __init__(self, file_path=None):
         self._file = file_path or SETTINGS_FILE
         self._lock = threading.RLock()
-        self.font_size = 14
+        self.font_size = 14           # 执行页面字体大小
+        self.manage_font_size = 14    # 管理页面字体大小
+        self.exec_small_font = 13
         self.window_width = 1280
         self.window_height = 800
         self.speed_factor = 1.0
         self.clear_password = DEFAULT_CLEAR_PASSWORD
         self.station_id = "01"
         self.station_name = "机器人测试01工位"
+        self.report_retention_days = 1  # HTML报告保留天数，默认1天（只保留当天）
         self.load()
 
     def load(self):
@@ -28,12 +31,15 @@ class SettingsManager:
                 with open(self._file, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 self.font_size = int(data.get("font_size", self.font_size))
+                self.manage_font_size = int(data.get("manage_font_size", self.manage_font_size))
+                self.exec_small_font = int(data.get("exec_small_font", self.exec_small_font))
                 self.window_width = int(data.get("window_width", self.window_width))
                 self.window_height = int(data.get("window_height", self.window_height))
                 self.speed_factor = float(data.get("speed_factor", self.speed_factor))
                 self.clear_password = str(data.get("clear_password", self.clear_password))
                 self.station_id = str(data.get("station_id", self.station_id))
                 self.station_name = str(data.get("station_name", self.station_name))
+                self.report_retention_days = max(1, int(data.get("report_retention_days", self.report_retention_days)))
             except Exception:
                 syslog.exception("读取全局设置失败：{}".format(self._file))
 
@@ -41,12 +47,15 @@ class SettingsManager:
         with self._lock:
             data = {
                 "font_size": self.font_size,
+                "manage_font_size": self.manage_font_size,
+                "exec_small_font": self.exec_small_font,
                 "window_width": self.window_width,
                 "window_height": self.window_height,
                 "speed_factor": self.speed_factor,
                 "clear_password": self.clear_password,
                 "station_id": self.station_id,
                 "station_name": self.station_name,
+                "report_retention_days": self.report_retention_days,
             }
             try:
                 os.makedirs(os.path.dirname(self._file), exist_ok=True)
@@ -60,6 +69,10 @@ class SettingsManager:
             try:
                 if "font_size" in kwargs:
                     self.font_size = max(9, min(32, int(kwargs["font_size"])))
+                if "manage_font_size" in kwargs:
+                    self.manage_font_size = max(9, min(32, int(kwargs["manage_font_size"])))
+                if "exec_small_font" in kwargs:
+                    self.exec_small_font = max(8, min(40, int(kwargs["exec_small_font"])))
                 if "window_width" in kwargs:
                     self.window_width = max(800, int(kwargs["window_width"]))
                 if "window_height" in kwargs:
@@ -72,6 +85,8 @@ class SettingsManager:
                     self.station_id = str(kwargs["station_id"])
                 if "station_name" in kwargs:
                     self.station_name = str(kwargs["station_name"])
+                if "report_retention_days" in kwargs:
+                    self.report_retention_days = max(1, int(kwargs["report_retention_days"]))
                 self.save()
             except Exception:
                 syslog.exception("更新全局设置失败")

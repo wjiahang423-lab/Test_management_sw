@@ -1,0 +1,168 @@
+{
+  "name": "设备与执行页面接口巡检（连续）",
+  "description": "以树莓派(http://10.5.35.49:5000 mock_api_server)为服务器做接口巡检：循环执行 设备(机器人)状态 / 电压 / 电流 / 温度 / 数据上报 等接口测试，同时持续刷新执行页面（机器人状态、进度、日志、结果树）。点击【开始】即自动执行并以连续模式循环，不暂停；仅在强制退出(Ctrl+Q)或点击停止时结束。接口地址如需修改，在“用例编辑”里改各用例 base 参数。",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "PI-IF-ROBOT",
+    "log_dir": "",
+    "report_dir": "",
+    "continuous": true,
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": ""
+  },
+  "sequences": [
+    {
+      "id": "piif00000001",
+      "name": "设备接口-状态巡检",
+      "cases": [
+        {
+          "id": "piif00000002",
+          "name": "设备状态Robot",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "GET /api/robot/status，回填执行页机器人状态，判定 电压/电流/电量 范围",
+          "config": {
+            "script": "scripts/pi_mock/pi_mock.py",
+            "function": "device_status",
+            "params": [
+              { "name": "base", "source": "value", "type": "str", "value": "http://10.5.35.49:5000", "description": "Pi 服务器地址" }
+            ],
+            "returns": [
+              { "item": "code", "type": "int", "bind_var": "", "judge": "等于", "threshold": "0", "display": "接口code" },
+              { "item": "voltage", "type": "float", "bind_var": "", "judge": "范围内", "threshold": "10~14", "display": "总线电压" },
+              { "item": "current", "type": "float", "bind_var": "", "judge": "范围内", "threshold": "0~3", "display": "关节电流" },
+              { "item": "battery", "type": "int", "bind_var": "", "judge": "大于", "threshold": "50", "display": "电池电量" }
+            ]
+          }
+        },
+        {
+          "id": "piif00000003",
+          "name": "延时500ms",
+          "type": "delay",
+          "timeout_ms": 2000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": { "delay_ms": 500 }
+        },
+        {
+          "id": "piif00000004",
+          "name": "电压测量",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "GET /api/voltage",
+          "config": {
+            "script": "scripts/pi_mock/pi_mock.py",
+            "function": "measure_pi",
+            "params": [
+              { "name": "path", "source": "value", "type": "str", "value": "/api/voltage", "description": "" },
+              { "name": "base", "source": "value", "type": "str", "value": "http://10.5.35.49:5000", "description": "Pi 服务器地址" }
+            ],
+            "returns": [
+              { "item": "value", "type": "float", "bind_var": "", "judge": "范围内", "threshold": "10~14", "display": "电压(V)" }
+            ]
+          }
+        },
+        {
+          "id": "piif00000005",
+          "name": "电流测量",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "GET /api/current",
+          "config": {
+            "script": "scripts/pi_mock/pi_mock.py",
+            "function": "measure_pi",
+            "params": [
+              { "name": "path", "source": "value", "type": "str", "value": "/api/current", "description": "" },
+              { "name": "base", "source": "value", "type": "str", "value": "http://10.5.35.49:5000", "description": "Pi 服务器地址" }
+            ],
+            "returns": [
+              { "item": "value", "type": "float", "bind_var": "", "judge": "范围内", "threshold": "0~3", "display": "电流(A)" }
+            ]
+          }
+        },
+        {
+          "id": "piif00000006",
+          "name": "温度测量",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "GET /api/temperature",
+          "config": {
+            "script": "scripts/pi_mock/pi_mock.py",
+            "function": "measure_pi",
+            "params": [
+              { "name": "path", "source": "value", "type": "str", "value": "/api/temperature", "description": "" },
+              { "name": "base", "source": "value", "type": "str", "value": "http://10.5.35.49:5000", "description": "Pi 服务器地址" }
+            ],
+            "returns": [
+              { "item": "value", "type": "float", "bind_var": "", "judge": "范围内", "threshold": "10~40", "display": "温度(°C)" }
+            ]
+          }
+        },
+        {
+          "id": "piif00000007",
+          "name": "延时2s",
+          "type": "delay",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": { "delay_ms": 2000 }
+        }
+      ]
+    },
+    {
+      "id": "piif00000008",
+      "name": "上报接口-提交",
+      "cases": [
+        {
+          "id": "piif00000009",
+          "name": "数据上报submit",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "POST /submit 上报巡检数据",
+          "config": {
+            "script": "scripts/pi_mock/pi_mock.py",
+            "function": "submit_pi",
+            "params": [
+              { "name": "base", "source": "value", "type": "str", "value": "http://10.5.35.49:5000", "description": "Pi 服务器地址" },
+              { "name": "payload", "source": "value", "type": "str", "value": "special-plan-tick", "description": "上报标签" }
+            ],
+            "returns": [
+              { "item": "code", "type": "int", "bind_var": "", "judge": "等于", "threshold": "0", "display": "接口code" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

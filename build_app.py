@@ -54,6 +54,12 @@ def build():
         "--hidden-import", "requests",
         "--hidden-import", "yaml",
         "--hidden-import", "paramiko",
+        "--hidden-import", "sqlite3",
+        "--hidden-import", "_sqlite3",
+        "--hidden-import", "csv",
+        "--hidden-import", "gzip",
+        "--hidden-import", "pathlib",
+        "--hidden-import", "errno",
         add_data("UI"),
         add_data("scripts"),
         add_data("assets"),
@@ -62,6 +68,17 @@ def build():
     # exclude unused heavy modules to keep the folder smaller
     for mod in ("tkinter", "matplotlib", "scipy", "numpy", "pandas", "PIL"):
         opts += ["--exclude-module", mod]
+
+    # collect the sqlite3 C extension explicitly (hidden-import alone is unreliable)
+    try:
+        import sysconfig
+        destshared = sysconfig.get_config_var("DESTSHARED") or ""
+        import glob as _glob
+        for pat in ("_sqlite3*.so", "_sqlite3*.pyd"):
+            for so in _glob.glob(os.path.join(destshared, pat)):
+                opts += ["--add-binary={}:{}".format(so, ".")]
+    except Exception:
+        pass
 
     print("PyInstaller options:", " ".join(opts))
     import PyInstaller.__main__ as pyi

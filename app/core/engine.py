@@ -7,6 +7,7 @@ threading.Event handshake.
 import concurrent.futures
 import datetime
 import inspect
+import os
 import threading
 import time
 
@@ -39,6 +40,8 @@ class EngineWorker(QThread):
     sig_request_pop = pyqtSignal(dict)
     sig_reset_tree = pyqtSignal()
     sig_phase = pyqtSignal(str)                        # running / paused / stopped / finished
+    sig_round_finished = pyqtSignal(bool, int)         # 连续模式：每轮 (通过?, 轮次)
+    sig_round_started = pyqtSignal(int)                # 连续模式：每轮开始（用于清空页面日志）
 
     def __init__(self, plan, context, variables, settings, parent=None):
         super().__init__(parent)
@@ -122,6 +125,9 @@ class EngineWorker(QThread):
             self._logger.info("测试计划文件：{}".format(self.plan.file_path or "未保存"))
             self._logger.info("总用例数：{}".format(self.plan.total_cases))
 
+            # 续传功能：检查并上传之前未上报的数据
+            self._retry_pending_uploads()
+
             self._run_plan()
 
             if self.stop_flag.is_set():
@@ -199,23 +205,45 @@ class EngineWorker(QThread):
 
     def _run_plan(self):
         total = self.plan.total_cases
-        done = 0
-        case_index = 0
-        for si, ci, seq, case in self.plan.flatten_cases():
-            if self._should_abort():
-                return
-            case_index += 1
-            if self._is_paused():
-                if self._wait_pause():
+        continuous = bool((self.plan.settings or {}).get("continuous"))
+        round_no = 0
+        while True:
+            round_no += 1
+            self.sig_round_started.emit(round_no)
+            done = 0
+            case_index = 0
+            round_start = len(self.results)
+            for si, ci, seq, case in self.plan.flatten_cases():
+                if self._should_abort():
                     return
-            state = self._execute_case(case, case_index, si, ci)
-            if state is None:
-                return  # aborted
-            done += 1
-            self.sig_progress.emit(done, total)
-            self.sig_case_state.emit(case.id, state, self.ctx.get_current_detail(), self.last_elapsed)
-            self.sig_log.emit(
-                "[{}/{}] {} -> {}".format(case_index, total, case.name, state))
+                case_index += 1
+                if self._is_paused():
+                    if self._wait_pause():
+                        return
+                state = self._execute_case(case, case_index, si, ci)
+                if state is None:
+                    return  # aborted
+                done += 1
+                self.sig_progress.emit(done, total)
+                self.sig_case_state.emit(case.id, state, self.ctx.get_current_detail(), self.last_elapsed)
+                self.sig_log.emit(
+                    "[{}/{}] {} -> {}".format(case_index, total, case.name, state))
+            if not continuous:
+                break
+            # 连续模式：每轮结束计入生产统计并生成该轮报告
+            round_results = self.results[round_start:]
+            executed = [r for r in round_results if not r.get("skipped")]
+            round_ok = bool(executed) and all(r.get("passed") is True for r in executed)
+            self.sig_round_finished.emit(round_ok, round_no)
+            self.sig_log.emit("---------- 连续测试：第 {} 轮完成（{}），自动进入下一轮 ----------".format(
+                round_no, "PASS" if round_ok else "FAIL"))
+            try:
+                self._do_report(round_ok, round_results)
+            except Exception:
+                syslog.exception("连续轮次报告生成异常")
+            # 仅保留最近一轮结果，防止 continuous 长跑导致内存无界增长
+            self.results = round_results
+            self.sig_overall.emit("执行中")
         if not any(not r.get("skipped") for r in self.results):
             self.sig_log.emit("测试计划中没有实际执行的用例（已全部跳过或无用例）")
 
@@ -350,6 +378,7 @@ class EngineWorker(QThread):
         self.ctx.finish_case(last_result is True, last_detail)
         result_entry = {
             "index": case_index,
+            "case_no": getattr(case, "case_no", ""),
             "name": case.name,
             "type": case.type,
             "state": state,
@@ -1103,10 +1132,66 @@ class EngineWorker(QThread):
             text = str(value)
         return text
 
+    def _retry_pending_uploads(self):
+        """续传功能：检查并上传之前未上报的数据。"""
+        settings = self.plan.settings or {}
+        if not settings.get("json_upload_enabled"):
+            return
+
+        pending_list = report_mod.load_pending_data()
+        if not pending_list:
+            return
+
+        self.sig_log.emit("发现 {} 条待上传数据，尝试续传...".format(len(pending_list)))
+        self._logger.info("发现 {} 条待上传数据，开始续传".format(len(pending_list)))
+
+        success_count = 0
+        fail_count = 0
+
+        for filepath, pending_info in pending_list:
+            data = pending_info.get("data")
+            if not data:
+                report_mod.delete_pending_data(filepath)
+                continue
+
+            # 检查重试次数
+            retry_count = pending_info.get("retry_count", 0)
+            if retry_count >= 3:
+                self.sig_log.emit("警告：数据已重试{}次仍失败，跳过: {}".format(
+                    retry_count, os.path.basename(filepath)))
+                self._logger.warn("数据已重试{}次仍失败，跳过: {}".format(
+                    retry_count, os.path.basename(filepath)))
+                fail_count += 1
+                continue
+
+            # 尝试上传
+            url = settings.get("json_upload_url", "")
+            if not url:
+                continue
+
+            ok, msg = report_mod._send_with_retry(
+                url, data, settings,
+                pending_info.get("plan_name", ""),
+                pending_info.get("sn", "")
+            )
+
+            if ok:
+                report_mod.delete_pending_data(filepath)
+                success_count += 1
+                self._logger.info("续传成功: {}".format(os.path.basename(filepath)))
+            else:
+                report_mod.update_pending_retry(filepath, pending_info)
+                fail_count += 1
+                self._logger.warn("续传失败: {} - {}".format(os.path.basename(filepath), msg))
+
+        if success_count > 0 or fail_count > 0:
+            self.sig_log.emit("续传完成：成功 {} 条，失败 {} 条".format(success_count, fail_count))
+            self._logger.info("续传完成：成功 {} 条，失败 {} 条".format(success_count, fail_count))
+
     # ---------------- report ----------------
-    def _do_report(self, ok):
+    def _do_report(self, ok, results=None):
         try:
-            self._do_report_impl(ok)
+            self._do_report_impl(ok, results)
         except Exception:
             import traceback as _tb
             self.sig_log.emit("生成报告异常：{}".format(_tb.format_exc()))
@@ -1114,47 +1199,69 @@ class EngineWorker(QThread):
                 self._logger.error("生成报告异常：\n{}".format(_tb.format_exc()))
             syslog.exception("生成测试报告异常")
 
-    def _do_report_impl(self, ok):
+    def _do_report_impl(self, ok, results=None):
         plan = self.plan
+        results = results if results is not None else self.results
         sn = self.ctx.get_sn()
         settings = plan.settings or {}
         self.sig_log.emit("生成测试报告...")
         self._logger.section("测试结果汇总")
         self._logger.info("总体结果：{}".format("PASS" if ok else "FAIL"))
-        passed = sum(1 for r in self.results if r.get("passed") is True)
-        failed = sum(1 for r in self.results if r.get("passed") is False)
-        skipped = sum(1 for r in self.results if r.get("skipped"))
+        passed = sum(1 for r in results if r.get("passed") is True)
+        failed = sum(1 for r in results if r.get("passed") is False)
+        skipped = sum(1 for r in results if r.get("skipped"))
         self._logger.info("总用例：{}　通过：{}　失败：{}　跳过：{}".format(
-            len(self.results), passed, failed, skipped))
+            len(results), passed, failed, skipped))
         robot = self.ctx.get_robot_status()
         self._logger.info("硬件状态：温度={} 电流={} 电压={} 电池={}".format(
             robot.get("temperature"), robot.get("current"),
             robot.get("voltage"), robot.get("battery")))
 
         # 始终生成本地报告与日志（日志已在运行期间实时写入，此处追加汇总）
-        rp, lp = report_mod.save_local_report(plan, self.ctx, self.results, sn=sn,
+        rp, lp = report_mod.save_local_report(plan, self.ctx, results, sn=sn,
                                               log_path=self._logger.path)
         self.sig_log.emit("HTML 报告已保存：{}".format(rp or "失败"))
         self.sig_log.emit("运行日志已保存：{}".format(lp or "失败"))
 
         # MES 远程数据上报（原有功能）
         if settings.get("storage_mode") == "remote":
-            ok_flag, msg = report_mod.send_remote_report(plan, self.ctx, self.results, sn=sn)
+            ok_flag, msg = report_mod.send_remote_report(plan, self.ctx, results, sn=sn)
             self.sig_log.emit("远程MES上报：{}（{}）".format("成功" if ok_flag else "失败", msg))
 
         # 远程文件存储：上传报告/日志到服务器
         if settings.get("remote_storage_enabled"):
-            ok2, msg2 = report_mod.upload_reports(
-                rp, lp, plan.name, sn,
-                settings.get("remote_storage_url", ""),
-                auth=report_mod.basic_auth(settings))
-            self.sig_log.emit("远程文件上传：{}（{}）".format("成功" if ok2 else "失败", msg2))
+            upload_content = settings.get("remote_storage_content", "both")
+            upload_strategy = settings.get("remote_storage_strategy", "always")
+            
+            # 根据上传策略决定是否上传
+            should_upload = False
+            if upload_strategy == "always":
+                should_upload = True
+            elif upload_strategy == "on_failure" and not ok:
+                should_upload = True
+            
+            if should_upload:
+                # 根据上传内容决定上传哪些文件
+                report_to_upload = rp if upload_content in ("both", "report_only") else None
+                log_to_upload = lp if upload_content in ("both", "log_only") else None
+                
+                if report_to_upload or log_to_upload:
+                    ok2, msg2 = report_mod.upload_reports(
+                        report_to_upload, log_to_upload, plan.name, sn,
+                        settings.get("remote_storage_url", ""),
+                        auth=report_mod.basic_auth(settings))
+                    self.sig_log.emit("远程文件上传：{}（{}）".format("成功" if ok2 else "失败", msg2))
+                else:
+                    self.sig_log.emit("远程文件上传：无内容需上传（上传内容设置为空）")
+            else:
+                self.sig_log.emit("远程文件上传：跳过（上传策略：仅失败时上传，本次测试通过）")
 
         # 逐用例 JSON 数据上报（需求 1）
         if settings.get("json_upload_enabled"):
-            ok3, msg3 = report_mod.send_json_cases(plan, self.ctx, self.results, sn=sn)
+            ok3, msg3 = report_mod.send_json_cases(plan, self.ctx, results, sn=sn)
             self.sig_log.emit("逐用例数据上报：{}（{}）".format("成功" if ok3 else "失败", msg3))
 
-        # 本地只保留当天报告与日志
+        # 本地保留指定天数的报告与日志
         extra_dirs = [settings[k] for k in ("log_dir", "report_dir") if settings.get(k)]
-        report_mod.cleanup_old_reports(extra_dirs)
+        retention_days = self.settings.report_retention_days if self.settings else 1
+        report_mod.cleanup_old_reports(extra_dirs, retention_days)

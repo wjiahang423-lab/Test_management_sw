@@ -86,23 +86,32 @@ class PlanSettingsDialog(QDialog):
         self.edit_remote_storage_url = QLineEdit()
         self.edit_remote_storage_url.setPlaceholderText("如 http://192.168.1.100:8000/upload")
         f3.addRow("上传服务器地址：", self.edit_remote_storage_url)
-        f3.addRow("", QLabel("开启后每轮测试结束将 HTML 报告与运行日志上传到该接口\n"
+        self.combo_upload_content = QComboBox()
+        self.combo_upload_content.addItem("报告+日志都上传", "both")
+        self.combo_upload_content.addItem("仅上传报告", "report_only")
+        self.combo_upload_content.addItem("仅上传日志", "log_only")
+        f3.addRow("上传内容：", self.combo_upload_content)
+        self.combo_upload_strategy = QComboBox()
+        self.combo_upload_strategy.addItem("每次测试完成都上传", "always")
+        self.combo_upload_strategy.addItem("仅失败时上传", "on_failure")
+        f3.addRow("上传策略：", self.combo_upload_strategy)
+        f3.addRow("", QLabel("开启后按策略将 HTML 报告与/或运行日志上传到该接口\n"
                              "（multipart/form-data：report、log 字段，另附 plan、sn）。\n"
-                             "本地仍会保留当天报告与日志，过期文件自动清理。"))
+                             "本地仍会保留报告与日志，过期文件自动清理。"))
         add(grp_file)
 
-        grp_json = QGroupBox("逐用例 JSON 数据上报")
+        grp_json = QGroupBox("测试结果上报（JSON）")
         f4 = QFormLayout(grp_json)
-        self.chk_json = QCheckBox("启动")
-        self.chk_json.setToolTip("勾选后每轮测试结束，将每个测试用例的结果数据以 JSON 上报到服务器")
+        self.chk_json = QCheckBox("启用")
+        self.chk_json.setToolTip("勾选后每轮测试结束，将所有测试用例的结果打包以 JSON 上报到服务器")
         f4.addRow("功能开关：", self.chk_json)
         self.edit_json_url = QLineEdit()
         self.edit_json_url.setPlaceholderText("如 http://192.168.1.100:8000/api/test_data")
         f4.addRow("上报接口地址：", self.edit_json_url)
-        f4.addRow("", QLabel("开启后每轮测试结束 POST 一次 JSON 到该接口，报文结构：\n"
-                             "{key, sn, batch, test_time, records[]}；records 每个测试用例一条，\n"
-                             "Loop 为父节点 + list 子项。\n"
-                             "key 可为空；如需认证请在下方填写服务器用户名/密码（HTTP 基本认证）。"))
+        f4.addRow("", QLabel("开启后每轮测试结束，将本轮所有用例结果打包 POST 一次到该接口。\n"
+                             "报文结构：{key, sn, batch, test_time, records[]}，\n"
+                             "records 包含所有用例的结果（每个用例一条记录）。\n"
+                             "如需认证请在下方配置 Token认证 或 服务器用户名/密码。"))
         add(grp_json)
 
         grp_auth = QGroupBox("服务器连接认证")
@@ -117,6 +126,30 @@ class PlanSettingsDialog(QDialog):
         f5.addRow("", QLabel("用于逐用例 JSON 上报、远程文件上传等 HTTP 请求的基本认证\n"
                              "（requests 的 auth 参数）。留空则不发送认证头。"))
         add(grp_auth)
+
+        grp_token = QGroupBox("Token认证配置（可选）")
+        f6 = QFormLayout(grp_token)
+        self.chk_use_token = QCheckBox("启用Token认证（优先于基本认证）")
+        self.chk_use_token.setToolTip("勾选后先登录获取Token，再使用Token进行数据上报")
+        f6.addRow("功能开关：", self.chk_use_token)
+        self.edit_login_url = QLineEdit()
+        self.edit_login_url.setPlaceholderText("如 http://192.168.1.100:8000/api/login")
+        f6.addRow("登录接口地址：", self.edit_login_url)
+        self.edit_login_user = QLineEdit()
+        self.edit_login_user.setPlaceholderText("登录用户名")
+        f6.addRow("登录用户名：", self.edit_login_user)
+        self.edit_login_pwd = QLineEdit()
+        self.edit_login_pwd.setPlaceholderText("登录密码")
+        self.edit_login_pwd.setEchoMode(QLineEdit.Password)
+        f6.addRow("登录密码：", self.edit_login_pwd)
+        self.edit_token_header = QLineEdit("Authorization")
+        f6.addRow("Token字段名：", self.edit_token_header)
+        self.edit_token_prefix = QLineEdit("Bearer ")
+        f6.addRow("Token前缀：", self.edit_token_prefix)
+        f6.addRow("", QLabel("启用后，测试完成后先请求登录接口获取Token，\n"
+                             "再带着Token发送数据到后端服务器。\n"
+                             "如果后端有问题，将暂存数据，最多重试3次。"))
+        add(grp_token)
         self._content_layout.addStretch(1)
 
         self.combo_mode.setCurrentIndex(1 if self.settings.get("storage_mode") == "remote" else 0)
@@ -131,10 +164,26 @@ class PlanSettingsDialog(QDialog):
         self.edit_template.setPlainText(self.settings.get("mes_template", ""))
         self.chk_remote_file.setChecked(bool(self.settings.get("remote_storage_enabled", False)))
         self.edit_remote_storage_url.setText(self.settings.get("remote_storage_url", ""))
+        # 上传内容：both/report_only/log_only
+        upload_content = self.settings.get("remote_storage_content", "both")
+        idx = self.combo_upload_content.findData(upload_content)
+        if idx >= 0:
+            self.combo_upload_content.setCurrentIndex(idx)
+        # 上传策略：always/on_failure
+        upload_strategy = self.settings.get("remote_storage_strategy", "always")
+        idx = self.combo_upload_strategy.findData(upload_strategy)
+        if idx >= 0:
+            self.combo_upload_strategy.setCurrentIndex(idx)
         self.chk_json.setChecked(bool(self.settings.get("json_upload_enabled", False)))
         self.edit_json_url.setText(self.settings.get("json_upload_url", ""))
         self.edit_server_user.setText(self.settings.get("server_username", "root"))
         self.edit_server_pwd.setText(self.settings.get("server_password", "root"))
+        self.chk_use_token.setChecked(bool(self.settings.get("use_token_auth", False)))
+        self.edit_login_url.setText(self.settings.get("login_url", ""))
+        self.edit_login_user.setText(self.settings.get("login_username", ""))
+        self.edit_login_pwd.setText(self.settings.get("login_password", ""))
+        self.edit_token_header.setText(self.settings.get("token_header", "Authorization"))
+        self.edit_token_prefix.setText(self.settings.get("token_prefix", "Bearer "))
 
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.button(QDialogButtonBox.Save).setText("保存")
@@ -144,6 +193,7 @@ class PlanSettingsDialog(QDialog):
         layout.addWidget(buttons)
         self.chk_remote_file.toggled.connect(self._toggle_file)
         self.chk_json.toggled.connect(self._toggle_json)
+        self.chk_use_token.toggled.connect(self._toggle_json)
         self._toggle()
         self._toggle_file()
         self._toggle_json()
@@ -157,10 +207,19 @@ class PlanSettingsDialog(QDialog):
     def _toggle_file(self):
         enabled = self.chk_remote_file.isChecked()
         self.edit_remote_storage_url.setEnabled(enabled)
+        self.combo_upload_content.setEnabled(enabled)
+        self.combo_upload_strategy.setEnabled(enabled)
 
     def _toggle_json(self):
         enabled = self.chk_json.isChecked()
         self.edit_json_url.setEnabled(enabled)
+        # Token认证相关控件
+        token_enabled = self.chk_use_token.isChecked()
+        self.edit_login_url.setEnabled(token_enabled)
+        self.edit_login_user.setEnabled(token_enabled)
+        self.edit_login_pwd.setEnabled(token_enabled)
+        self.edit_token_header.setEnabled(token_enabled)
+        self.edit_token_prefix.setEnabled(token_enabled)
 
     def _browse(self, edit):
         path = QFileDialog.getExistingDirectory(self, "选择目录")
@@ -175,10 +234,18 @@ class PlanSettingsDialog(QDialog):
             self.settings["report_dir"] = self.edit_report_dir.text().strip()
             self.settings["remote_storage_enabled"] = self.chk_remote_file.isChecked()
             self.settings["remote_storage_url"] = self.edit_remote_storage_url.text().strip()
+            self.settings["remote_storage_content"] = self.combo_upload_content.currentData()
+            self.settings["remote_storage_strategy"] = self.combo_upload_strategy.currentData()
             self.settings["json_upload_enabled"] = self.chk_json.isChecked()
             self.settings["json_upload_url"] = self.edit_json_url.text().strip()
             self.settings["server_username"] = self.edit_server_user.text().strip()
             self.settings["server_password"] = self.edit_server_pwd.text()
+            self.settings["use_token_auth"] = self.chk_use_token.isChecked()
+            self.settings["login_url"] = self.edit_login_url.text().strip()
+            self.settings["login_username"] = self.edit_login_user.text().strip()
+            self.settings["login_password"] = self.edit_login_pwd.text()
+            self.settings["token_header"] = self.edit_token_header.text().strip() or "Authorization"
+            self.settings["token_prefix"] = self.edit_token_prefix.text()
             self.settings["mes_server"] = self.edit_mes_server.text().strip()
             self.settings["mes_interface"] = self.edit_mes_interface.text().strip()
             self.settings["remote_file_server"] = self.edit_remote_file_server.text().strip()

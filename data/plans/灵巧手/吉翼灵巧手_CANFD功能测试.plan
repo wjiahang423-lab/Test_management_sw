@@ -289,72 +289,6 @@
           }
         },
         {
-          "id": "d32c23cf21274a7d8e793dc447ff7777",
-          "name": "测量_手指3压力",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x0C 手指3压力（R）",
-          "config": {
-            "display": "手指3压力",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_pressure",
-            "params": [
-              {
-                "name": "finger",
-                "type": "int",
-                "value": 3,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "压力"
-              }
-            ]
-          }
-        },
-        {
-          "id": "5c1514f9c8fc4eb48c932fb4c053529d",
-          "name": "测量_手指4压力",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x0D 手指4压力（R）",
-          "config": {
-            "display": "手指4压力",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_pressure",
-            "params": [
-              {
-                "name": "finger",
-                "type": "int",
-                "value": 4,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "压力"
-              }
-            ]
-          }
-        },
-        {
           "id": "bc0de95f3b7e4bf49e4b9758b3bebdc2",
           "name": "测量_关节1位置",
           "type": "measurement",
@@ -537,204 +471,6 @@
                 "name": "joint",
                 "type": "int",
                 "value": 2,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "扭矩"
-              }
-            ]
-          }
-        },
-        {
-          "id": "350dc80c86844c66ba82214b89de02d9",
-          "name": "测量_关节3位置",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x06 关节3当前位置（R）",
-          "config": {
-            "display": "关节3当前位置",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_position",
-            "params": [
-              {
-                "name": "joint",
-                "type": "int",
-                "value": 3,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "位置"
-              }
-            ]
-          }
-        },
-        {
-          "id": "4be817f1961144c098a35f1908807066",
-          "name": "测量_关节3速度",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x07 关节3当前速度（R）",
-          "config": {
-            "display": "关节3当前速度",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_speed",
-            "params": [
-              {
-                "name": "joint",
-                "type": "int",
-                "value": 3,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "速度"
-              }
-            ]
-          }
-        },
-        {
-          "id": "0e67e094e67b42a2afb9446816332d74",
-          "name": "测量_关节3扭矩",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x08 关节3当前扭矩（R）",
-          "config": {
-            "display": "关节3当前扭矩",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_torque",
-            "params": [
-              {
-                "name": "joint",
-                "type": "int",
-                "value": 3,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "扭矩"
-              }
-            ]
-          }
-        },
-        {
-          "id": "9f00f268a6df4682ae5c88af5c2bb2d9",
-          "name": "测量_关节4位置",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x06 关节4当前位置（R）",
-          "config": {
-            "display": "关节4当前位置",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_position",
-            "params": [
-              {
-                "name": "joint",
-                "type": "int",
-                "value": 4,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "位置"
-              }
-            ]
-          }
-        },
-        {
-          "id": "1427f6aac32f41c9b9a1fad985ef7b60",
-          "name": "测量_关节4速度",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x07 关节4当前速度（R）",
-          "config": {
-            "display": "关节4当前速度",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_speed",
-            "params": [
-              {
-                "name": "joint",
-                "type": "int",
-                "value": 4,
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "value",
-                "type": "int",
-                "bind_var": "",
-                "judge": "范围内",
-                "threshold": "0~65535",
-                "display": "速度"
-              }
-            ]
-          }
-        },
-        {
-          "id": "6bc5ce367b2044a7889c67125cafe615",
-          "name": "测量_关节4扭矩",
-          "type": "measurement",
-          "timeout_ms": 10000,
-          "retry": 0,
-          "fail_policy": "continue",
-          "skip": false,
-          "description": "0x08 关节4当前扭矩（R）",
-          "config": {
-            "display": "关节4当前扭矩",
-            "script": "scripts/灵巧手/canfd_test.py",
-            "function": "mea_read_torque",
-            "params": [
-              {
-                "name": "joint",
-                "type": "int",
-                "value": 4,
                 "source": "value"
               }
             ],
@@ -948,13 +684,13 @@
               {
                 "name": "joint",
                 "type": "int",
-                "value": 1,
+                "value": "1",
                 "source": "value"
               },
               {
                 "name": "position",
                 "type": "int",
-                "value": 100,
+                "value": "10",
                 "source": "value"
               }
             ],
@@ -964,8 +700,7 @@
                 "type": "int",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "1",
-                "display": "ok"
+                "threshold": "1"
               }
             ]
           }
@@ -977,7 +712,7 @@
           "timeout_ms": 10000,
           "retry": 0,
           "fail_policy": "continue",
-          "skip": false,
+          "skip": true,
           "description": "0x04 关节1目标速度=100（W）",
           "config": {
             "display": "关节1目标速度",
@@ -987,13 +722,13 @@
               {
                 "name": "joint",
                 "type": "int",
-                "value": 1,
+                "value": "1",
                 "source": "value"
               },
               {
                 "name": "speed",
                 "type": "int",
-                "value": 100,
+                "value": "100",
                 "source": "value"
               }
             ],
@@ -1003,8 +738,7 @@
                 "type": "int",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "1",
-                "display": "ok"
+                "threshold": "1"
               }
             ]
           }
@@ -1016,7 +750,7 @@
           "timeout_ms": 10000,
           "retry": 0,
           "fail_policy": "continue",
-          "skip": false,
+          "skip": true,
           "description": "0x05 关节1目标扭矩=100（W）",
           "config": {
             "display": "关节1目标扭矩",
@@ -1026,13 +760,13 @@
               {
                 "name": "joint",
                 "type": "int",
-                "value": 1,
+                "value": "1",
                 "source": "value"
               },
               {
                 "name": "torque",
                 "type": "int",
-                "value": 100,
+                "value": "100",
                 "source": "value"
               }
             ],
@@ -1042,8 +776,7 @@
                 "type": "int",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "1",
-                "display": "ok"
+                "threshold": "1"
               }
             ]
           }
@@ -1055,7 +788,7 @@
           "timeout_ms": 10000,
           "retry": 0,
           "fail_policy": "continue",
-          "skip": false,
+          "skip": true,
           "description": "0xCF 保存参数（W）",
           "config": {
             "display": "保存参数",
@@ -1068,8 +801,7 @@
                 "type": "int",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "1",
-                "display": "ok"
+                "threshold": "1"
               }
             ]
           }
@@ -1081,7 +813,7 @@
           "timeout_ms": 10000,
           "retry": 0,
           "fail_policy": "continue",
-          "skip": false,
+          "skip": true,
           "description": "0xC8 恢复出厂设置（W，慎用）",
           "config": {
             "display": "恢复出厂设置",
@@ -1094,8 +826,7 @@
                 "type": "int",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "1",
-                "display": "ok"
+                "threshold": "1"
               }
             ]
           }

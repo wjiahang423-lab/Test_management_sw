@@ -27,6 +27,9 @@ from app.ui.pop_dialog import PopDialog
 STATION_TITLE = "机器人测试01工位"
 STATION_ID = "01"
 
+# 字体缩放基准：font_size=14 时比例为 1.0，写死 px 的控件按比例换算
+FONT_BASE = 14
+
 STATE_COLORS = {
     "待执行": "#95a5a6",
     "运行中": "#3498db",
@@ -70,6 +73,8 @@ class ExecutePage:
         self._seq_items = {}
         self._waiting_sn = False
         self._run_cycle = 0
+        self._font_scale = 1.0
+        self._overall_color = "#95a5a6"
         self._stats = self._load_stats()
         self.log_callback = None
         self.on_switch_manage = None
@@ -96,6 +101,7 @@ class ExecutePage:
         if not hasattr(self.ui, "label_title") or self.ui.label_title is None:
             self.ui.label_title = QLabel(host)
         title = self.ui.label_title
+        self._title = title
         top.removeWidget(title)
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet(
@@ -118,6 +124,7 @@ class ExecutePage:
         if not hasattr(self.ui, "label_time") or self.ui.label_time is None:
             self.ui.label_time = QLabel("")
         tlabel = self.ui.label_time
+        self._tlabel = tlabel
         top.removeWidget(tlabel)
         tlabel.setStyleSheet(
             "font-size: 16px; font-weight: bold; color: #1F5AA8; padding: 0 10px;")
@@ -146,6 +153,7 @@ class ExecutePage:
         if not hasattr(self.ui, "label_sn_value") or self.ui.label_sn_value is None:
             self.ui.label_sn_value = QLabel("--")
         sn_value = self.ui.label_sn_value
+        self._sn_value = sn_value
         sn_row.removeWidget(sn_value)
         sn_value.setStyleSheet(
             "font-size: 22px; font-weight: bold; color: #1F5AA8;")
@@ -195,6 +203,11 @@ class ExecutePage:
         self._steps_delegate = GridLineDelegate("#d5d8dc", self.ui.treeWidget_steps)
         self.ui.treeWidget_steps.setItemDelegate(self._steps_delegate)
         self.ui.logText.setPlainText("")
+        # 限制日志框最大行数，防止长时间运行导致 GUI 无界堆积卡死
+        try:
+            self.ui.logText.setMaximumBlockCount(5000)
+        except Exception:
+            pass
         self._update_stats_display()
         self.set_overall("待机中", "#95a5a6")
 
@@ -209,7 +222,143 @@ class ExecutePage:
         self._clock_timer.start(1000)
         self._update_time_label()
         self._update_sn_display()
+        self.apply_font_scale()
+        self.apply_small_font()
         return host
+
+    def apply_small_font(self):
+        """把系统设置的“执行页小字体号”应用到执行页小字控件。
+
+        注意：执行页 .ui 自带全局样式（#logText 等 font-size: 13px），
+        Qt 样式表优先级高于 setFont()，因此这里用“追加内联 QSS”覆盖，
+        才能真正随设置改变小字字号。
+        """
+        try:
+            px = max(8, min(40, int(self.settings.exec_small_font)))
+        except Exception:
+            px = 13
+        self._small_font_px = px
+        names = ("label_robotTemp", "label_robotCurrent", "label_robotVoltage", "label_robotBattery",
+                 "label_batch", "label_takt", "label_progress",
+                 "treeWidget_steps", "logText",
+                 "logToggleBtn", "logClearBtn",
+                 "groupBox_stats",
+                 "statCard_total", "statCard_pass", "statCard_fail",
+                 "statCard_yield", "statCard_defectRate",
+                 "statLabel_total", "statLabel_pass", "statLabel_fail",
+                 "statLabel_yield", "statLabel_defectRate",
+                 "statValue_total", "statValue_pass", "statValue_fail",
+                 "statValue_yield", "statValue_defectRate")
+        for name in names:
+            w = getattr(self.ui, name, None) if self.ui is not None else None
+            if w is None:
+                continue
+            try:
+                obj = w.objectName() or name
+                rule = "#{} {{ font-size: {}px; }}".format(obj, px)
+                old = (w.styleSheet() or "").strip()
+                w.setStyleSheet(rule if not old else old + "\n" + rule)
+            except Exception:
+                pass
+
+    def apply_font_scale(self, scale=None):
+        """按 font_size 与基准 14 的比值缩放执行页写死 px 的字号和控件大小。"""
+        if scale is None:
+            font = self.settings.font_size if self.settings else FONT_BASE
+            scale = font / float(FONT_BASE)
+        try:
+            scale = max(0.5, min(3.0, float(scale)))
+        except Exception:
+            scale = 1.0
+        self._font_scale = scale
+
+        # 生产统计区域专用覆盖：消除全局 QLabel { padding: 6px 0 } 对 statValue/statLabel
+        # 造成的上下额外间距，避免放大字体后内容从上方溢出GroupBox边框。
+        # QGroupBox padding-top 也按缩放比同比放大，保持标题与内容的视觉间距。
+        stat_css_labels = " ".join(
+            "#{} {{ padding-top: 0; padding-bottom: 0; }}".format(name)
+            for name in (
+                "statValue_total", "statValue_pass", "statValue_fail",
+                "statValue_yield", "statValue_defectRate",
+                "statLabel_total", "statLabel_pass", "statLabel_fail",
+                "statLabel_yield", "statLabel_defectRate",
+            )
+        )
+        if self.ui is not None:
+            try:
+                self.ui.groupBox_stats.setStyleSheet(
+                    "padding-top: {}px;".format(int(round(14 * scale)))
+                )
+                self.ui.setStyleSheet(
+                    (self.ui.styleSheet() or "") + "\n" + stat_css_labels
+                )
+            except Exception:
+                pass
+
+        def px(base):
+            return int(round(base * scale))
+
+        # 标题字体和大小
+        if getattr(self, "_title", None) is not None:
+            self._title.setStyleSheet(
+                "font-size: {}px; font-weight: bold; color: #1F5AA8; letter-spacing: 2px;".format(px(28)))
+        # 时钟字体
+        if getattr(self, "_tlabel", None) is not None:
+            self._tlabel.setStyleSheet(
+                "font-size: {}px; font-weight: bold; color: #1F5AA8; padding: 0 10px;".format(px(16)))
+        # SN值字体
+        if getattr(self, "_sn_value", None) is not None:
+            self._sn_value.setStyleSheet(
+                "font-size: {}px; font-weight: bold; color: #1F5AA8;".format(px(22)))
+        # 管理页面切换按钮大小和字体
+        if getattr(self, "btn_manage", None) is not None:
+            self.btn_manage.setFixedSize(px(140), px(45))
+            self.btn_manage.setStyleSheet(
+                "QPushButton {{ background-color: #2c5aa0; color: white; font-weight: bold;"
+                " border: none; border-radius: {0}px; padding: {1}px {2}px; min-height: {3}px;"
+                " font-size: {4}px; }}"
+                "QPushButton:pressed {{ background-color: #3a6bb8; }}".format(
+                    px(6), px(10), px(20), px(40), px(15)))
+
+        # 进度条和批次信息字体
+        if hasattr(self.ui, "label_batch"):
+            self.ui.label_batch.setStyleSheet("font-size: {}px;".format(px(14)))
+        if hasattr(self.ui, "label_takt"):
+            self.ui.label_takt.setStyleSheet("font-size: {}px;".format(px(14)))
+        if hasattr(self.ui, "label_progress"):
+            self.ui.label_progress.setStyleSheet("font-size: {}px;".format(px(14)))
+
+        # 树形控件字体
+        if hasattr(self.ui, "treeWidget_steps"):
+            self.ui.treeWidget_steps.setStyleSheet(
+                "QTreeWidget {{ font-size: {}px; }}".format(px(13)))
+
+        # 日志区域字体
+        if hasattr(self.ui, "logText"):
+            self.ui.logText.setStyleSheet("font-size: {}px;".format(px(13)))
+
+        # 统计卡片字体
+        stat_values = ["statValue_total", "statValue_pass", "statValue_fail",
+                       "statValue_yield", "statValue_defectRate"]
+        stat_labels = ["statLabel_total", "statLabel_pass", "statLabel_fail",
+                       "statLabel_yield", "statLabel_defectRate"]
+        for name in stat_values:
+            w = getattr(self.ui, name, None)
+            if w:
+                w.setStyleSheet("font-size: {}px; font-weight: bold;".format(px(26)))
+        for name in stat_labels:
+            w = getattr(self.ui, name, None)
+            if w:
+                w.setStyleSheet("font-size: {}px;".format(px(13)))
+
+        self._apply_overall_style()
+
+    def _apply_overall_style(self):
+        if self.ui and hasattr(self.ui, "label_overallStatus"):
+            base = 66
+            self.ui.label_overallStatus.setStyleSheet(
+                "font-size: {}px; font-weight: bold; color: {}".format(
+                    int(round(base * self._font_scale)), self._overall_color))
 
     def refresh_station_title(self):
         """根据全局设置刷新顶部工位标题，并同步工位ID到运行时上下文（供脚本/上报使用）。"""
@@ -410,12 +559,29 @@ class ExecutePage:
         self.engine.sig_overall.connect(self._on_overall)
         self.engine.sig_progress.connect(self._on_progress)
         self.engine.sig_run_finished.connect(self._on_run_finished)
+        self.engine.sig_round_finished.connect(self._on_round_finished)
+        self.engine.sig_round_started.connect(self._on_round_started)
         self.engine.sig_run_started.connect(self._on_run_started)
         self.engine.sig_request_pop.connect(self._on_pop_requested)
         self.engine.sig_phase.connect(self._on_phase)
 
     def _on_run_started(self):
         self.append_log("测试开始执行")
+
+    def _on_round_finished(self, passed, round_no):
+        """连续模式每轮结束：计入生产统计并刷新。"""
+        self.record_result(passed)
+        self.append_log("连续测试第 {} 轮完成，总体 {}（已计入生产统计）".format(
+            round_no, "PASS" if passed else "FAIL"))
+
+    def _on_round_started(self, round_no):
+        """连续模式每轮开始：清空页面日志，只显示当前一轮（完整日志留文件）。"""
+        if self.ui is not None:
+            try:
+                self.ui.logText.clear()
+                self.ui.logText.append("──────── 第 {} 轮开始 ────────".format(round_no))
+            except Exception:
+                pass
 
     def _on_pop_requested(self, config):
         try:
@@ -487,6 +653,14 @@ class ExecutePage:
             self.ui.btn_startBig.setEnabled(True)
             self.ui.btn_startBig.setText("▶ 开始")
             return
+        continuous = bool((self.engine.plan.settings or {}).get("continuous"))
+        if continuous:
+            # 连续模式：每轮已实时计入生产统计，这里不再重复累计
+            self.set_overall("PASS" if ok else "FAIL")
+            self.ui.btn_startBig.setEnabled(True)
+            self.ui.btn_startBig.setText("▶ 开始")
+            self._update_sn_display()
+            return
         overall = self.ctx.get_overall()
         self.record_result(overall is True)
         self.set_overall("PASS" if overall else "FAIL")
@@ -500,16 +674,21 @@ class ExecutePage:
     def set_overall(self, text, color=None):
         if not self.ui:
             return
-        self.ui.label_overallStatus.setText("● {}".format(text))
         if color:
-            self.ui.label_overallStatus.setStyleSheet(
-                "font-size: 66px; font-weight: bold; color: {}".format(color))
+            self._overall_color = color
+        self.ui.label_overallStatus.setText("● {}".format(text))
+        self._apply_overall_style()
 
     # ---------------- log ----------------
     def toggle_log(self):
         vis = self.ui.logFrame.isVisible()
         self.ui.logFrame.setVisible(not vis)
         self.ui.logToggleBtn.setText("▲ 隐藏日志" if not vis else "▼ 显示日志")
+        # 显示日志时日志区放大到 8 倍（弹性系数 1 -> 8），隐藏时恢复
+        try:
+            self.ui.stepsLayout.setStretch(1, 8 if not vis else 1)
+        except Exception:
+            pass
 
     def append_log(self, msg):
         if self.log_callback:

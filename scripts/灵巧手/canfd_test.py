@@ -140,7 +140,7 @@ class HandCanfd:
             return False, None, "数据超长: {}>64".format(len(data))
         canid = hp.build_canid(addr, rw, self.dev_id, len(data), master_send=master_send)
         msg = can.Message(arbitration_id=canid, data=bytearray(data), is_extended_id=True,
-                          is_fd=True, is_fd_overloaded=False)
+                          is_fd=True)
         try:
             if self.is_zlg:
                 self.bus.send(msg, tx_mode=self.zlg_tx_mode)

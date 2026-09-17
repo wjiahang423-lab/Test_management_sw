@@ -248,8 +248,8 @@ class ManagePage:
         nav_list = self.ui.navList
         if nav_list:
             nav_list.setStyleSheet(
-                "QListWidget#navList { background-color: #2c3e50; border: none; color: #ecf0f1; "
-                "font-size: {}px; outline: none; }"
+                "QListWidget#navList {{ background-color: #2c3e50; border: none; color: #ecf0f1; "
+                "font-size: {}px; outline: none; }}"
                 "QListWidget#navList::item {{ padding: {}px {}px; border-left: 3px solid transparent; }}"
                 "QListWidget#navList::item:hover {{ background-color: #34495e; }}"
                 "QListWidget#navList::item:selected {{ background-color: #34495e; "

@@ -14,8 +14,8 @@ import os
 import test_api
 import requests
 
-DEFAULT_URL = os.environ.get("EOL_CIT_URL", "http://192.168.88.10:8090")
-
+# DEFAULT_URL = os.environ.get("EOL_CIT_URL", "http://192.168.88.10:8090") # Orin 实物
+DEFAULT_URL = os.environ.get("EOL_CIT_URL", "http://10.5.35.49:8090")  # 使用树莓派模拟
 
 def _base(params):
     if isinstance(params, dict) and params.get("url"):

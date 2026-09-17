@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QCheckBox, QDoubleSpinBox, QFormLayout, QGroupBox,
+from PyQt5.QtWidgets import (QDoubleSpinBox, QFormLayout, QGroupBox,
                              QHBoxLayout, QLineEdit, QMessageBox, QPushButton,
                              QSpinBox, QVBoxLayout, QWidget)
 
@@ -29,16 +29,6 @@ class SettingsPage(QWidget):
         self.spin_small_font.setRange(8, 40)
         form.addRow("执行页小字体号(px)：", self.spin_small_font)
 
-        row_size = QHBoxLayout()
-        self.spin_width = QSpinBox()
-        self.spin_width.setRange(800, 4096)
-        self.spin_height = QSpinBox()
-        self.spin_height.setRange(600, 4096)
-        row_size.addWidget(self.spin_width)
-        row_size.addWidget(QPushButton("x"))
-        row_size.addWidget(self.spin_height)
-        form.addRow("主窗口尺寸(宽x高)：", row_size)
-
         self.spin_speed = QDoubleSpinBox()
         self.spin_speed.setRange(0.01, 10.0)
         self.spin_speed.setSingleStep(0.1)
@@ -55,10 +45,20 @@ class SettingsPage(QWidget):
         self.edit_station_name = QLineEdit()
         form.addRow("工位名称：", self.edit_station_name)
 
+        self.edit_line_id = QLineEdit()
+        self.edit_line_id.setPlaceholderText("产线ID，如 101")
+        form.addRow("产线ID（lineId）：", self.edit_line_id)
+
         self.spin_retention_days = QSpinBox()
         self.spin_retention_days.setRange(1, 365)
         self.spin_retention_days.setSuffix(" 天")
         form.addRow("报告保留天数：", self.spin_retention_days)
+
+        self.spin_pending_days = QSpinBox()
+        self.spin_pending_days.setRange(1, 365)
+        self.spin_pending_days.setSuffix(" 天")
+        self.spin_pending_days.setToolTip("待上报数据保留天数，超过后自动删除")
+        form.addRow("待上报数据保留天数：", self.spin_pending_days)
 
         layout.addWidget(grp)
 
@@ -74,13 +74,13 @@ class SettingsPage(QWidget):
         self.spin_manage_font.setValue(self.settings.manage_font_size)
         self.spin_exec_font.setValue(self.settings.font_size)
         self.spin_small_font.setValue(self.settings.exec_small_font)
-        self.spin_width.setValue(self.settings.window_width)
-        self.spin_height.setValue(self.settings.window_height)
         self.spin_speed.setValue(self.settings.speed_factor)
         self.edit_password.setText(self.settings.clear_password)
         self.edit_station_id.setText(self.settings.station_id)
         self.edit_station_name.setText(self.settings.station_name)
+        self.edit_line_id.setText(self.settings.line_id)
         self.spin_retention_days.setValue(self.settings.report_retention_days)
+        self.spin_pending_days.setValue(self.settings.pending_retention_days)
 
         self.btn_apply.clicked.connect(self.apply_now)
         self.btn_save.clicked.connect(self.save_now)
@@ -91,13 +91,13 @@ class SettingsPage(QWidget):
                 font_size=self.spin_exec_font.value(),
                 manage_font_size=self.spin_manage_font.value(),
                 exec_small_font=self.spin_small_font.value(),
-                window_width=self.spin_width.value(),
-                window_height=self.spin_height.value(),
                 speed_factor=self.spin_speed.value(),
                 clear_password=self.edit_password.text() or "0000",
                 station_id=self.edit_station_id.text().strip() or "01",
                 station_name=self.edit_station_name.text().strip() or "机器人测试01工位",
+                line_id=self.edit_line_id.text().strip(),
                 report_retention_days=self.spin_retention_days.value(),
+                pending_retention_days=self.spin_pending_days.value(),
             )
             if self.apply_callback:
                 self.apply_callback()

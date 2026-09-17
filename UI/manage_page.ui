@@ -601,7 +601,7 @@ QHeaderView::section {
               <widget class="QComboBox" name="comboBox_failPolicy">
                <item>
                 <property name="text">
-                 <string>失败后暂停执行</string>
+                 <string>失败后停止执行</string>
                 </property>
                </item>
                <item>

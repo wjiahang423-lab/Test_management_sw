@@ -35,6 +35,12 @@ def bootstrap(app=None):
     context = RuntimeContext()
     context.set_variables(variables)
 
+    # 清理过期的待上报数据（按设置页"待上报数据保留天数"）
+    try:
+        report_mod.cleanup_old_pending(settings.pending_retention_days)
+    except Exception:
+        pass
+
     _seed_defaults(users)
     register_api(context.build_api())
 

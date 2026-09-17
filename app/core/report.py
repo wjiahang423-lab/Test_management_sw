@@ -417,11 +417,133 @@ def _sn_record(test_time, batch, sn, case_name, value, upper, lower, expected=No
     }
 
 
+def _build_record(r, det_time=""):
+    """把单条测试结果转换为 V1.4 4.2 records 元素。
+
+    standard/actualInput/curveData 均为真实 JSON 对象/数组，不序列化为字符串。
+    det_time 为顶层检测时间，作为 records 元素 testTime 的回退默认值。
+    """
+    case_type = r.get("type", "")
+    passed = r.get("passed")
+    case_result = 0 if passed is True else 1
+    duration_ms = int(r.get("duration", 0) * 1000) if r.get("duration") else int(r.get("duration_ms", 0))
+
+    rec = {
+        "caseId": r.get("id", "") or r.get("case_no", ""),
+        "caseName": r.get("name", ""),
+        "category": case_type,
+        "standard": _build_standard(r),
+        "actualInput": _build_actual_input(r),
+        "result": case_result,
+        "durationMs": duration_ms,
+        "testTime": r.get("test_time") or det_time,
+        "deviceId": 0,
+    }
+
+    # Loop：展开子项到 curveData（真实对象，points 为数组）
+    sessions = r.get("sessions")
+    if case_type == "loop" and sessions:
+        points = []
+        for s in sessions:
+            measured = s.get("measured")
+            if isinstance(measured, dict):
+                pts = measured.get("points", [])
+                if isinstance(pts, list):
+                    points.extend(pts)
+        if points:
+            rec["curveData"] = {
+                "xAxis": "index",
+                "yAxis": "value",
+                "points": points,
+            }
+
+    # Measurement / Loop 子项：记录实际测量值以数组补充 actualInput
+    measurements = r.get("measurements")
+    if measurements:
+        vals = []
+        for m in measurements:
+            v = m.get("value")
+            if v is not None:
+                vals.append(v)
+        if vals:
+            rec["actualInput"] = {"values": vals}
+
+    # payload 扩展
+    payload = r.get("payload")
+    if isinstance(payload, dict):
+        for k in ("extrinsic", "intrinsic", "parameters"):
+            if k in payload and payload[k] is not None:
+                rec[k] = payload[k]
+
+    return rec
+
+
+def _build_standard(r):
+    """从结果中的 expected/阈值构造 standard 对象（真实 JSON 对象）。"""
+    expected = r.get("expected")
+    if isinstance(expected, dict):
+        return expected
+    rec = {}
+    low = r.get("threshold_lower")
+    up = r.get("threshold_upper")
+    # 从 measurements 行的阈值兜底
+    if low is None or up is None:
+        ms = r.get("measurements")
+        if ms:
+            lows = [m.get("lower") for m in ms if m.get("lower") is not None]
+            ups = [m.get("upper") for m in ms if m.get("upper") is not None]
+            if lows and (low is None or low == 0):
+                low = min(lows) if len(lows) > 1 else lows[0]
+            if ups and (up is None or up == 0):
+                up = max(ups) if len(ups) > 1 else ups[0]
+    if low is not None or up is not None:
+        rec["lower"] = low
+        rec["upper"] = up
+    if expected is not None and expected != "":
+        rec["expected"] = expected
+    elif r.get("detail"):
+        rec["standard"] = r["detail"]
+    return rec if rec else {}
+
+
+def _build_final_bom(settings, is_final):
+    """构造 finalBom 数组（4.4 结构：{subSn, subLineId}）。
+
+    分装线(isFinal=false)可返回空数组；总装线从计划设置 bom_list 读取。
+    """
+    if not is_final:
+        return []
+    bom = settings.get("bom_list") or []
+    if isinstance(bom, list):
+        return [{"subSn": str(b.get("subSn", "")), "subLineId": int(b.get("subLineId", 0))} for b in bom]
+    return []
+
+
 def _fmt_expected_payload(expected):
     """上报时把 expected 转成可读字符串：字典转 'k=v, k=v'，标量/范围原样。"""
     if isinstance(expected, dict):
         return ", ".join("{}={}".format(k, v) for k, v in expected.items())
     return expected
+
+
+def _build_actual_input(result_entry):
+    """从结果条目构建 actualInput 字段（真实 JSON 对象，不序列化为字符串）。"""
+    measurements = result_entry.get("measurements")
+    if measurements:
+        vals = {}
+        for m in measurements:
+            name = m.get("name", "")
+            v = m.get("value")
+            if v is not None:
+                vals[name or "value"] = v
+        return vals if vals else {}
+    payload = result_entry.get("payload")
+    if isinstance(payload, dict):
+        return payload
+    value = result_entry.get("value")
+    if value is not None:
+        return {"value": value}
+    return {}
 
 
 def basic_auth(settings):
@@ -498,10 +620,11 @@ def ensure_pending_dir():
         syslog.exception("创建待上报数据目录失败")
 
 
-def save_pending_data(data, plan_name, sn):
+def save_pending_data(data, plan_name, sn, key=None, log_path=None):
     """暂存待上报数据到本地文件。
 
     文件名格式: {plan_name}_{sn}_{timestamp}.json
+    log_path: 本次测试的日志文件路径，续传时随 det_data 一起上传。
     """
     ensure_pending_dir()
     timestamp = int(time.time() * 1000)
@@ -520,6 +643,10 @@ def save_pending_data(data, plan_name, sn):
             "retry_count": 0,
             "data": data,
         }
+        if key:
+            pending_info["key"] = key
+        if log_path:
+            pending_info["log_path"] = log_path
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(pending_info, f, ensure_ascii=False, indent=2)
         syslog.info("数据已暂存: {}".format(filepath))
@@ -573,122 +700,210 @@ def update_pending_retry(filepath, pending_info):
         pass
 
 
-def send_json_cases(plan, context, results, sn=None):
-    """逐用例 JSON 数据上报.
+def send_json_cases(plan, context, results, sn=None, log_path=None, run_log=None):
+    """逐用例 JSON 数据上报，符合产线检测云平台接口文档 V1.4。
 
-    一轮测试对应一个 SN/一个密钥，POST 一次，body 为：
-        {
-          "key": "<配置的密钥>",
-          "sn": "...",
-          "batch": "...",
-          "test_time": "YYYY-MM-DD HH:MM:SS.mmm",
-          "records": [
-            {test_time, batch, sn, case_name, type, status,
-             value, expected, threshold_upper, threshold_lower,
-             ...},                         # 普通用例/测量项一条一条
-            {..., "type": "loop",
-             "list": [ {name, status, value, expected,
-                        threshold_upper, threshold_lower, message}, ... ]}  # Loop: 父节点+子项列表
-          ]
-        }
+    采用 multipart/form-data 格式，表单字段：
+      - det_data: 检测数据（真实 JSON 对象值）
+      - log_file: 日志文件（仅 detResult=1 时上传）
+
+    det_data 结构（字段类型见 V1.4 4.1 表）：
+      {
+        "lineId": long,           # 产线ID（系统设置）
+        "stationId": long,        # 工位ID
+        "productSn": string,      # 产品SN
+        "batchId": long,          # 批次编号（来自plan.settings.batch）
+        "detTime": string,        # 检测时间 yyyy-MM-dd HH:mm:ss
+        "deviceId": long,         # 检测终端ID（预留，暂为空）
+        "seriesId": long,         # 产品系列ID（计划设置）
+        "detResult": int,         # 0=正常，1=异常
+        "dtcCode": string,        # 故障码（异常时填写）
+        "caseNum": int,           # 用例数量
+        "passNum": int,           # 合格数量
+        "failNum": int,           # 失败数量
+        "records": array,         # 用例结果 JSON 数组（4.2 结构）
+        "isFinal": boolean,       # 是否总装线
+        "finalBom": array         # 总装线BOM（isFinal=true时上传，4.4 结构）
+      }
+    records 元素（4.2 结构）由 _build_record 生成，standard/actualInput/curveData
+    均为真实 JSON 对象/数组，不序列化为字符串。
     返回 (ok, message)。
     """
     settings = plan.settings
     url = settings.get("json_upload_url", "")
-    # 密钥来源：脚本通过 test_api.set_upload_key(...) 写入的密钥优先；
-    # 未设置时回退到计划设置里旧版"上报密钥"（兼容旧计划文件）。
-    # 密钥可为空：服务器认证走计划设置的"服务器用户名/密码"（HTTP 基本认证）。
-    key = (context.get_upload_key() if context is not None else "") or settings.get("json_upload_key", "")
     if not url:
         return False, "未配置 JSON 上报接口地址（计划设置→逐用例JSON上报）"
 
-    batch = settings.get("batch", "") or ""
-    test_time = _now_ms_str()
+    # 密钥来源
+    key = (context.get_upload_key() if context is not None else "") or settings.get("json_upload_key", "")
+
+    # 从系统设置获取 lineId（产线ID）
+    from .settings_manager import settings_manager
+    line_id_str = getattr(settings_manager, 'line_id', '')
+    try:
+        line_id = int(line_id_str) if line_id_str else 0
+    except (ValueError, TypeError):
+        line_id = 0
+
+    # 从计划设置获取 seriesId 和 isFinal
+    series_id_str = settings.get("series_id", "")
+    try:
+        series_id = int(series_id_str) if series_id_str else 0
+    except (ValueError, TypeError):
+        series_id = 0
+    is_final = bool(settings.get("is_final", False))
+
+    # 时间
+    det_time = _now_str()  # 格式: yyyy-MM-dd HH:mm:ss
+
+    # 计算统计信息
+    executed = [r for r in results if not r.get("skipped")]
+    case_num = len(executed)
+    pass_num = sum(1 for r in executed if r.get("passed") is True)
+    fail_num = sum(1 for r in executed if r.get("passed") is False)
+    det_result = 0 if (case_num == 0 or fail_num == 0) else 1
+    # 更精确的 detResult: 所有执行用例都通过则为0，否则为1
+    det_result = 0 if (executed and all(r.get("passed") is True for r in executed)) else 1
+
+    # dtcCode: 失败时填写（简化实现，实际可由脚本提供）
+    dtc_code = settings.get("dtc_code", "") if det_result == 1 else ""
+
+    # 构建 records 数组（真实 JSON 对象，standard/actualInput/curveData 不转字符串）
     records = []
     for r in results:
         if r.get("skipped"):
             continue
-        name = r.get("name", "")
-        case_no = r.get("case_no", "")
-        case_type = r.get("type", "")
-        state = r.get("state", "")
-        base = {
-            "test_time": test_time,
-            "batch": batch,
-            "sn": sn or "",
-            "case_no": case_no,
-            "case_name": name,
-            "type": case_type,
-            "status": state,
-        }
-        # Loop：父节点一条记录，子项放在 list 中
-        sessions = r.get("sessions")
-        if case_type == "loop" and sessions:
-            items = []
-            for s in sessions:
-                measured = s.get("measured")
-                if isinstance(measured, dict):
-                    mval = measured.get("value")
-                    mmsg = measured.get("message") or s.get("detail", "")
-                else:
-                    mval = measured
-                    mmsg = s.get("detail", "")
-                items.append({
-                    "name": s.get("name", ""),
-                    "status": "PASS" if s.get("passed") else "FAIL",
-                    "value": mval,
-                    "expected": _fmt_expected_payload(s.get("expected") or {}),
-                    "threshold_upper": measured.get("upper") if isinstance(measured, dict) else None,
-                    "threshold_lower": measured.get("lower") if isinstance(measured, dict) else None,
-                    "message": mmsg,
-                })
-            rec = dict(base)
-            rec["value"] = None
-            rec["expected"] = None
-            rec["threshold_upper"] = None
-            rec["threshold_lower"] = None
-            rec["list"] = items
+        rec = _build_record(r, det_time)
+        if rec:
             records.append(rec)
-            continue
-        # Measurement：每个返回项一条记录（含实际值 + 阈值上下限）
-        measurements = r.get("measurements")
-        if measurements:
-            for m in measurements:
-                records.append(_sn_record(test_time, batch, sn, name,
-                                          m.get("value"),
-                                          m.get("upper"), m.get("lower"),
-                                          m.get("expected"), case_type, state, case_no))
-            continue
-        # 其它类型：一条记录，实际值记结果状态；若该用例带有结构化结果（如标定参数），
-        # 一并附到记录里并展开到顶层，便于后端直接入库标定数据。
-        rec = _sn_record(test_time, batch, sn, name, state, None, None,
-                         None, case_type, state, case_no)
-        payload = r.get("payload")
-        if isinstance(payload, dict):
-            flat = {k: payload[k] for k in payload if k in (
-                "sn", "passed", "rmse", "threshold", "note") and payload[k] is not None}
-            if flat:
-                rec.update(flat)
-            if payload.get("extrinsic") is not None:
-                rec["extrinsic"] = payload["extrinsic"]
-        records.append(rec)
-    if not records:
-        return False, "没有可上报的用例数据"
 
-    payload = {
-        "key": key,
-        "sn": sn or "",
-        "batch": batch,
-        "station_id": context.get_station_id() if context is not None else "",
-        "test_time": test_time,
+    # 构建 det_data
+    det_data = {
+        "lineId": line_id,
+        "stationId": int(context.get_station_id()) if context is not None and context.get_station_id() else 0,
+        "productSn": sn or "",
+        "batchId": _parse_batch_id(settings.get("batch", "")),
+        "detTime": det_time,
+        "deviceId": 0,
+        "seriesId": series_id,
+        "detResult": det_result,
+        "dtcCode": dtc_code,
+        "caseNum": case_num,
+        "passNum": pass_num,
+        "failNum": fail_num,
         "records": records,
+        "isFinal": is_final,
+        "finalBom": _build_final_bom(settings, is_final),
     }
-    return _send_with_retry(url, payload, settings, plan.name, sn)
+
+    # 日志文件处理：仅测试失败(detResult=1)时才与日志一起上传；
+    # log_path 为本次测试的日志文件（由引擎传入），找不到时回退目录最新日志
+    if det_result == 1:
+        log_path = log_path or _get_last_log_path(plan, sn)
+
+    return _send_json(url, det_data, log_path, settings, plan.name, sn, key,
+                      token=(context.get_auth_token() if context is not None else ""),
+                      run_log=run_log)
 
 
-def _send_with_retry(url, payload, settings, plan_name, sn):
-    """发送数据到服务器，支持Token认证、重试和数据暂存。
+def _parse_batch_id(batch_str):
+    """尝试将 batch 字符串解析为 long，失败则返回 0。"""
+    if not batch_str:
+        return 0
+    try:
+        return int(batch_str)
+    except (ValueError, TypeError):
+        return 0
 
+
+def _get_last_log_path(plan, sn):
+    """获取最近一次测试的日志文件路径。"""
+    import os
+    log_dir = plan.settings.get("log_dir", "") or os.path.join(os.path.dirname(__file__), "..", "..", "data", "logs")
+    try:
+        files = [f for f in os.listdir(log_dir) if f.endswith(".log")]
+        if files:
+            files.sort(reverse=True)
+            return os.path.join(log_dir, files[0])
+    except Exception:
+        pass
+    return None
+
+
+def _send_json(url, det_data, log_path, settings, plan_name, sn, key=None, token=None, run_log=None):
+    """发送检测数据，统一 multipart/form-data 格式（V1.4 4.1）。
+
+    表单字段：
+      - det_data: (None, JSON文本)，真实 JSON 对象值
+      - log_file: (日志文件名, 文件, 'text/plain')，仅测试失败(detResult=1)时上传
+    正常（全部通过）时仅发送 det_data。
+    key 鉴权密钥放入 det_data 的 key 字段（服务端按 JSON 对象解析）。
+    token: 启动时登录获取的 Token，启用 use_token_auth 时作为请求头附带。
+    run_log: 可选的运行日志写入回调（如 logger.info），用于把本次上报的 det_data 写入测试日志。
+    """
+    import requests as _requests
+    try:
+        auth = basic_auth(settings)
+        headers = {}
+        if settings.get("use_token_auth") and token:
+            header_name = settings.get("token_header", "Authorization")
+            prefix = settings.get("token_prefix", "Bearer ")
+            headers[header_name] = "{}{}".format(prefix, token)
+        det_data_with_key = dict(det_data)
+        if key:
+            det_data_with_key["key"] = key
+        payload_str = json.dumps(det_data_with_key, ensure_ascii=False)
+        if run_log:
+            try:
+                run_log("上传接口：{}".format(url))
+                run_log("上传的检测数据（det_data）：{}".format(payload_str))
+                run_log("上传日志文件：{}".format(log_path if log_path and os.path.isfile(log_path) else "无"))
+            except Exception:
+                pass
+        files = {"det_data": (None, payload_str)}
+        if log_path and os.path.isfile(log_path):
+            with open(log_path, "rb") as f:
+                files["log_file"] = (os.path.basename(log_path), f, "text/plain")
+                resp = _requests.post(url, files=files, headers=headers, auth=auth, timeout=30)
+        else:
+            resp = _requests.post(url, files=files, headers=headers, auth=auth, timeout=30)
+
+        if resp.ok:
+            syslog.info("检测数据上报成功: HTTP {}".format(resp.status_code))
+            if run_log:
+                try:
+                    run_log("上传结果：成功（HTTP {}）".format(resp.status_code))
+                except Exception:
+                    pass
+            return True, "HTTP {}".format(resp.status_code)
+        else:
+            syslog.warn("检测数据上报失败(HTTP {}): {}".format(resp.status_code, resp.text[:200]))
+            if run_log:
+                try:
+                    run_log("上传结果：失败（HTTP {}，响应：{}）".format(resp.status_code, resp.text[:200]))
+                except Exception:
+                    pass
+            save_pending_data(det_data, plan_name, sn, key, log_path)
+            return False, "HTTP {}".format(resp.status_code)
+    except Exception as e:
+        syslog.warn("检测数据上报异常: {}".format(str(e)))
+        if run_log:
+            try:
+                run_log("上传结果：异常（{}）".format(e))
+            except Exception:
+                pass
+        save_pending_data(det_data, plan_name, sn, key, log_path)
+        return False, str(e)
+
+
+def _send_with_retry(url, payload, settings, plan_name, sn, key=None, log_path=None, run_log=None):
+    """发送数据到服务器，统一 multipart/form-data 格式（V1.4 4.1），
+    支持Token/基本认证、重试和数据暂存。
+
+    - det_data: 真实 JSON 对象值（表单字段值为 JSON 文本，服务端按 JSON 对象解析）
+    - key: 可选密钥字段
+    - log_path: 待上报数据对应的日志文件（续传时随 det_data 一起上传）
+    - run_log: 可选的运行日志写入回调（如 logger.info），把本次上报内容写入测试日志
     返回 (ok, message)。
     """
     import requests
@@ -713,37 +928,72 @@ def _send_with_retry(url, payload, settings, plan_name, sn):
         # 使用基本认证
         auth = basic_auth(settings)
 
+    payload_with_key = dict(payload)
+    if key:
+        payload_with_key["key"] = key
+    payload_str = json.dumps(payload_with_key, ensure_ascii=False)
+    if run_log:
+        try:
+            run_log("【续传】上传接口：{}".format(url))
+            run_log("【续传】上传的检测数据（det_data）：{}".format(payload_str))
+            run_log("【续传】上传日志文件：{}".format(log_path if log_path and os.path.isfile(log_path) else "无"))
+        except Exception:
+            pass
+
+    files = {"det_data": (None, payload_str)}
+    log_fh = None
+    if log_path and os.path.isfile(log_path):
+        log_fh = open(log_path, "rb")
+        files["log_file"] = (os.path.basename(log_path), log_fh, "text/plain")
+
     max_retries = 3
     last_error = ""
+    result = None
+    try:
+        for attempt in range(max_retries):
+            try:
+                resp = requests.post(url, files=files, timeout=15, auth=auth, headers=headers)
+                if resp.ok:
+                    syslog.info("数据上报成功: HTTP {}".format(resp.status_code))
+                    if run_log:
+                        try:
+                            run_log("【续传】上传结果：成功（HTTP {}）".format(resp.status_code))
+                        except Exception:
+                            pass
+                    return True, "HTTP {}".format(resp.status_code)
+                else:
+                    last_error = "HTTP {}".format(resp.status_code)
+                    syslog.warn("数据上报失败(第{}次): {}".format(attempt + 1, last_error))
+            except requests.exceptions.Timeout:
+                last_error = "请求超时"
+                syslog.warn("数据上报超时(第{}次)".format(attempt + 1))
+            except requests.exceptions.ConnectionError as e:
+                last_error = "连接失败: {}".format(str(e)[:100])
+                syslog.warn("数据上报连接失败(第{}次): {}".format(attempt + 1, last_error))
+            except Exception as e:
+                last_error = str(e)
+                syslog.warn("数据上报异常(第{}次): {}".format(attempt + 1, last_error))
 
-    for attempt in range(max_retries):
-        try:
-            resp = requests.post(url, json=payload, timeout=15, auth=auth, headers=headers)
-            if resp.ok:
-                syslog.info("数据上报成功: HTTP {}".format(resp.status_code))
-                return True, "HTTP {}".format(resp.status_code)
-            else:
-                last_error = "HTTP {}".format(resp.status_code)
-                syslog.warn("数据上报失败(第{}次): {}".format(attempt + 1, last_error))
-        except requests.exceptions.Timeout:
-            last_error = "请求超时"
-            syslog.warn("数据上报超时(第{}次)".format(attempt + 1))
-        except requests.exceptions.ConnectionError as e:
-            last_error = "连接失败: {}".format(str(e)[:100])
-            syslog.warn("数据上报连接失败(第{}次): {}".format(attempt + 1, last_error))
-        except Exception as e:
-            last_error = str(e)
-            syslog.warn("数据上报异常(第{}次): {}".format(attempt + 1, last_error))
+            # 如果不是最后一次尝试，等待1秒后重试
+            if attempt < max_retries - 1:
+                time.sleep(1)
 
-        # 如果不是最后一次尝试，等待1秒后重试
-        if attempt < max_retries - 1:
-            time.sleep(1)
+        # 3次重试都失败，暂存数据
+        syslog.error("数据上报{}次均失败，暂存数据".format(max_retries))
+        if run_log:
+            try:
+                run_log("【续传】上传结果：失败（{}）".format(last_error))
+            except Exception:
+                pass
+        save_pending_data(payload, plan_name, sn, key, log_path)
 
-    # 3次重试都失败，暂存数据
-    syslog.error("数据上报{}次均失败，暂存数据".format(max_retries))
-    save_pending_data(payload, plan_name, sn)
-
-    return False, "上报失败({})，数据已暂存，将在下次测试时重试".format(last_error)
+        return False, "上报失败({})，数据已暂存，将在下次测试时重试".format(last_error)
+    finally:
+        if log_fh is not None:
+            try:
+                log_fh.close()
+            except Exception:
+                pass
 
 
 def send_remote_report(plan, context, results, sn=None):
@@ -798,3 +1048,40 @@ def upload_reports(report_path, log_path, plan_name, sn, url, auth=None):
         return resp.ok, "HTTP {}".format(resp.status_code)
     except Exception as e:
         return False, "上传异常：{}".format(e)
+
+
+def cleanup_old_pending(retention_days=2):
+    """清理过期的待上报数据文件（按设置页"待上报数据保留天数"）。
+
+    - 优先以文件中 create_time 字段为准（即数据实际创建时间）
+    - 无 create_time 或解析失败时回退为文件修改时间（mtime）
+    - 删除保留天数前创建/落盘的待上报 JSON 文件
+    """
+    ensure_pending_dir()
+    try:
+        cutoff = _cutoff_ts(retention_days)
+        for filename in os.listdir(PENDING_UPLOAD_DIR):
+            if not filename.endswith(".json"):
+                continue
+            filepath = os.path.join(PENDING_UPLOAD_DIR, filename)
+            try:
+                if not os.path.isfile(filepath):
+                    continue
+                ts = os.path.getmtime(filepath)
+                try:
+                    with open(filepath, "r", encoding="utf-8") as f:
+                        info = json.load(f)
+                    ct = info.get("create_time", "")
+                    if ct:
+                        import datetime as _dt
+                        parsed = _dt.datetime.strptime(ct, "%Y-%m-%d %H:%M:%S")
+                        ts = parsed.timestamp()
+                except Exception:
+                    pass
+                if ts < cutoff:
+                    os.remove(filepath)
+                    syslog.info("已删除过期待上报文件: {}".format(filepath))
+            except Exception:
+                pass
+    except Exception:
+        pass

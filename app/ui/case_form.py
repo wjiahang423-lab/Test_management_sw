@@ -600,7 +600,7 @@ class CaseEditorDialog(QDialog):
         self.spin_retry.setRange(0, 10)
         form.addRow("失败重试次数：", self.spin_retry)
         self.combo_fail = GuardedComboBox()
-        self.combo_fail.addItem("失败后暂停执行", "pause")
+        self.combo_fail.addItem("失败后停止执行", "pause")
         self.combo_fail.addItem("失败后继续下一条", "continue")
         form.addRow("失败策略：", self.combo_fail)
         self.chk_skip = QCheckBox("跳过此用例（执行时不执行，报告中标记为跳过）")

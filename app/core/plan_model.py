@@ -111,6 +111,8 @@ class TestPlan:
             "json_upload_enabled": False,     # 启用测试结果上报（JSON）
             "json_upload_url": "",            # 测试结果上报接口地址
             "json_upload_key": "",            # 上报密钥（可为空，服务器认证见下）
+            "series_id": "",                  # 产品系列ID（接口文档 seriesId）
+            "is_final": False,                # 是否总装线（接口文档 isFinal）
             "server_username": "root",        # 服务器登录用户名（HTTP 基本认证）
             "server_password": "root",        # 服务器登录密码
             "mes_server": "",

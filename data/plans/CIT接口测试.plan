@@ -12,9 +12,11 @@
     "remote_storage_url": "",
     "remote_storage_content": "both",
     "remote_storage_strategy": "always",
-    "json_upload_enabled": true,
-    "json_upload_url": "http://10.5.35.49:5000/submit",
+    "json_upload_enabled": false,
+    "json_upload_url": "http://10.5.35.150:8080/eol_api/det/upload",
     "json_upload_key": "",
+    "series_id": "111",
+    "is_final": true,
     "server_username": "root",
     "server_password": "root",
     "mes_server": "",
@@ -27,7 +29,8 @@
     "login_username": "",
     "login_password": "",
     "token_header": "Authorization",
-    "token_prefix": "Bearer "
+    "token_prefix": "Bearer ",
+    "use_token_auth": false
   },
   "sequences": [
     {

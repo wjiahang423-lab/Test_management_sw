@@ -22,6 +22,7 @@ class RuntimeContext:
         self._variables = None
         self.measure_result = None  # loop 会话脚本写入的自描述测量结果
         self.upload_key = ""  # 逐用例 JSON 上报密钥（脚本通过 set_upload_key 写入）
+        self.auth_token = ""  # 登录接口获取的 Token（启动时请求登录后写入，用于上报鉴权）
         self.station_id = ""
         self.station_name = ""
 
@@ -174,6 +175,16 @@ class RuntimeContext:
     def get_upload_key(self):
         with self._lock:
             return self.upload_key
+
+    # ---------- 登录 Token（启动时请求登录接口获取） ----------
+    def set_auth_token(self, token):
+        with self._lock:
+            self.auth_token = str(token or "")
+        return True
+
+    def get_auth_token(self):
+        with self._lock:
+            return self.auth_token
 
     # ---------- 工位信息（ID 上报后端，名称显示在页面） ----------
     def set_station_info(self, station_id=None, station_name=None):

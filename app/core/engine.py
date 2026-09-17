@@ -87,6 +87,29 @@ class EngineWorker(QThread):
     def _speed_ms(self, ms):
         return max(0, ms * self._speed)
 
+    # ---------------- 登录鉴权（上传接口前） ----------------
+    def _login_for_token(self):
+        """启动测试时，若启用 Token 认证且开启了 JSON 上报，
+        先请求登录接口获取 Token 存入运行时上下文，供上传接口使用。
+
+        返回 token（成功）或 ""（未启用/失败）。
+        """
+        settings = self.plan.settings or {}
+        if not settings.get("json_upload_enabled"):
+            return ""
+        if not settings.get("use_token_auth"):
+            return ""
+        token, msg = report_mod.login_token(settings)
+        if token:
+            self.ctx.set_auth_token(token)
+            self.sig_log.emit("登录成功，已获取Token并用于数据上报")
+            self._logger.info("登录成功，已获取Token（{}）".format(msg))
+        else:
+            self.ctx.set_auth_token("")
+            self.sig_log.emit("Token获取失败：{}（继续执行，上报使用基本认证或待重试）".format(msg))
+            self._logger.warn("Token获取失败：{}".format(msg))
+        return token
+
     # ---------------- run loop ----------------
     def run(self):
         self.stop_requested = False
@@ -124,6 +147,9 @@ class EngineWorker(QThread):
             self.sig_log.emit("SN：{}".format(self.ctx.get_sn()))
             self._logger.info("测试计划文件：{}".format(self.plan.file_path or "未保存"))
             self._logger.info("总用例数：{}".format(self.plan.total_cases))
+
+            # 启动时先请求登录获取 Token（上传接口前）
+            self._login_for_token()
 
             # 续传功能：检查并上传之前未上报的数据
             self._retry_pending_uploads()
@@ -405,9 +431,13 @@ class EngineWorker(QThread):
 
         if last_result is not True and state == "FAIL":
             if case.fail_policy == "pause":
-                self.sig_log.emit("用例失败，按策略暂停执行（点击 继续 恢复）")
-                self.pause_event.set()
-                self.sig_phase.emit("paused")
+                self.sig_log.emit("用例失败，按策略停止执行")
+                self.stop_requested = True
+                self.stop_flag.set()
+                self.sn_event.set()
+                self.pop_requested.set()
+                self.pause_event.clear()
+                self.sig_phase.emit("stopped")
         return state
 
     # ---------------- type handlers ----------------
@@ -1169,10 +1199,15 @@ class EngineWorker(QThread):
             if not url:
                 continue
 
+            key = pending_info.get("key") or ""
+            log_path = pending_info.get("log_path") or ""
             ok, msg = report_mod._send_with_retry(
                 url, data, settings,
                 pending_info.get("plan_name", ""),
-                pending_info.get("sn", "")
+                pending_info.get("sn", ""),
+                key,
+                log_path=log_path,
+                run_log=(self._logger.info if self._logger else None)
             )
 
             if ok:
@@ -1256,12 +1291,18 @@ class EngineWorker(QThread):
             else:
                 self.sig_log.emit("远程文件上传：跳过（上传策略：仅失败时上传，本次测试通过）")
 
-        # 逐用例 JSON 数据上报（需求 1）
+        # 逐用例 JSON 数据上报（需求 1）：日志文件用本次测试的 log
         if settings.get("json_upload_enabled"):
-            ok3, msg3 = report_mod.send_json_cases(plan, self.ctx, results, sn=sn)
+            run_log = (self._logger.path if self._logger else None) or None
+            ok3, msg3 = report_mod.send_json_cases(plan, self.ctx, results, sn=sn,
+                                                   log_path=run_log,
+                                                   run_log=(self._logger.info if self._logger else None))
             self.sig_log.emit("逐用例数据上报：{}（{}）".format("成功" if ok3 else "失败", msg3))
 
         # 本地保留指定天数的报告与日志
         extra_dirs = [settings[k] for k in ("log_dir", "report_dir") if settings.get(k)]
         retention_days = self.settings.report_retention_days if self.settings else 1
         report_mod.cleanup_old_reports(extra_dirs, retention_days)
+        # 清理过期的待上报数据
+        pending_days = self.settings.pending_retention_days if self.settings else 2
+        report_mod.cleanup_old_pending(pending_days)

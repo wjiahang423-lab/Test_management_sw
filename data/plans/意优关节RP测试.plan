@@ -1,0 +1,326 @@
+{
+  "name": "意优RP关节CANopen测试",
+  "description": "连接→使能标0→PP→往返行程测量(±60→120°、±30→60°)→回读→失能断开。左=+",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "YRP-20260918",
+    "log_dir": "",
+    "report_dir": "",
+    "continuous": false,
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "remote_storage_content": "both",
+    "remote_storage_strategy": "always",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "series_id": "",
+    "is_final": false,
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": "",
+    "login_url": "",
+    "login_username": "",
+    "login_password": "",
+    "token_header": "Authorization",
+    "token_prefix": "Bearer "
+  },
+  "sequences": [
+    {
+      "id": "c98cd2883774",
+      "name": "S00_连接使能标0",
+      "cases": [
+        {
+          "id": "cf9e2658d80d",
+          "case_no": "",
+          "name": "连接CAN",
+          "type": "action",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_connect"
+          }
+        },
+        {
+          "id": "cc2d3b73b2c0",
+          "case_no": "",
+          "name": "使能+位置标0",
+          "type": "action",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_enable_zero"
+          }
+        },
+        {
+          "id": "78e462a5bb11",
+          "case_no": "",
+          "name": "PP参数",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_set_params",
+            "params": [
+              {
+                "name": "velocity_deg_s",
+                "type": "float",
+                "value": "5",
+                "source": "value"
+              },
+              {
+                "name": "acc_deg_s2",
+                "type": "float",
+                "value": "20",
+                "source": "value"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "4eaad5b57523",
+      "name": "S01_往返±60(120°)",
+      "cases": [
+        {
+          "id": "3b76d886f0d7",
+          "case_no": "",
+          "name": "往返+60~-60",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_roundtrip",
+            "params": [
+              {
+                "name": "angle_a",
+                "type": "float",
+                "value": "60",
+                "source": "value"
+              },
+              {
+                "name": "angle_b",
+                "type": "float",
+                "value": "-60",
+                "source": "value"
+              },
+              {
+                "name": "velocity_deg_s",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              },
+              {
+                "name": "acc_deg_s2",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "118~122"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "7370f4a037ff",
+      "name": "S02_往返±30(60°)",
+      "cases": [
+        {
+          "id": "6f020c6d2248",
+          "case_no": "",
+          "name": "往返+30~-30",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_roundtrip",
+            "params": [
+              {
+                "name": "angle_a",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              },
+              {
+                "name": "angle_b",
+                "type": "float",
+                "value": "-30",
+                "source": "value"
+              },
+              {
+                "name": "velocity_deg_s",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              },
+              {
+                "name": "acc_deg_s2",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "bind_var": "",
+                "judge": "范围内",
+                "threshold": "58~62"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "3a7e92892c3b",
+      "name": "S03_位置/编码器回读",
+      "cases": [
+        {
+          "id": "f1e7029cff81",
+          "case_no": "",
+          "name": "当前角度",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_angle",
+            "returns": [
+              {
+                "item": "value",
+                "type": "float",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "e65b6b475363",
+          "case_no": "",
+          "name": "编码器位置",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_feedback",
+            "returns": [
+              {
+                "item": "pulses",
+                "type": "int",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "47b3f4717414",
+          "case_no": "",
+          "name": "状态字",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_status",
+            "returns": [
+              {
+                "item": "statusword",
+                "type": "str",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "4cce0b521219",
+      "name": "S04_失能断开",
+      "cases": [
+        {
+          "id": "86edee0fe53a",
+          "case_no": "",
+          "name": "失能",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_disable"
+          }
+        },
+        {
+          "id": "1afacdf29a4a",
+          "case_no": "",
+          "name": "断开CAN",
+          "type": "action",
+          "timeout_ms": 6000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_disconnect"
+          }
+        }
+      ]
+    }
+  ]
+}

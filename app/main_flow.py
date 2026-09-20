@@ -53,6 +53,7 @@ def bootstrap(app=None):
 
     if users.get_require_login():
         dlg = LoginDialog(users)
+       
         if dlg.exec_() != dlg.Accepted:
             return None
         user = dlg.logged_user

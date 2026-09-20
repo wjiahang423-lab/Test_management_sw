@@ -301,10 +301,10 @@ QPushButton:pressed { background-color: #3a6bb8; }</string>
           </property>
            <column>
             <property name="text">
-             <string>序号</string>
+             <string>编号</string>
             </property>
             <property name="width">
-             <number>70</number>
+             <number>140</number>
             </property>
            </column>
            <column>
@@ -313,14 +313,6 @@ QPushButton:pressed { background-color: #3a6bb8; }</string>
             </property>
             <property name="width">
              <number>300</number>
-            </property>
-           </column>
-           <column>
-            <property name="text">
-             <string>类型</string>
-            </property>
-            <property name="width">
-             <number>120</number>
             </property>
            </column>
            <column>

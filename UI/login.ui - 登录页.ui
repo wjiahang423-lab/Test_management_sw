@@ -17,10 +17,15 @@
    <string notr="true">QDialog {
     background-color: #f5f7fa;
 }
+QFrame#loginCard {
+    background-color: rgba(255,255,255,242);
+    border: 1px solid rgba(255,255,255,150);
+    border-radius: 8px;
+}
 QFrame#titleFrame {
     background-color: #2c5aa0;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
+    border-top-left-radius: 7px;
+    border-top-right-radius: 7px;
 }
 QLabel#titleLabel {
     color: white;
@@ -69,7 +74,7 @@ QLabel {
     color: #333;
 }</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="rootLayout">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -86,156 +91,260 @@ QLabel {
     <number>0</number>
    </property>
    <item>
-    <widget class="QFrame" name="titleFrame">
-     <property name="minimumSize">
+    <spacer name="spacerTop">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
       <size>
-       <width>0</width>
-       <height>80</height>
+       <width>20</width>
+       <height>40</height>
       </size>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="leftMargin">
-       <number>24</number>
-      </property>
-      <property name="topMargin">
-       <number>16</number>
-      </property>
-      <property name="rightMargin">
-       <number>24</number>
-      </property>
-      <property name="bottomMargin">
-       <number>16</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="titleLabel">
-        <property name="text">
-         <string>测试用例管理与执行系统</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="subtitleLabel">
-        <property name="text">
-         <string>Test Case Management &amp; Execution System</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
+    </spacer>
    </item>
    <item>
-    <widget class="QWidget" name="formContainer" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+    <layout class="QHBoxLayout" name="centerRowLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <spacer name="spacerLeft">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QFrame" name="loginCard">
+       <property name="minimumSize">
+        <size>
+         <width>380</width>
+         <height>300</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>520</width>
+         <height>560</height>
+        </size>
+       </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
-       <number>16</number>
+       <number>0</number>
       </property>
       <property name="leftMargin">
-       <number>32</number>
+       <number>0</number>
       </property>
       <property name="topMargin">
-       <number>24</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>32</number>
+       <number>0</number>
       </property>
       <property name="bottomMargin">
-       <number>24</number>
+       <number>0</number>
       </property>
       <item>
-       <layout class="QFormLayout" name="formLayout">
-        <property name="horizontalSpacing">
-         <number>12</number>
+       <widget class="QFrame" name="titleFrame">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>80</height>
+         </size>
         </property>
-        <property name="verticalSpacing">
-         <number>16</number>
-        </property>
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_username">
-          <property name="text">
-           <string>用户名：</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QLineEdit" name="lineEdit_username">
-          <property name="placeholderText">
-           <string>请输入用户名</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_password">
-          <property name="text">
-           <string>密  码：</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="1">
-         <widget class="QLineEdit" name="lineEdit_password">
-          <property name="echoMode">
-           <enum>QLineEdit::Password</enum>
-          </property>
-          <property name="placeholderText">
-           <string>请输入密码</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_role">
-          <property name="text">
-           <string>角  色：</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QComboBox" name="comboBox_role">
-          <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="leftMargin">
+          <number>24</number>
+         </property>
+         <property name="topMargin">
+          <number>16</number>
+         </property>
+         <property name="rightMargin">
+          <number>24</number>
+         </property>
+         <property name="bottomMargin">
+          <number>16</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="titleLabel">
            <property name="text">
-            <string>管理员</string>
+            <string>测试用例管理与执行系统</string>
            </property>
-          </item>
-          <item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="subtitleLabel">
            <property name="text">
-            <string>操作员</string>
+            <string>Test Case Management &amp; Execution System</string>
            </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_error">
-        <property name="styleSheet">
-         <string notr="true">color: #e74c3c; font-size: 12px;</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_btns">
-        <property name="spacing">
-         <number>12</number>
-        </property>
-        <item>
-         <widget class="QPushButton" name="loginBtn">
-          <property name="text">
-           <string>登 录</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="cancelBtn">
-          <property name="text">
-           <string>取 消</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
+       <widget class="QWidget" name="formContainer" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <property name="spacing">
+          <number>16</number>
+         </property>
+         <property name="leftMargin">
+          <number>32</number>
+         </property>
+         <property name="topMargin">
+          <number>24</number>
+         </property>
+         <property name="rightMargin">
+          <number>32</number>
+         </property>
+         <property name="bottomMargin">
+          <number>24</number>
+         </property>
+         <item>
+          <layout class="QFormLayout" name="formLayout">
+           <property name="horizontalSpacing">
+            <number>12</number>
+           </property>
+           <property name="verticalSpacing">
+            <number>16</number>
+           </property>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_username">
+             <property name="text">
+              <string>用户名：</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLineEdit" name="lineEdit_username">
+             <property name="placeholderText">
+              <string>请输入用户名</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_password">
+             <property name="text">
+              <string>密  码：</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QLineEdit" name="lineEdit_password">
+             <property name="echoMode">
+              <enum>QLineEdit::Password</enum>
+             </property>
+             <property name="placeholderText">
+              <string>请输入密码</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_role">
+             <property name="text">
+              <string>角  色：</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="1">
+            <widget class="QComboBox" name="comboBox_role">
+             <item>
+              <property name="text">
+               <string>管理员</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>操作员</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_error">
+           <property name="styleSheet">
+            <string notr="true">color: #e74c3c; font-size: 12px;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_btns">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <widget class="QPushButton" name="loginBtn">
+             <property name="text">
+              <string>登 录</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="cancelBtn">
+             <property name="text">
+              <string>取 消</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
       </item>
-     </layout>
-    </widget>
+</layout>
+     </widget>
+    </item>
+    <item>
+     <spacer name="spacerRight">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </item>
+    <item>
+     <spacer name="spacerBottom">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>

@@ -15,7 +15,7 @@ from app.core import syslog
 from app.core.context import RuntimeContext
 from app.core.engine import EngineWorker
 from app.core.paths import (CASE_STATE_FAIL, CASE_STATE_PASS, CASE_STATE_SKIP,
-                            CASE_STATE_TIMEOUT, CASE_TYPE_NAMES, PLANS_DIR,
+                            CASE_STATE_TIMEOUT, PLANS_DIR,
                             PLAN_FILE_FILTER, STATS_FILE, STATS_INI_FILE,
                             UI_FILES)
 from app.core.plan_model import TestPlan
@@ -192,11 +192,11 @@ class ExecutePage:
         self._plan_click.sig_clicked.connect(self._guarded(self._show_plan_picker))
 
         # ---------- 树控件 ----------
-        self.ui.treeWidget_steps.setColumnWidth(0, 70)
+        self.ui.treeWidget_steps.setColumnWidth(0, 140)
         self.ui.treeWidget_steps.setColumnWidth(1, 300)
         header = self.ui.treeWidget_steps.header()
         header.setStretchLastSection(False)
-        for col, width in ((0, 70), (2, 120), (3, 100), (4, 100)):
+        for col, width in ((0, 140), (2, 100), (3, 100)):
             self.ui.treeWidget_steps.setColumnWidth(col, width)
             header.setSectionResizeMode(col, QHeaderView.Fixed)
         header.setSectionResizeMode(1, QHeaderView.Stretch)  # 测试项名称列自适应拉伸
@@ -509,13 +509,13 @@ class ExecutePage:
             return
         seq_index = 1
         for si, seq in enumerate(self.plan.sequences, 1):
-            seq_item = QTreeWidgetItem(["序列 {}".format(si), seq.name, "序列", "待执行", "0.0s"])
+            seq_item = QTreeWidgetItem(["序列 {}".format(si), seq.name, "待执行", "0.0s"])
             seq_item.setExpanded(True)
             for ci, case in enumerate(seq.cases, 1):
+                case_no = (getattr(case, "case_no", "") or "").strip() or "{}.{}".format(si, ci)
                 case_item = QTreeWidgetItem([
-                    "{}.{}".format(si, ci),
+                    case_no,
                     case.name,
-                    CASE_TYPE_NAMES.get(case.type, case.type),
                     "待执行",
                     "0.0s",
                 ])
@@ -599,21 +599,21 @@ class ExecutePage:
         if not item:
             return
         color = STATE_COLORS.get(state, "#333")
-        item.setText(3, state)
-        item.setForeground(3, QColor(color))
-        item.setText(4, "{:.2f}s".format(elapsed))
+        item.setText(2, state)
+        item.setForeground(2, QColor(color))
+        item.setText(3, "{:.2f}s".format(elapsed))
         seq_item = self._seq_items.get(case_id)
         if seq_item:
-            states = [self._case_items[c].text(3) for c in self._case_items if self._seq_items.get(c) is seq_item]
+            states = [self._case_items[c].text(2) for c in self._case_items if self._seq_items.get(c) is seq_item]
             if any(s == CASE_STATE_FAIL or s == CASE_STATE_TIMEOUT for s in states):
-                seq_item.setText(3, "FAIL")
-                seq_item.setForeground(3, QColor("#e74c3c"))
+                seq_item.setText(2, "FAIL")
+                seq_item.setForeground(2, QColor("#e74c3c"))
             elif states and all(s == CASE_STATE_PASS for s in states):
-                seq_item.setText(3, "PASS")
-                seq_item.setForeground(3, QColor("#27ae60"))
+                seq_item.setText(2, "PASS")
+                seq_item.setForeground(2, QColor("#27ae60"))
             else:
-                seq_item.setText(3, "执行中")
-                seq_item.setForeground(3, QColor("#3498db"))
+                seq_item.setText(2, "执行中")
+                seq_item.setForeground(2, QColor("#3498db"))
 
     def _on_case_sessions(self, case_id, sessions):
         item = self._case_items.get(case_id)
@@ -621,13 +621,12 @@ class ExecutePage:
             return
         for child in list(item.takeChildren()):
             pass
-        item.setText(2, "Loop")
         for i, s in enumerate(sessions, 1):
             state = "PASS" if s["passed"] else "FAIL"
-            sub = QTreeWidgetItem(["", "  #{} {}".format(i, s.get("name", "")), "session", state, ""])
-            sub.setText(3, state)
-            sub.setForeground(3, Qt.green if s["passed"] else Qt.red)
-            sub.setToolTip(3, str(s.get("detail", "")))
+            sub = QTreeWidgetItem(["", "  #{} {}".format(i, s.get("name", "")), state, ""])
+            sub.setText(2, state)
+            sub.setForeground(2, Qt.green if s["passed"] else Qt.red)
+            sub.setToolTip(2, str(s.get("detail", "")))
             item.addChild(sub)
         item.setExpanded(True)
 

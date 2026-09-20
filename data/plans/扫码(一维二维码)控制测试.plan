@@ -10,9 +10,13 @@
     "continuous": false,
     "remote_storage_enabled": false,
     "remote_storage_url": "",
+    "remote_storage_content": "both",
+    "remote_storage_strategy": "always",
     "json_upload_enabled": false,
     "json_upload_url": "",
     "json_upload_key": "",
+    "series_id": "",
+    "is_final": false,
     "server_username": "root",
     "server_password": "root",
     "mes_server": "",
@@ -20,7 +24,12 @@
     "mes_template": "",
     "remote_file_server": "",
     "remote_db_ip": "",
-    "remote_db_table": ""
+    "remote_db_table": "",
+    "login_url": "",
+    "login_username": "",
+    "login_password": "",
+    "token_header": "Authorization",
+    "token_prefix": "Bearer "
   },
   "sequences": [
     {
@@ -29,6 +38,7 @@
       "cases": [
         {
           "id": "scan00000002",
+          "case_no": "",
           "name": "扫码录入(软件触发)",
           "type": "measurement",
           "timeout_ms": 30000,
@@ -37,17 +47,31 @@
           "skip": false,
           "description": "软件先触发扫码枪出光(SCNTRG1)，弹出扫码框；扫到条码/二维码后自动点【确认】并关闭；扫码超时 15 秒自动关闭。SN 回填执行页面。",
           "config": {
+            "display": "",
             "script": "scripts/scan_sn.py",
-            "function": "scan_sn",
+            "function": "scan",
             "params": [
-              { "name": "soft_trigger", "source": "value", "type": "str", "value": "true", "description": "软件触发扫码枪" },
-              { "name": "auto_confirm", "source": "value", "type": "str", "value": "true", "description": "扫码成功自动确认" },
-              { "name": "scan_timeout_s", "source": "value", "type": "str", "value": "15", "description": "扫码等待秒数" }
+              {
+                "name": "params",
+                "type": "dict",
+                "value": "",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
             ]
           }
         },
         {
           "id": "scan00000003",
+          "case_no": "",
           "name": "延时500ms",
           "type": "delay",
           "timeout_ms": 2000,
@@ -55,10 +79,13 @@
           "fail_policy": "continue",
           "skip": false,
           "description": "",
-          "config": { "delay_ms": 500 }
+          "config": {
+            "delay_ms": 500
+          }
         },
         {
           "id": "scan00000004",
+          "case_no": "",
           "name": "再次扫码(循环验证)",
           "type": "measurement",
           "timeout_ms": 30000,
@@ -70,9 +97,24 @@
             "script": "scripts/scan_sn.py",
             "function": "scan_sn",
             "params": [
-              { "name": "soft_trigger", "source": "value", "type": "str", "value": "true" },
-              { "name": "auto_confirm", "source": "value", "type": "str", "value": "true" },
-              { "name": "scan_timeout_s", "source": "value", "type": "str", "value": "15" }
+              {
+                "name": "soft_trigger",
+                "source": "value",
+                "type": "str",
+                "value": "true"
+              },
+              {
+                "name": "auto_confirm",
+                "source": "value",
+                "type": "str",
+                "value": "true"
+              },
+              {
+                "name": "scan_timeout_s",
+                "source": "value",
+                "type": "str",
+                "value": "15"
+              }
             ]
           }
         }

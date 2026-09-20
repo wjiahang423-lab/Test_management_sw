@@ -535,6 +535,9 @@ class ManagePage:
         kind = item.data(0, Qt.UserRole) if item else None
 
         menu = QMenu(self.ui)
+        act_up = menu.addAction("上移")
+        act_down = menu.addAction("下移")
+        menu.addSeparator()
         act_copy = menu.addAction("复制用例")
         act_paste = menu.addAction("粘贴用例")
 
@@ -544,12 +547,30 @@ class ManagePage:
                          and self._resolve_paste_seq(item) is not None)
         act_copy.setEnabled(can_copy)
         act_paste.setEnabled(can_paste)
+        if has_plan and kind:
+            if kind["kind"] == "case":
+                cases = self.plan.sequences[kind["seq"]].cases
+                act_up.setEnabled(kind["case"] > 0)
+                act_down.setEnabled(kind["case"] < len(cases) - 1)
+            elif kind["kind"] == "sequence":
+                act_up.setEnabled(kind["seq"] > 0)
+                act_down.setEnabled(kind["seq"] < len(self.plan.sequences) - 1)
+            else:
+                act_up.setEnabled(False)
+                act_down.setEnabled(False)
+        else:
+            act_up.setEnabled(False)
+            act_down.setEnabled(False)
 
         if item is not None:
             tree.setCurrentItem(item)
 
         chosen = menu.exec_(tree.viewport().mapToGlobal(pos))
-        if chosen == act_copy:
+        if chosen == act_up:
+            self._move_item(item, -1)
+        elif chosen == act_down:
+            self._move_item(item, 1)
+        elif chosen == act_copy:
             self._copy_cases()
         elif chosen == act_paste:
             self._paste_cases(item)
@@ -590,6 +611,47 @@ class ManagePage:
             case.id = new_id()
             seq.cases.append(case)
         self._refresh_tree()
+
+    # ---------------- move cases / sequences ----------------
+    def _move_item(self, item, delta):
+        """按方向移动用例（序列内）或序列（计划内），-1 上移 / +1 下移。"""
+        if not self.plan or item is None:
+            return
+        kind = item.data(0, Qt.UserRole)
+        if not kind:
+            return
+        if kind["kind"] == "sequence":
+            seqs = self.plan.sequences
+            idx = kind["seq"]
+            new = idx + delta
+            if 0 <= new < len(seqs):
+                seqs[idx], seqs[new] = seqs[new], seqs[idx]
+                self._refresh_tree()
+                self._select_tree_item(new)
+        elif kind["kind"] == "case":
+            seq = self.plan.sequences[kind["seq"]]
+            idx = kind["case"]
+            new = idx + delta
+            if 0 <= new < len(seq.cases):
+                seq.cases[idx], seq.cases[new] = seq.cases[new], seq.cases[idx]
+                self._refresh_tree()
+                self._select_tree_item(kind["seq"], new)
+
+    def _select_tree_item(self, seq_index, case_index=None):
+        """刷新后重新选中并滚动到指定用例/序列。"""
+        tree = self.ui.treeWidget_plan
+        top = tree.topLevelItem(seq_index) if seq_index is not None else None
+        if top is None:
+            return
+        item = top.child(case_index) if case_index is not None else top
+        if item is None:
+            return
+        tree.setCurrentItem(item)
+        tree.setFocus()
+        try:
+            tree.scrollToItem(item)
+        except Exception:
+            pass
 
     # ---------------- tree / debug ----------------
     def _refresh_tree(self):

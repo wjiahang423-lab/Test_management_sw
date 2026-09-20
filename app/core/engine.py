@@ -340,8 +340,11 @@ class EngineWorker(QThread):
             self.ctx.finish_case(None, "该用例已标记为跳过，未执行")
             self.results.append({
                 "index": case_index,
+                "case_no": getattr(case, "case_no", ""),
                 "name": case.name,
                 "type": case.type,
+                "description": getattr(case, "description", ""),
+                "criterion": self._case_criterion(case),
                 "state": "跳过",
                 "passed": None,
                 "skipped": True,
@@ -407,6 +410,8 @@ class EngineWorker(QThread):
             "case_no": getattr(case, "case_no", ""),
             "name": case.name,
             "type": case.type,
+            "description": getattr(case, "description", ""),
+            "criterion": self._case_criterion(case),
             "state": state,
             "passed": last_result is True,
             "detail": last_detail,
@@ -439,6 +444,21 @@ class EngineWorker(QThread):
                 self.pause_event.clear()
                 self.sig_phase.emit("stopped")
         return state
+
+    def _case_criterion(self, case):
+        """汇总用例的“判断标准”字符串（来自 config.returns），供报告表格展示。"""
+        cfg = case.config or {}
+        returns = cfg.get("returns", []) or []
+        parts = []
+        for r in returns:
+            item = str(r.get("item") or "return")
+            judge = r.get("judge", "")
+            threshold = r.get("threshold", "")
+            if judge and threshold != "":
+                parts.append("{} {} {}".format(item, judge, threshold))
+            elif threshold != "":
+                parts.append("{} {}".format(item, threshold))
+        return "；".join(parts)
 
     # ---------------- type handlers ----------------
     def _script_not_loaded(self, func_name, kind):

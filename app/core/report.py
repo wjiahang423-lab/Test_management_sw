@@ -274,7 +274,7 @@ class ReportBuilder:
                         html.escape(_fmt_calib_value(v)))
                     for k, v in r["payload"].items()
                 )
-                sub += ("<tr><td colspan='6'><table border='1' cellpadding='4' "
+                sub += ("<tr><td colspan='8'><table border='1' cellpadding='4' "
                         "style='border-collapse:collapse;width:100%'><tr bgcolor='#eaf3fb'>"
                         "<th>参数</th><th>值</th></tr>{}</table></td></tr>").format(payload_sub)
             if r.get("sessions"):
@@ -292,15 +292,20 @@ class ReportBuilder:
                     )
                     for i, s in enumerate(r["sessions"])
                 )
-                sub = ("<tr><td colspan='6'><table border='1' cellpadding='4' "
+                sub = ("<tr><td colspan='8'><table border='1' cellpadding='4' "
                        "style='border-collapse:collapse;width:100%'><tr bgcolor='#f8f9fa'>"
                        "<th>#</th><th>名称</th><th>输入</th><th>期望值</th><th>实际值</th>"
                        "<th>判定</th><th>结果</th></tr>{}</table></td></tr>").format(sub_rows)
             rows.append(
-                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td style='color:{}'><b>{}</b></td>"
-                "<td>{:.3f}s</td></tr>{}".format(
-                    r.get("index", ""), html.escape(r.get("name", "")), html.escape(r.get("type", "")),
-                    details, color, html.escape(status), r.get("duration", 0.0), sub
+                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td>"
+                "<td style='color:{}'><b>{}</b></td><td>{:.3f}s</td></tr>{}".format(
+                    r.get("case_no") or r.get("index", ""),
+                    html.escape(r.get("name", "")),
+                    html.escape(r.get("description", "")),
+                    html.escape(r.get("type", "")),
+                    details,
+                    html.escape(r.get("criterion", "")),
+                    color, html.escape(status), r.get("duration", 0.0), sub
                 )
             )
         rows_html = "\n".join(rows)
@@ -331,7 +336,7 @@ class ReportBuilder:
 <p class="overall" style="color:{overall_color}">总体结果：{overall_text}</p>
 <p class="stat">总用例：{total} ｜ 通过：{passed} ｜ 失败：{failed} ｜ 跳过：{skipped}</p>
 <table>
-<tr><th>序号</th><th>名称</th><th>类型</th><th>详情</th><th>状态</th><th>耗时</th></tr>
+<tr><th>测试编号</th><th>名称</th><th>用例描述</th><th>类型</th><th>详情</th><th>判断标准</th><th>状态</th><th>耗时</th></tr>
 {rows}
 </table>
 </body></html>""".format(
@@ -347,7 +352,7 @@ def _fallback_report(plan, results, sn, reason):
     """HTML 报告生成异常时输出的最小降级报告，保证有内容可看且不中断流程。"""
     items = "".join(
         "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>".format(
-            html.escape(str(r.get("index", ""))),
+            html.escape(str(r.get("case_no") or r.get("index", ""))),
             html.escape(str(r.get("name", ""))),
             html.escape(str(r.get("type", ""))),
             html.escape(str(r.get("state", ""))))
@@ -356,7 +361,7 @@ def _fallback_report(plan, results, sn, reason):
             "<title>测试报告（降级）</title></head><body>"
             "<h1>测试报告（降级）</h1><p>SN：{}</p><p>生成失败原因：{}</p>"
             "<table border='1' cellpadding='4' style='border-collapse:collapse'>"
-            "<tr><th>序号</th><th>名称</th><th>类型</th><th>状态</th></tr>"
+            "<tr><th>测试编号</th><th>名称</th><th>类型</th><th>状态</th></tr>"
             "{}</table></body></html>").format(
         html.escape(str(sn or "")), html.escape(str(reason)), items)
 

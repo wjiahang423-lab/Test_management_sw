@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox,
                              QFormLayout, QGroupBox,
-                             QLabel, QLineEdit, QMessageBox,
+                             QInputDialog, QLabel, QLineEdit, QMessageBox,
                              QScrollArea, QTextEdit, QVBoxLayout, QWidget)
 
 from app.core import syslog
+
+# 循环测试模式启用密码：不对外公开，仅内部/授权维护人员使用
+CONTINUOUS_ENABLE_PASSWORD = "0000"
 
 
 class PlanSettingsDialog(QDialog):
@@ -31,6 +34,17 @@ class PlanSettingsDialog(QDialog):
 
         def add(w):
             self._content_layout.addWidget(w)
+
+        grp_continuous = QGroupBox("循环测试模式（耐久测试）")
+        f_cont = QFormLayout(grp_continuous)
+        self.chk_continuous = QCheckBox("启动循环测试模式")
+        self.chk_continuous.setToolTip("勾选后，一轮测试结束自动从头重新执行，直到手动停止或退出。\n"
+                                       "仅限特殊测试需求（如耐久测试）使用，请谨慎启用！\n"
+                                       "启用需输入授权密码。")
+        f_cont.addRow("功能开关：", self.chk_continuous)
+        f_cont.addRow("", QLabel("开启后循环执行整个测试计划，直到手动点击【停止】或退出程序。\n"
+                                 "该功能不能随意启用，仅在特殊测试需求（如耐久测试）下使用。"))
+        add(grp_continuous)
 
         grp_remote = QGroupBox("远程接口配置")
         f2 = QFormLayout(grp_remote)
@@ -132,6 +146,7 @@ class PlanSettingsDialog(QDialog):
         self.edit_login_pwd.setText(self.settings.get("login_password", ""))
         self.edit_token_header.setText(self.settings.get("token_header", "Authorization"))
         self.edit_token_prefix.setText(self.settings.get("token_prefix", "Bearer "))
+        self.chk_continuous.setChecked(bool(self.settings.get("continuous", False)))
 
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.button(QDialogButtonBox.Save).setText("保存")
@@ -141,7 +156,24 @@ class PlanSettingsDialog(QDialog):
         layout.addWidget(buttons)
         self.chk_json.toggled.connect(self._toggle_json)
         self.chk_use_token.toggled.connect(self._toggle_json)
+        self.chk_continuous.toggled.connect(self._on_continuous_toggled)
         self._toggle_json()
+
+    def _on_continuous_toggled(self, checked):
+        """启用循环测试模式需输入授权密码（密码不对外公开）。"""
+        if not checked:
+            return
+        pwd, ok = QInputDialog.getText(self, "启用循环测试模式",
+                                       "请输入授权密码：", echo=QLineEdit.Password)
+        if not ok:
+            pwd = ""
+        if pwd != CONTINUOUS_ENABLE_PASSWORD:
+            QMessageBox.warning(self, "验证失败",
+                                "授权密码错误，无法启用循环测试模式。\n"
+                                "该功能仅限特殊测试需求（如耐久测试）使用，请勿随意启用。")
+            self.chk_continuous.blockSignals(True)
+            self.chk_continuous.setChecked(False)
+            self.chk_continuous.blockSignals(False)
 
     def _toggle_json(self):
         enabled = self.chk_json.isChecked()
@@ -160,6 +192,7 @@ class PlanSettingsDialog(QDialog):
     def _on_save(self):
         try:
             self.settings["batch"] = self.edit_batch.text().strip()
+            self.settings["continuous"] = self.chk_continuous.isChecked()
             self.settings["json_upload_enabled"] = self.chk_json.isChecked()
             self.settings["json_upload_url"] = self.edit_json_url.text().strip()
             self.settings["series_id"] = self.edit_series_id.text().strip()

@@ -65,7 +65,7 @@ class SNInputDialog(QDialog):
                  close_timeout_s=0):
         super().__init__(parent)
         self.setWindowTitle("SN码扫描")
-        self.setFixedSize(520, 380)          # 高度略增以容纳菜单栏
+        self.setFixedSize(820, 580)          # 高度略增以容纳菜单栏
         self.setWindowIcon(create_eol_icon())
 
         self._sn = ""
@@ -74,6 +74,9 @@ class SNInputDialog(QDialog):
         self._close_timeout_s = max(0, int(close_timeout_s or 0))
         self._left_s = self._close_timeout_s
         self._build_ui(prompt)
+
+    def set_max_windowsize(self, size):
+        self.setFixedSize(size)
 
     def _build_ui(self, prompt: str) -> None:
         main_layout = QVBoxLayout(self)
@@ -98,7 +101,8 @@ class SNInputDialog(QDialog):
 
         self._sn_input = QLineEdit()
         self._sn_input.setPlaceholderText("请扫描SN码或手动输入后按回车...")
-        self._sn_input.setFixedHeight(50)
+        self._sn_input.setStyleSheet("font-size: 28px; padding: 12px;")
+        self._sn_input.setFixedHeight(80)
         self._sn_input.setStyleSheet("font-size: 14px; padding: 6px;")
         main_layout.addWidget(self._sn_input)
 
@@ -225,6 +229,10 @@ class SNScanner:
         self._dialog = runner
         return runner.sn if runner.accepted else ""
 
+    def set_max_windowsize(self, size):
+        if self._dialog:
+            self._dialog.set_max_windowsize(size)
+
 
 _scanner = SNScanner()
 
@@ -237,8 +245,11 @@ def _toint(value, default=0):
 
 
 def scan_sn(params: dict = None, **kwargs) -> dict:
+
     p = dict(params or {})
     p.update(kwargs)
+    _scanner = SNScanner()
+    _scanner.set_max_windowsize((800, 600))  # 设置SN扫描对话框的最大尺寸
 
     prompt = p.get("prompt", "请扫描或输入SN码:")
 

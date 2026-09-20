@@ -1,0 +1,668 @@
+{
+  "name": "意优RP关节CANopen测试",
+  "description": "单序列: 连接→读设备信息→使能标0→±60/±30往返→回0→回读→失能断开, 步骤间延时1s。全节点(node1)。",
+  "variables": {},
+  "settings": {
+    "storage_mode": "local",
+    "batch": "YRP-20260918",
+    "log_dir": "",
+    "report_dir": "",
+    "continuous": false,
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "remote_storage_content": "both",
+    "remote_storage_strategy": "always",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "series_id": "",
+    "is_final": false,
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": "",
+    "login_url": "",
+    "login_username": "",
+    "login_password": "",
+    "token_header": "Authorization",
+    "token_prefix": "Bearer "
+  },
+  "sequences": [
+    {
+      "id": "84ee85bccea3",
+      "name": "RP关节测试流程",
+      "cases": [
+        {
+          "id": "0c41c4abf0b5",
+          "case_no": "",
+          "name": "① 连接CAN",
+          "type": "action",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_connect",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "da992696602e",
+          "case_no": "",
+          "name": "延时_1000ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1000,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "aedda60c3d17",
+          "case_no": "",
+          "name": "设备信息_SN序列号(0x2082)",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_od_string",
+            "params": [
+              {
+                "name": "address",
+                "type": "int",
+                "value": "8322",
+                "source": "value"
+              },
+              {
+                "name": "node",
+                "type": "int",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "expected",
+                "type": "str",
+                "value": "",
+                "source": "value"
+              },
+              {
+                "name": "label",
+                "type": "str",
+                "value": "SN序列号",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "str",
+                "judge": "等于",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "b94f2c8cc286",
+          "case_no": "",
+          "name": "延时_100ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "1e26a400c751",
+          "case_no": "",
+          "name": "设备信息_产品型号(0x1008)",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_od_string",
+            "params": [
+              {
+                "name": "address",
+                "type": "int",
+                "value": "4104",
+                "source": "value"
+              },
+              {
+                "name": "node",
+                "type": "int",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "expected",
+                "type": "str",
+                "value": "",
+                "source": "value"
+              },
+              {
+                "name": "label",
+                "type": "str",
+                "value": "产品型号",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "str",
+                "judge": "等于",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "db32aae5d49f",
+          "case_no": "",
+          "name": "延时_100ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "ed86ac65a4f2",
+          "case_no": "",
+          "name": "设备信息_硬件版本(0x2083)",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_od_string",
+            "params": [
+              {
+                "name": "address",
+                "type": "int",
+                "value": "8323",
+                "source": "value"
+              },
+              {
+                "name": "node",
+                "type": "int",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "expected",
+                "type": "str",
+                "value": "",
+                "source": "value"
+              },
+              {
+                "name": "label",
+                "type": "str",
+                "value": "硬件版本",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "str",
+                "judge": "等于",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "cf51bdcb12a6",
+          "case_no": "",
+          "name": "延时_100ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "5f2772e88394",
+          "case_no": "",
+          "name": "设备信息_MCU固件版本(0x2084)",
+          "type": "measurement",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_od_string",
+            "params": [
+              {
+                "name": "address",
+                "type": "int",
+                "value": "8324",
+                "source": "value"
+              },
+              {
+                "name": "node",
+                "type": "int",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "expected",
+                "type": "str",
+                "value": "",
+                "source": "value"
+              },
+              {
+                "name": "label",
+                "type": "str",
+                "value": "MCU固件版本",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "value",
+                "type": "str",
+                "judge": "等于",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "42387b5541d8",
+          "case_no": "",
+          "name": "延时_100ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "3fe916d2a1d8",
+          "case_no": "",
+          "name": "③ 使能+标0",
+          "type": "action",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_enable_zero_all",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "de087a39ab4b",
+          "case_no": "",
+          "name": "延时_100ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "8fdd03a21498",
+          "case_no": "",
+          "name": "④ 往返±60(120°)",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_roundtrip_all",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              },
+              {
+                "name": "angle_a",
+                "type": "float",
+                "value": "60",
+                "source": "value"
+              },
+              {
+                "name": "angle_b",
+                "type": "float",
+                "value": "-60",
+                "source": "value"
+              },
+              {
+                "name": "velocity_deg_s",
+                "type": "float",
+                "value": "10",
+                "source": "value"
+              },
+              {
+                "name": "acc_deg_s2",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "nodes.1.value",
+                "type": "float",
+                "judge": "范围内",
+                "threshold": "118~122"
+              },
+              {
+                "item": "all_pass",
+                "type": "str",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cde5761990a2",
+          "case_no": "",
+          "name": "延时_1000ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1000,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "9fc7e9279567",
+          "case_no": "",
+          "name": "⑤ 往返±30(60°)",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_roundtrip_all",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              },
+              {
+                "name": "angle_a",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              },
+              {
+                "name": "angle_b",
+                "type": "float",
+                "value": "-30",
+                "source": "value"
+              },
+              {
+                "name": "velocity_deg_s",
+                "type": "float",
+                "value": "10",
+                "source": "value"
+              },
+              {
+                "name": "acc_deg_s2",
+                "type": "float",
+                "value": "30",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "nodes.1.value",
+                "type": "float",
+                "judge": "范围内",
+                "threshold": "58~62"
+              },
+              {
+                "item": "all_pass",
+                "type": "str",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "f6fb85c7e6e4",
+          "case_no": "",
+          "name": "延时_1000ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1000,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "7e75edb23b34",
+          "case_no": "",
+          "name": "⑥ 回0位",
+          "type": "measurement",
+          "timeout_ms": 60000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_home0_all",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              },
+              {
+                "name": "tolerance",
+                "type": "float",
+                "value": "1.0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "nodes.1.value",
+                "type": "float",
+                "judge": "范围内",
+                "threshold": "-1~1"
+              },
+              {
+                "item": "all_pass",
+                "type": "str",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "881ce261380f",
+          "case_no": "",
+          "name": "⑦ 角度/编码器回读",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "measure_yrp_read_all",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "nodes.1.angle",
+                "type": "float",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "ebc396e48adc",
+          "case_no": "",
+          "name": "延时_1000ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1000,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "808580acd9ce",
+          "case_no": "",
+          "name": "⑧ 失能",
+          "type": "action",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_disable_all",
+            "params": [
+              {
+                "name": "nodes",
+                "type": "list",
+                "value": "[1]",
+                "source": "value"
+              }
+            ]
+          }
+        },
+        {
+          "id": "5b0f9c7c18f0",
+          "case_no": "",
+          "name": "延时_1000ms",
+          "type": "delay",
+          "timeout_ms": 2500,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 1000,
+            "description": "延时1s"
+          }
+        },
+        {
+          "id": "d89d356146aa",
+          "case_no": "",
+          "name": "⑨ 断开CAN",
+          "type": "action",
+          "timeout_ms": 8000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "scripts/意优关节RP/rp_joint_test.py",
+            "function": "action_yrp_disconnect"
+          }
+        }
+      ]
+    }
+  ]
+}

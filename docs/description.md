@@ -63,7 +63,7 @@
 
 - 正常执行（执行页面）：点击"开始"执行一轮测试，自动加载计划内全局变量，SN 由脚本填入；结果计入生产统计并生成报告
 - 调试执行（管理页面）：在管理页面内弹出调试窗口执行当前计划，结果不入生产统计
-- 连续执行：引擎预留 wait_sn/continuous 机制；正常执行单次一轮（生产连续模式后续按需启用）
+- 连续循环（continuous）：计划设置勾选"循环测试模式"后生效——一轮结束自动从头再次执行，每轮结果实时计入生产统计（stats.ini）并生成该轮报告，页面日志每轮清空、仅保留最近一轮结果（防止内存增长），直到手动停止或退出；未勾选则单次执行一轮
 
 四、【管理页面】（仅管理员可访问）
 
@@ -82,11 +82,12 @@
 每条测试计划独立配置，通过"计划设置"弹窗编辑：
 
 - 存储模式：local（本地存储）/ remote（远程 MES 上报）
-- 批次名称、日志目录、报告目录
-- 远程文件存储：启用后把 HTML 报告与日志文件以 multipart 上传到指定服务器地址
-- 逐用例 JSON 上报：启用后按用例逐条上报（含普通用例、测量项、Loop 子项列表）；可配置上报地址、上报密钥
+- 批次名称、日志目录、报告目录；连续循环开关（continuous，详见 3.6 执行模式）
+- 远程文件存储：启用后把 HTML 报告与日志文件以 multipart 上传到指定服务器地址；上传内容可选 both/report_only/log_only，策略可选 always/on_failure
+- 逐用例 JSON 上报：启用后按用例逐条上报（含普通用例、测量项、Loop 子项列表）；可配置上报地址、上报密钥（key）、产品系列 series_id、是否总装线 is_final（总装线上报 BOM 清单 bom_list）
 - MES 服务器地址、交互接口
 - 服务器用户名/密码（HTTP 基本认证，用于远程上报鉴权）
+- Token 认证（use_token_auth）：配置登录接口 login_url、登录用户名/密码、Token 请求头字段 token_header（默认 Authorization）与前缀 token_prefix（默认 Bearer）；启用后上报前先登录获取 Token 并置于请求头，与基本认证可叠加
 - 兼容预留：远程文件服务器、远程数据库 IP/表名
 
 4.3 单条测试用例通用配置项（所有类型共用）
@@ -185,7 +186,7 @@
 1. set_sn_to_Panel(sn)：将 SN 传给软件，显示到执行页面并写入报告/日志
 2. get_sn()：获取当前 SN（页面/脚本设定的 SN）
 3. get_test_result() / get_last_test_result() / get_last_test_detail()：获取当前/上一个用例结果与详情
-4. get_display_info(key) / set_display_info(key, value)：执行页面显示信息的读写
+4. get_display_info(key=None) / set_display_info(key, value)：执行页面显示信息的读写（key 为空返回全部显示信息）
 5. log(msg)：向运行日志与页面输出脚本日志
 6. get_variable(name) / set_variable(name, value)：读写全局变量
 7. set_robot_status / set_robot_temperature / set_robot_current / set_robot_voltage / set_robot_battery / get_robot_status：机器人状态栏更新
@@ -201,10 +202,12 @@
 2. HTML 报告：运行结束生成，包含计划名、SN、生成时间、总体结果、总用例/通过/失败/跳过统计；表格逐条展示用例（序号、名称、类型、详情、状态、耗时）；嵌套展示 Action 结构化结果参数表、Loop session 明细
 3. 输出位置：默认 data/logs/、data/reports/（计划可配置 log_dir/report_dir）；本地仅保留当天报告与日志，自动清理过期文件
 4. 数据上报（按计划设置）：
-- MES 远程上报：POST JSON（计划名、SN、工位、总体结果、统计、结果明细）
-- 远程文件存储：multipart 上传 HTML 报告与日志
-- 逐用例 JSON 上报：一轮一 SN 一密钥一次 POST，records 列表逐条；Loop 用例含父节点+list 子项，测量项含实测值与阈值上下限，标定数据扁平化展开
-5. 生产统计：按天写入 data/stats.ini（total/pass/fail），跨天自动切换
+- MES 远程上报：POST JSON（计划名、SN、工位ID、总体结果、总数/通过/失败/跳过、耗时、结果明细），HTTP 基本认证
+- 远程文件存储：multipart 上传 HTML 报告与日志（字段 report/log，另附 plan、sn）
+- 逐用例 JSON 上报（接口 V1.4）：multipart/form-data，一次 POST 提交一整轮（含 key 上报密钥），表单字段 det_data（真实 JSON 对象）+ log_file（日志文件，仅 detResult=1 失败时附带）；det_data 含 lineId、stationId、productSn、batchId、detTime、deviceId、seriesId、detResult、dtcCode、caseNum/passNum/failNum、records[]、isFinal、finalBom[]；records 元素含 caseId/caseName/category/standard/actualInput/result/durationMs/testTime/deviceId，standard/actualInput 为真实 JSON 对象，Loop 曲线数据 curveData(points)、标定参数 extrinsic/intrinsic/parameters 扁平化展开上送
+- 上报鉴权：Token 认证（use_token_auth 开启时启动测试先登录获取 Token，随请求头 Authorization: Bearer <token> 发送，失败回退基本认证）或 HTTP 基本认证；两者可叠加
+- 失败暂存与续传：上报失败自动暂存 data/pending_uploads/（文件含 plan、sn、上报数据、key、日志路径、重试次数）；下次测试开始时自动续传，重试 3 次仍失败再次暂存；按系统设置的"待上报数据保留天数"（默认 2 天，优先以文件内 create_time 为准）自动清理
+5. 生产统计：按天写入 data/stats.ini（[YYYY-MM-DD] 分节，字段 total/pass/fail），跨天自动切换
 
 十、底层技术架构非功能需求
 
@@ -222,6 +225,8 @@ UI 界面(.ui)文件与业务逻辑代码彻底分离，通过 QtUiLoader 加载
 - 页面回调以 _guarded 包装，异常弹窗提示但不退出
 4. 界面体验
 后台任务运行时界面无卡死、无冻结；暂停/启停操作实时响应；Fusion 风格 + 无边框自绘标题栏
+- Kiosk 产线触屏模式：主窗口启动即全屏（系统顶栏与左侧坞自动隐藏）、Frameless 无边框，F11 快捷键切换全屏/窗口化；全屏守护定期检测，被系统手势还原/最小化时自动恢复全屏，F11 手动退出后 60 秒内不自动回全屏
+- 底部状态栏：常驻显示设备电量/电源状态与 WiFi 信号强度（读取 /sys、/proc/net/wireless），替代系统顶栏/坞信息；另有 Ctrl+M（管理员）管理页、Ctrl+Shift+L 重新登录、Ctrl+Q 退出快捷键
 
 十一、输出文件规划
 

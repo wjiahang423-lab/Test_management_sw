@@ -10,7 +10,8 @@
 多节点：
     - 一条总线上 N 个模组(node=1..N)，共用 1 个 CAN 总线句柄；
     - 每个节点的软件零点独立记录(ZERO dict)，共用管脚表示；
-    - 单节点函数带 node 参数；"全节点"函数传入 nodes=[1,2,...] 一次横扫。
+    - 所有动作/测量函数都带 node 参数，在 PLAN 里用 node 指定要测试的电机节点ID，
+      不再输入数量/列表测全部。
 
 依赖： python-can + zlgcan（ZLG 库见工程 library/）。
 
@@ -50,8 +51,7 @@ def _log(msg):
 # ==========================================================================
 # 公共全局前置参数设置（CAN 连接参数）
 # ==========================================================================
-DEFAULT_NODE = 1                     # 默认节点 ID（单节点用例缺省）
-DEFAULT_NODES = [1, 2]               # 多节点时改成实际在线节点，如 [1,2,3]（"全节点"用例用）
+DEFAULT_NODE = 1                     # 默认节点 ID（所有用例可传 node 覆盖）
 DEFAULT_CHANNEL = 0                  # ZLG 通道号
 DEFAULT_BITRATE = 1_000_000          # 经典 CAN 波特率(1Mbps)
 DEFAULT_DEVICE_TYPE = 41             # ZCANDeviceType.ZCAN_USBCANFD_200U
@@ -118,18 +118,15 @@ def _close_all():
     _bus, _joints, ZERO = None, {}, {}
 
 
-def _parse_nodes(nodes):
-    """把 PLAN 传入的值转成节点列表。nodes 可为 list/int/'all'/None。"""
-    if nodes is None:
-        return list(DEFAULT_NODES)
-    if isinstance(nodes, str):
-        if nodes.strip().lower() in ("all", "*"):
-            return list(DEFAULT_NODES)
-        parts = nodes.replace(";", ",").replace("，", ",").split(",")
-        return [int(x.strip()) for x in parts if x.strip()]
-    if isinstance(nodes, int):
-        return [nodes]
-    return [int(n) for n in nodes]
+def _parse_node(node):
+    """把 PLAN 传入的 node 转成 int 节点ID。node 可为 int/数字字符串。"""
+    if node is None:
+        return int(DEFAULT_NODE)
+    if isinstance(node, str):
+        if node.strip().lower() in ("all", "*"):
+            return int(DEFAULT_NODE)
+        return int(node.strip())
+    return int(node)
 
 
 def _angle_up(angle):
@@ -140,11 +137,10 @@ def _angle_up(angle):
 
 
 # ============================ 动作 ============================
-def action_yrp_connect(nodes=None):
-    """① CAN 硬件连接: 打开共享总线并连接指定(默认全部)节点读当量。"""
+def action_yrp_connect(node=DEFAULT_NODE):
+    """① CAN 硬件连接: 打开共享总线并连接指定 node 的电机读当量。"""
     try:
-        for n in _parse_nodes(nodes):
-            _get_joint(n)
+        _get_joint(_parse_node(node))
         return True
     except Exception as e:
         _log("连接失败: {}: {}".format(type(e).__name__, e))
@@ -166,12 +162,9 @@ def action_yrp_enable_zero(node=DEFAULT_NODE):
         return False
 
 
-def action_yrp_enable_zero_all(nodes=None):
-    """②' 全节点 使能+标0。"""
-    ok = True
-    for n in _parse_nodes(nodes):
-        ok = action_yrp_enable_zero(n) and ok
-    return ok
+def action_yrp_enable_zero_all(node=DEFAULT_NODE):
+    """②' 使能+标0（指定节点）: node 参数传要测试的电机节点ID, 只处理该节点。"""
+    return action_yrp_enable_zero(node)
 
 
 def action_yrp_set_params(velocity_deg_s=None, acc_deg_s2=None, node=DEFAULT_NODE):
@@ -223,11 +216,9 @@ def action_yrp_disable(node=DEFAULT_NODE):
         return False
 
 
-def action_yrp_disable_all(nodes=None):
-    ok = True
-    for n in _parse_nodes(nodes):
-        ok = action_yrp_disable(n) and ok
-    return ok
+def action_yrp_disable_all(node=DEFAULT_NODE):
+    """失能（指定节点）: node 参数传要失能的电机节点ID, 只处理该节点。"""
+    return action_yrp_disable(node)
 
 
 def action_yrp_disconnect(params=None):
@@ -375,21 +366,13 @@ def measure_yrp_roundtrip(angle_a=60.0, angle_b=-60.0, velocity_deg_s=None,
         return {"node": node, "result": "ERROR", "message": str(e)}
 
 
-def measure_yrp_roundtrip_all(nodes=None, angle_a=60.0, angle_b=-60.0,
+def measure_yrp_roundtrip_all(node=DEFAULT_NODE, angle_a=60.0, angle_b=-60.0,
                               velocity_deg_s=None, acc_deg_s2=None):
-    """全节点往返横扫: 依次对 nodes 各节点做往返测量, 返回 {"nodes":{"1":{...},"2":{...}}}。
-       PLAN 可用 returns item="nodes.1.value" 等逐节点判定, 或用 item="all_pass" 整体判定。"""
-    res = {}
-    all_pass = True
-    for n in _parse_nodes(nodes):
-        r = measure_yrp_roundtrip(angle_a=angle_a, angle_b=angle_b,
-                                  velocity_deg_s=velocity_deg_s,
-                                  acc_deg_s2=acc_deg_s2, node=n)
-        res[str(n)] = r
-        if r.get("result") == "ERROR" or r.get("value", 1e9) is None:
-            all_pass = False
-    return {"nodes": res, "num_nodes": len(res),
-            "all_pass": all_pass, "angle_a": float(angle_a), "angle_b": float(angle_b)}
+    """往返行程测量（指定节点）: node 传要测试的电机节点ID, 只测该节点。
+       返回与 measure_yrp_roundtrip 一致, PLAN 直接用 item="value" 判定。"""
+    return measure_yrp_roundtrip(angle_a=angle_a, angle_b=angle_b,
+                                 velocity_deg_s=velocity_deg_s,
+                                 acc_deg_s2=acc_deg_s2, node=node)
 
 
 def measure_yrp_home0(tolerance=1.0, node=DEFAULT_NODE):
@@ -418,25 +401,16 @@ def measure_yrp_home0(tolerance=1.0, node=DEFAULT_NODE):
         return {"node": node, "result": "ERROR", "message": str(e)}
 
 
-def measure_yrp_home0_all(nodes=None, tolerance=1.0):
-    res = {}
-    all_pass = True
-    for n in _parse_nodes(nodes):
-        r = measure_yrp_home0(tolerance=tolerance, node=n)
-        res[str(n)] = r
-        if r.get("result") == "ERROR" or not r.get("pass", False):
-            all_pass = False
-    return {"nodes": res, "all_pass": all_pass, "tolerance": float(tolerance)}
+def measure_yrp_home0_all(node=DEFAULT_NODE, tolerance=1.0):
+    """回0位测量（指定节点）: node 传要测试的电机节点ID, 只测该节点。
+       返回与 measure_yrp_home0 一致, PLAN 直接用 item="value" 判定。"""
+    return measure_yrp_home0(tolerance=tolerance, node=node)
 
 
-def measure_yrp_read_all(nodes=None):
-    """全节点角度+脉冲回读。"""
-    res = {}
-    for n in _parse_nodes(nodes):
-        a = measure_yrp_angle(node=n)
-        res[str(n)] = {"angle": a.get("value"), "pulses": a.get("pulses"),
-                       "err": a.get("result") if a.get("result") else None}
-    return {"nodes": res, "num_nodes": len(res)}
+def measure_yrp_read_all(node=DEFAULT_NODE):
+    """角度/编码器回读（指定节点）: node 传要读取的电机节点ID, 只读该节点。
+       返回与 measure_yrp_angle 一致, PLAN 直接用 item="value" 判定。"""
+    return measure_yrp_angle(node=node)
 
 
 def action_yrp_home0(params=None, node=DEFAULT_NODE):

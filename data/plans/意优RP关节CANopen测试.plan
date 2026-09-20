@@ -1,6 +1,6 @@
 {
   "name": "意优RP关节CANopen测试",
-  "description": "单序列: 连接→读设备信息→使能标0→±60/±30往返→回0→回读→失能断开, 步骤间延时1s。全节点(node1)。",
+  "description": "单序列: 连接→读设备信息→使能标0→±60/±30往返→回0→回读→失能断开, 步骤间延时1s。node参数指定测试节点(node1)。",
   "variables": {},
   "settings": {
     "storage_mode": "local",
@@ -51,9 +51,9 @@
             "function": "action_yrp_connect",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               }
             ]
@@ -345,9 +345,9 @@
             "function": "action_yrp_enable_zero_all",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               }
             ]
@@ -383,9 +383,9 @@
             "function": "measure_yrp_roundtrip_all",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               },
               {
@@ -415,16 +415,10 @@
             ],
             "returns": [
               {
-                "item": "nodes.1.value",
+                "item": "value",
                 "type": "float",
                 "judge": "范围内",
                 "threshold": "118~122"
-              },
-              {
-                "item": "all_pass",
-                "type": "str",
-                "judge": "等于",
-                "threshold": "True"
               }
             ]
           }
@@ -459,9 +453,9 @@
             "function": "measure_yrp_roundtrip_all",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               },
               {
@@ -491,16 +485,10 @@
             ],
             "returns": [
               {
-                "item": "nodes.1.value",
+                "item": "value",
                 "type": "float",
                 "judge": "范围内",
                 "threshold": "58~62"
-              },
-              {
-                "item": "all_pass",
-                "type": "str",
-                "judge": "等于",
-                "threshold": "True"
               }
             ]
           }
@@ -535,9 +523,9 @@
             "function": "measure_yrp_home0_all",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               },
               {
@@ -549,16 +537,10 @@
             ],
             "returns": [
               {
-                "item": "nodes.1.value",
+                "item": "value",
                 "type": "float",
                 "judge": "范围内",
                 "threshold": "-1~1"
-              },
-              {
-                "item": "all_pass",
-                "type": "str",
-                "judge": "等于",
-                "threshold": "True"
               }
             ]
           }
@@ -578,15 +560,15 @@
             "function": "measure_yrp_read_all",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               }
             ],
             "returns": [
               {
-                "item": "nodes.1.angle",
+                "item": "value",
                 "type": "float",
                 "judge": "",
                 "threshold": ""
@@ -624,9 +606,9 @@
             "function": "action_yrp_disable_all",
             "params": [
               {
-                "name": "nodes",
-                "type": "list",
-                "value": "[1]",
+                "name": "node",
+                "type": "int",
+                "value": "1",
                 "source": "value"
               }
             ]

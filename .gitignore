@@ -21,6 +21,7 @@ data/stats.json
 data/stats.ini
 data/logs/
 data/reports/
+data/pending_uploads/
 data/ext_packages/
 
 # OS / editor

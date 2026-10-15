@@ -86,6 +86,8 @@ def invalidate_script_cache():
 
 def _infer_type_from_annotation(annotation):
     try:
+        if annotation in ("bool", "builtins.bool"):
+            return "bool"
         if isinstance(annotation, type):
             if annotation is int:
                 return "int"
@@ -98,7 +100,7 @@ def _infer_type_from_annotation(annotation):
             if annotation is dict:
                 return "dict"
             if annotation is bool:
-                return "str"
+                return "bool"
             return annotation.__name__
     except Exception:
         pass
@@ -109,7 +111,7 @@ def infer_type(value):
     if value is None:
         return "str"
     if isinstance(value, bool):
-        return "str"
+        return "bool"
     if isinstance(value, int):
         return "int"
     if isinstance(value, float):

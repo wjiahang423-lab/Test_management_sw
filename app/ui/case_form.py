@@ -21,7 +21,7 @@ from app.core import syslog
 from app.core.script_loader import get_function_info, list_functions
 
 JUDGE_OPTIONS = ["", "等于", "不等于", "大于", "小于", "范围内", "包含", "长度"]
-OVERRIDE_TYPES = ["str", "int", "float", "list", "dict"]
+OVERRIDE_TYPES = ["str", "int", "float", "bool", "list", "dict"]
 
 
 class _WheelGuardMixin:

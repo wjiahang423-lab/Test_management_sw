@@ -88,7 +88,7 @@ QHeaderView::section {
    <item>
     <widget class="QLabel" name="hintLabel">
      <property name="text">
-      <string>Measurement 类型说明：执行脚本函数并测量结果。选择脚本后自动列出所有函数，选中后自动加载输入参数和返回值，类型自动识别为 int/str/float/list/dict，返回值可绑定本地变量。</string>
+      <string>Measurement 类型说明：执行脚本函数并测量结果。选择脚本后自动列出所有函数，选中后自动加载输入参数和返回值，类型自动识别为 int/str/float/bool/list/dict，返回值可绑定本地变量。</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -176,7 +176,7 @@ QHeaderView::section {
    <item>
     <widget class="QGroupBox" name="groupBox_params">
      <property name="title">
-      <string>输入参数（自动解析，支持 int / str / float / list / dict）</string>
+      <string>输入参数（自动解析，支持 int / str / float / bool / list / dict）</string>
      </property>
      <layout class="QVBoxLayout" name="paramsLayout">
       <property name="leftMargin">

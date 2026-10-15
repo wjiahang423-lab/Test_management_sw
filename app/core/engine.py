@@ -827,6 +827,15 @@ class EngineWorker(QThread):
                 return int(float(str(raw).strip()))
             if vtype == "float":
                 return float(str(raw).strip())
+            if vtype == "bool":
+                if isinstance(raw, bool):
+                    return raw
+                text = str(raw).strip().casefold()
+                if text in ("true", "1", "yes", "y", "是", "成功"):
+                    return True
+                if text in ("false", "0", "no", "n", "否", "失败"):
+                    return False
+                return bool(raw)
             if vtype == "str":
                 return str(raw)
             if vtype == "list":
@@ -1061,6 +1070,21 @@ class EngineWorker(QThread):
         try:
             s_thr = str(threshold).strip()
             s_val = str(value)
+
+            # Boolean results need textual True/False comparison, not numeric coercion.
+            if isinstance(value, bool):
+                expected = str(threshold).strip().casefold()
+                if expected in ("true", "1", "yes", "y", "是", "成功"):
+                    target = True
+                elif expected in ("false", "0", "no", "n", "否", "失败"):
+                    target = False
+                else:
+                    target = None
+                if judge == "等于" and target is not None:
+                    return value is target, value
+                if judge == "不等于" and target is not None:
+                    return value is not target, value
+                return False, value
 
             # ---------- list / tuple / dict 返回值 ----------
             if isinstance(value, (list, tuple, dict)):

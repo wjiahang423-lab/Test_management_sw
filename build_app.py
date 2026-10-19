@@ -54,6 +54,7 @@ def build():
         "--hidden-import", "requests",
         "--hidden-import", "yaml",
         "--hidden-import", "paramiko",
+        "--hidden-import", "pysoem",
         "--hidden-import", "sqlite3",
         "--hidden-import", "_sqlite3",
         "--hidden-import", "csv",

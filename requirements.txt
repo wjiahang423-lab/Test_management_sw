@@ -3,4 +3,4 @@ PyYAML>=5.1
 requests>=2.20
 paramiko>=3.0
 zlgcan
-
+pysoem>=1.0.0

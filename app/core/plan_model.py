@@ -71,11 +71,13 @@ class TestSequence:
         self.id = new_id()
         self.name = ""
         self.cases = []
+        self.skip = False  # True: 跳过整个序列（执行时不执行该序列下的用例）
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "skip": self.skip,
             "cases": [c.to_dict() for c in self.cases],
         }
 
@@ -85,6 +87,7 @@ class TestSequence:
         try:
             seq.id = d.get("id") or new_id()
             seq.name = d.get("name", "")
+            seq.skip = bool(d.get("skip", False))
             seq.cases = [TestCase.from_dict(c) for c in d.get("cases", [])]
         except Exception:
             syslog.exception("解析测试序列数据失败")

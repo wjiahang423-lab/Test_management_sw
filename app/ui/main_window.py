@@ -202,6 +202,7 @@ class MainWindow(QMainWindow):
             self.execute_page.apply_font_scale()
             self.execute_page.apply_small_font()
             self.execute_page.refresh_station_title()
+            self.execute_page.apply_robot_visibility()
             # 应用管理页面字体缩放
             self.manage_page.apply_font_scale()
         except Exception:

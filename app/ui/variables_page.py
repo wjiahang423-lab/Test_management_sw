@@ -153,6 +153,13 @@ class _VarEditDialog(QDialog):
             self.edit_name.setText(item["name"])
             self.combo_type.setCurrentText(item["type"])
             value = item.get("value")
+            self.edit_name.setText(item["name"])
+            self.combo_type.setCurrentText(item["type"])
+            value = item.get("value")
+            if item.get("type") == "bool" and value is not None:
+                self.edit_value.setText("True" if value else "False")
+            else:
+                self.edit_value.setText(str(value) if value is not None else "")
             self.edit_value.setText(str(value) if value is not None else "")
             self.edit_desc.setText(item.get("description", ""))
 
@@ -168,7 +175,15 @@ class _VarEditDialog(QDialog):
         raw = self.edit_value.text()
         value = raw
         try:
-            if vtype == "int":
+            if vtype == "bool":
+                  text = raw.strip().lower()
+                  if text in ("True", "true", "1", "yes", "y", "是"):
+                      value = True
+                  elif text in ("False", "false", "0", "no", "n", "否"):
+                      value = False
+                  else:
+                      value = bool(raw.strip())
+            elif vtype == "int":
                 value = int(float(raw.strip())) if raw.strip() else 0
             elif vtype == "float":
                 value = float(raw.strip()) if raw.strip() else 0.0

@@ -1,0 +1,1046 @@
+{
+  "name": "腰部分装测试",
+  "description": "连接→使能机械0位标定(0x2262)→PP→往返行程测量(±60→120°、±30→60°)→回读→失能断开。左=+",
+  "variables": {
+    "Test_headup_bool": {
+      "type": "int",
+      "value": 0,
+      "description": ""
+    },
+    "Test_headdown": {
+      "type": "int",
+      "value": 0,
+      "description": ""
+    }
+  },
+  "settings": {
+    "storage_mode": "local",
+    "batch": "YRP-20260918",
+    "log_dir": "",
+    "report_dir": "",
+    "continuous": false,
+    "remote_storage_enabled": false,
+    "remote_storage_url": "",
+    "remote_storage_content": "both",
+    "remote_storage_strategy": "always",
+    "json_upload_enabled": false,
+    "json_upload_url": "",
+    "json_upload_key": "",
+    "series_id": "",
+    "is_final": false,
+    "server_username": "root",
+    "server_password": "root",
+    "mes_server": "",
+    "mes_interface": "",
+    "mes_template": "",
+    "remote_file_server": "",
+    "remote_db_ip": "",
+    "remote_db_table": "",
+    "login_url": "",
+    "login_username": "",
+    "login_password": "",
+    "token_header": "Authorization",
+    "token_prefix": "Bearer "
+  },
+  "sequences": [
+    {
+      "id": "c98cd2883774",
+      "name": "Ethercat通信",
+      "skip": false,
+      "cases": [
+        {
+          "id": "779bf86a3054",
+          "case_no": "SN",
+          "name": "扫码读取SN",
+          "type": "measurement",
+          "timeout_ms": -1,
+          "retry": 1,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "读取SN后，设置到全局系统",
+          "config": {
+            "display": "",
+            "script": "scripts/scan_sn.py",
+            "function": "scan_sn",
+            "params": [
+              {
+                "name": "params",
+                "type": "dict",
+                "value": "",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "cf9e2658d80d",
+          "case_no": "0000",
+          "name": "连接通信 Ethercat",
+          "type": "measurement",
+          "timeout_ms": 10000,
+          "retry": 1,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "打开网卡连接Ethercat主战，注意Ubuntu这里需要授权",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_connect",
+            "params": [
+              {
+                "name": "interface",
+                "type": "str",
+                "value": "enp2s0",
+                "source": "value"
+              },
+              {
+                "name": "sudo_password",
+                "type": "str",
+                "value": "zhengjijicheng",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cc2d3b73b2c0",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 500,
+            "description": ""
+          }
+        },
+        {
+          "id": "4c5f124d59d8",
+          "case_no": "0001",
+          "name": "获取通信节点",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 1,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "扫描总线节点数量",
+          "config": {
+            "display": "扫描总线节点数量",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_nodes",
+            "params": [],
+            "returns": [
+              {
+                "item": "return",
+                "type": "int",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6904d1466757",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 500,
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "4eaad5b57523",
+      "name": "关节1测试",
+      "skip": false,
+      "cases": [
+        {
+          "id": "3b76d886f0d7",
+          "case_no": "0002",
+          "name": "关节1 读取PN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取PartNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x1008",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "9291911f6da9",
+          "case_no": "0003",
+          "name": "关节1读取SN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SerialNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x3040",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dae29f45a5e9",
+          "case_no": "0004",
+          "name": "关节1读取SW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SoftwareNubmber",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x100A",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4bfbcab48ab1",
+          "case_no": "0005",
+          "name": "关节1 读取HW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取HWNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x1009",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cceb658d2d56",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": ""
+          }
+        },
+        {
+          "id": "dd34fc6879dc",
+          "case_no": "0006",
+          "name": "设置关节1扭矩模式",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "设置电机1  为扭矩模式，扭力0",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_set_torque_mode",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "torque",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c0a94cf51f24",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "设置模式后需要使能，使能成功需要等待n秒",
+          "config": {
+            "delay_ms": 3000,
+            "description": ""
+          }
+        },
+        {
+          "id": "301ed0d447fd",
+          "case_no": "0007",
+          "name": "关节1 手动调节0位",
+          "type": "measurement",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "弹窗显示0位图片",
+          "config": {
+            "display": "",
+            "script": "scripts/set_picture_show.py",
+            "function": "test_set_picture_show",
+            "params": [
+              {
+                "name": "window_height",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "font_size",
+                "type": "int",
+                "value": "22",
+                "source": "value"
+              },
+              {
+                "name": "image_width",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "image_height",
+                "type": "int",
+                "value": "750",
+                "source": "value"
+              },
+              {
+                "name": "text_content",
+                "type": "str",
+                "value": "请参考图片内容，来调整电机！",
+                "source": "value"
+              },
+              {
+                "name": "image_path",
+                "type": "str",
+                "value": "eyoushow.jpg",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c99e3d905615",
+          "case_no": "0008",
+          "name": "关节1 标定0位",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定0位",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_zero_position",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "4a757a15a88b",
+          "case_no": "0009",
+          "name": "关节1 俯极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "将头部转动到  “俯极限”（低头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "4549542131bb",
+          "case_no": "0010",
+          "name": "关节1 读取俯极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“俯极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "20"
+              }
+            ]
+          }
+        },
+        {
+          "id": "2dd15cc81637",
+          "case_no": "0011",
+          "name": "关节1 仰极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "将头部转动到  “仰极限”（抬头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "a140e3896701",
+          "case_no": "0012",
+          "name": "关节1 读取仰极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“仰极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "20"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "273846111737",
+      "name": "关节2测试",
+      "skip": false,
+      "cases": [
+        {
+          "id": "b24901e3e241",
+          "case_no": "0002",
+          "name": "关节2 读取PN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取PartNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": " 0x1008",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "f6749317f94d",
+          "case_no": "0003",
+          "name": "关节2读取SN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SerialNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x3040",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "cf799831480a",
+          "case_no": "0004",
+          "name": "关节2读取SW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SoftwareNubmber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x100A ",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ac8dabe288c5",
+          "case_no": "0005",
+          "name": "关节2读取HW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取HWNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x1009",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "None"
+              }
+            ]
+          }
+        },
+        {
+          "id": "c487e73db956",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "",
+          "config": {
+            "delay_ms": 100,
+            "description": ""
+          }
+        },
+        {
+          "id": "a5dc0ba41619",
+          "case_no": "0006",
+          "name": "设置关节2扭矩模式",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "设置电机1  为扭矩模式，扭力0",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_set_torque_mode",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "torque",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "08b34bb767af",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "设置模式后需要使能，使能成功需要等待n秒",
+          "config": {
+            "delay_ms": 3000,
+            "description": ""
+          }
+        },
+        {
+          "id": "2840169503ab",
+          "case_no": "0007",
+          "name": "关节2 手动调节0位",
+          "type": "measurement",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "弹窗显示0位图片",
+          "config": {
+            "display": "",
+            "script": "scripts/set_picture_show.py",
+            "function": "test_set_picture_show",
+            "params": [
+              {
+                "name": "window_height",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "font_size",
+                "type": "int",
+                "value": "22",
+                "source": "value"
+              },
+              {
+                "name": "image_width",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "image_height",
+                "type": "int",
+                "value": "750",
+                "source": "value"
+              },
+              {
+                "name": "text_content",
+                "type": "str",
+                "value": "请参考图片内容，来调整电机！",
+                "source": "value"
+              },
+              {
+                "name": "image_path",
+                "type": "str",
+                "value": "eyoushow.jpg",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "1582398121b6",
+          "case_no": "0008",
+          "name": "关节2 标定0位",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定0位",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_zero_position",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "1"
+              }
+            ]
+          }
+        },
+        {
+          "id": "953a8c3b0aa4",
+          "case_no": "0009",
+          "name": "关节2 俯极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "将头部转动到  “俯极限”（低头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "6b8b936dfbd5",
+          "case_no": "0010",
+          "name": "关节2 读取俯极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“俯极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "20"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ba1fb5e226a9",
+          "case_no": "0011",
+          "name": "关节2 仰极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "将头部转动到  “仰极限”（抬头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "ed1d6e80ac1d",
+          "case_no": "0012",
+          "name": "关节2 读取仰极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“仰极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "大于",
+                "threshold": "20"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

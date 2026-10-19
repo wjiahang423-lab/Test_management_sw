@@ -1,10 +1,12 @@
 import os
 
 from PyQt5 import uic
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import (QFileDialog, QHeaderView, QInputDialog, QMenu,
-                             QMessageBox, QPushButton, QStackedWidget,
-                             QTreeWidgetItem, QVBoxLayout, QWidget)
+from PyQt5.QtCore import QEvent, QObject, Qt
+from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtWidgets import (QAbstractItemView, QFileDialog, QHeaderView,
+                             QInputDialog, QMenu, QMessageBox, QPushButton,
+                             QStackedWidget, QTreeWidgetItem, QVBoxLayout,
+                             QWidget)
 
 from app.core.paths import CASE_TYPE_NAMES, PLAN_FILE_FILTER, PLANS_DIR, UI_FILES
 from app.core.plan_model import TestPlan
@@ -19,10 +21,64 @@ from app.ui.settings_page import SettingsPage
 from app.ui.users_page import UsersPage
 from app.ui.variables_page import VariablesPage
 
+# 用例类型列的文字颜色（作为第二视觉维度，同类型成组）
+TYPE_COLORS = {
+    "action": "#2c6fb8",
+    "measurement": "#1e8449",
+    "loop": "#b9770e",
+    "pop": "#7d3c98",
+    "delay": "#707070",
+}
+
+FAIL_POLICY_NAMES = {
+    "continue": "继续",
+    "pause": "暂停",
+}
+
+# ==========================================================================
+# 测试计划树 显示配置（自行调整这里即可，无需改其它代码）
+# ==========================================================================
+# 列顺序
+PLAN_TREE_COLUMNS = ["测试编号", "用例名称", "描述", "类型", "失败策略", "用例跳过", "重试", "超时(ms)"]
+# 各列宽度（px）——「描述」列宽度在这里调
+PLAN_TREE_WIDTHS = {
+    "测试编号": 115,
+    "用例名称": 460,
+    "描述": 440,
+    "类型": 250,
+    "失败策略": 100,
+    "用例跳过": 100,
+    "重试": 100,
+    "超时(ms)": 100,
+}
+# 字体（px）
+PLAN_TREE_BASE_FONT_PX = 13        # 树基准字号（未被 QSS 指定像素时兜底）
+PLAN_TREE_CONTENT_FONT_PX = 12      # 内容列（描述/类型/失败策略/用例跳过）字号
+PLAN_TREE_DELAY_FONT_PX = 11       # 延时用例行字号（整行）
+PLAN_TREE_INDENT_PX = 16          # 子级缩进（px），太小会遮住折叠箭头
+# 背景色
+PLAN_TREE_PLAN_BG = "#1f4e79"      # PLAN 节点背景色（深海军蓝）
+PLAN_TREE_SEQ_BG = "#2c5aa0"       # 序列节点背景色
+PLAN_TREE_DELAY_BG = "#e0e0e0"     # 延时用例行背景色（Windows 灰色框）
+# ==========================================================================
+
 NAV_PLAN = 0
 NAV_VARIABLES = 1
 NAV_SETTINGS = 2
 NAV_USERS = 3
+
+class _PlanTreeDropFilter(QObject):
+    """拦截计划树上的放置事件，把用例行拖到其它序列（模型层面移动）。"""
+
+    def __init__(self, handler, tree):
+        super().__init__(tree)
+        self._handler = handler
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Drop:
+            return self._handler(obj, event)
+        return super().eventFilter(obj, event)
+
 
 # 管理页面字体基准值（与 .ui 文件中的原始值一致）
 FONT_BASE = 14  # 基准 font_size
@@ -52,14 +108,16 @@ class ManagePage:
         self.ui.treeWidget_plan.setContextMenuPolicy(Qt.CustomContextMenu)
         # 列宽（.ui 中的 width 不生效，必须用代码设置）：0编号，1名称拉伸，其余固定
         tree = self.ui.treeWidget_plan
-        tree.setColumnCount(5)
-        tree.setHeaderLabels(["测试编号", "用例名称", "类型", "超时(ms)", "重试"])
+        tree.setColumnCount(len(PLAN_TREE_COLUMNS))
+        tree.setHeaderLabels(list(PLAN_TREE_COLUMNS))
         header = tree.header()
         header.setStretchLastSection(False)
-        for col, width in ((0, 100), (2, 120), (3, 100), (4, 60)):
-            tree.setColumnWidth(col, width)
+        # 宽度由顶部 PLAN_TREE_WIDTHS 配置统一定义，全部固定
+        for col, name in enumerate(PLAN_TREE_COLUMNS):
+            tree.setColumnWidth(col, PLAN_TREE_WIDTHS.get(name, 100))
             header.setSectionResizeMode(col, QHeaderView.Fixed)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        tree.setIndentation(PLAN_TREE_INDENT_PX)  # 保留缩进让折叠箭头可见，编号列加宽以防截断
+        self._enable_case_drag_drop(tree)
         self._add_sidebar_logo()
         self._restructure()
         self._add_toolbar_buttons()
@@ -488,8 +546,10 @@ class ManagePage:
         kind = item.data(0, Qt.UserRole)
         if not kind:
             return
+        if kind["kind"] == "plan":
+            return
         if kind["kind"] == "sequence":
-            name, ok = QInputDialog.getText(self.ui, "修改序列名称", "序列名称：", text=item.text(0))
+            name, ok = QInputDialog.getText(self.ui, "修改序列名称", "序列名称：", text=item.text(1))
             if ok and name.strip():
                 seq = self.plan.sequences[kind["seq"]]
                 seq.name = name.strip()
@@ -519,6 +579,8 @@ class ManagePage:
         kind = item.data(0, Qt.UserRole)
         if not kind:
             return
+        if kind["kind"] == "plan":
+            return
         if kind["kind"] == "sequence":
             if QMessageBox.question(self.ui, "确认", "删除该序列及其所有用例？") == QMessageBox.Yes:
                 del self.plan.sequences[kind["seq"]]
@@ -538,10 +600,17 @@ class ManagePage:
         act_up = menu.addAction("上移")
         act_down = menu.addAction("下移")
         menu.addSeparator()
+        act_skip_seq = menu.addAction("跳过该序列")
+        act_skip_seq.setCheckable(True)
+        menu.addSeparator()
         act_copy = menu.addAction("复制用例")
         act_paste = menu.addAction("粘贴用例")
 
         has_plan = self.plan is not None
+        has_skip = bool(has_plan and kind and kind["kind"] == "sequence")
+        act_skip_seq.setEnabled(has_skip)
+        if has_skip:
+            act_skip_seq.setChecked(bool(self.plan.sequences[kind["seq"]].skip))
         can_copy = bool(has_plan and kind and kind["kind"] == "case")
         can_paste = bool(has_plan and self._clipboard_cases
                          and self._resolve_paste_seq(item) is not None)
@@ -570,6 +639,11 @@ class ManagePage:
             self._move_item(item, -1)
         elif chosen == act_down:
             self._move_item(item, 1)
+        elif chosen == act_skip_seq:
+            if has_skip:
+                seq = self.plan.sequences[kind["seq"]]
+                seq.skip = not seq.skip
+                self._refresh_tree()
         elif chosen == act_copy:
             self._copy_cases()
         elif chosen == act_paste:
@@ -613,6 +687,75 @@ class ManagePage:
         self._refresh_tree()
 
     # ---------------- move cases / sequences ----------------
+    def _enable_case_drag_drop(self, tree):
+        """开启拖拽：用例可直接拖到其它序列（代替复制粘贴）。"""
+        tree.setDragDropMode(QAbstractItemView.DragDrop)
+        tree.setDefaultDropAction(Qt.MoveAction)
+        self._drop_filter = _PlanTreeDropFilter(self._on_plan_tree_drop, tree)
+        tree.installEventFilter(self._drop_filter)
+
+    def _on_plan_tree_drop(self, tree, event):
+        """放置事件回调：只处理来自本树的用例拖拽，其余交给默认逻辑。"""
+        if not self.plan:
+            return False
+        if event.source() is not tree:
+            return False
+        try:
+            self._apply_case_drag(tree, event.pos())
+        except Exception:
+            syslog.exception("拖拽用例失败")
+        # 内部拖拽一律消费掉，避免 QTreeWidget 默认重排导致树与模型不一致
+        return True
+
+    def _apply_case_drag(self, tree, pos):
+        """把拖拽的用例（可多个）移动到目标序列/目标用例前后。"""
+        # 1) 收集被拖拽的用例 (seq, case)
+        dragged, seen = [], set()
+        for item in tree.selectedItems():
+            kind = item.data(0, Qt.UserRole)
+            if kind and kind.get("kind") == "case":
+                key = (kind["seq"], kind["case"])
+                if key not in seen:
+                    seen.add(key)
+                    dragged.append(key)
+        if not dragged:
+            return
+        # 2) 目标位置
+        target_item = tree.itemAt(pos)
+        if target_item is None:
+            return
+        tkind = target_item.data(0, Qt.UserRole)
+        if not tkind or tkind.get("kind") not in ("sequence", "case"):
+            return  # 拖到 PLAN 根或空白处：忽略
+        target_seq = tkind["seq"]
+        below = False
+        if tkind["kind"] == "case":
+            if (target_seq, tkind["case"]) in seen:
+                return  # 拖到自己：忽略
+            below = pos.y() > tree.visualItemRect(target_item).center().y()
+        # 3) 从源序列弹出（同一序列内按索引倒序弹出以保持原始顺序）
+        by_seq = {}
+        for si, ci in dragged:
+            by_seq.setdefault(si, []).append(ci)
+        popped = []
+        for si in sorted(by_seq):
+            seq = self.plan.sequences[si]
+            for ci in sorted(by_seq[si], reverse=True):
+                popped.append(seq.cases.pop(ci))
+        popped.reverse()
+        # 4) 计算目标插入位置并插入
+        target_seq_obj = self.plan.sequences[target_seq]
+        if tkind["kind"] == "case":
+            shifted = sum(1 for si, cis in by_seq.items()
+                          for ci in cis if si == target_seq and ci < tkind["case"])
+            at = max(0, tkind["case"] - shifted) + (1 if below else 0)
+        else:
+            at = len(target_seq_obj.cases)  # 拖到序列行：追加到序列末尾
+        for case in popped:
+            target_seq_obj.cases.insert(at, case)
+            at += 1
+        self._refresh_tree()
+
     def _move_item(self, item, delta):
         """按方向移动用例（序列内）或序列（计划内），-1 上移 / +1 下移。"""
         if not self.plan or item is None:
@@ -640,7 +783,8 @@ class ManagePage:
     def _select_tree_item(self, seq_index, case_index=None):
         """刷新后重新选中并滚动到指定用例/序列。"""
         tree = self.ui.treeWidget_plan
-        top = tree.topLevelItem(seq_index) if seq_index is not None else None
+        plan_item = tree.topLevelItem(0)
+        top = plan_item.child(seq_index) if (plan_item is not None and seq_index is not None) else None
         if top is None:
             return
         item = top.child(case_index) if case_index is not None else top
@@ -659,25 +803,81 @@ class ManagePage:
         tree.clear()
         if not self.plan:
             return
+        total_case = sum(len(s.cases) for s in self.plan.sequences)
+        # 字体由顶部 PLAN_TREE_*_FONT_PX 配置统一定义
+        content_font = QFont(tree.font())
+        content_font.setPixelSize(PLAN_TREE_CONTENT_FONT_PX)
+        delay_font = QFont(tree.font())
+        delay_font.setPixelSize(PLAN_TREE_DELAY_FONT_PX)
+
+        # ① PLAN 根节点：深色标题行
+        plan_item = QTreeWidgetItem(
+            ["", "{}　（共 {} 序列 / {} 用例）".format(self.plan.name or "未命名计划",
+                                                 len(self.plan.sequences), total_case)] + [""] * 6)
+        font = plan_item.font(0)
+        font.setBold(True)
+        for c in range(8):
+            plan_item.setFont(c, font)
+            plan_item.setBackground(c, QColor(PLAN_TREE_PLAN_BG))
+            plan_item.setForeground(c, Qt.white)
+        plan_item.setData(0, Qt.UserRole, {"kind": "plan"})
+
         for si, seq in enumerate(self.plan.sequences):
-            seq_item = QTreeWidgetItem(["", seq.name, "序列", "", ""])
+            # ② 序列节点：蓝色题头行
+            seq_title = "序列{}　{}（{} 用例）".format(si + 1, seq.name, len(seq.cases))
+            if getattr(seq, "skip", False):
+                seq_title += "　[跳过]"
+            seq_item = QTreeWidgetItem(["", seq_title] + [""] * 6)
             seq_item.setData(0, Qt.UserRole, {"kind": "sequence", "seq": si})
+            font = seq_item.font(0)
+            font.setBold(True)
+            for c in range(8):
+                seq_item.setFont(c, font)
+                seq_item.setBackground(c, QColor(PLAN_TREE_SEQ_BG))
+                flag = Qt.gray if getattr(seq, "skip", False) else Qt.white
+                seq_item.setForeground(c, flag)
             for ci, case in enumerate(seq.cases):
+                # ③ 用例行
                 case_no = getattr(case, "case_no", "")
+                if case.type != "delay":
+                    case_no = case_no or "{}.{}".format(si + 1, ci + 1)
                 name_text = case.name + ("  [跳过]" if getattr(case, "skip", False) else "")
                 case_item = QTreeWidgetItem([
                     case_no,
                     name_text,
+                    getattr(case, "description", "") or "",
                     CASE_TYPE_NAMES.get(case.type, case.type),
-                    str(case.timeout_ms),
+                    FAIL_POLICY_NAMES.get(getattr(case, "fail_policy", "continue"), "继续"),
+                    "是" if getattr(case, "skip", False) else "否",
                     str(case.retry),
+                    str(case.timeout_ms),
                 ])
+                # 内容列（描述/类型/失败策略/用例跳过）字体缩小 50%
+                for c in (2, 3, 4, 5):
+                    case_item.setFont(c, content_font)
                 if getattr(case, "skip", False):
                     case_item.setForeground(1, Qt.gray)
+                    case_item.setForeground(5, QColor("#9e9e9e"))
+                if case.type == "delay":
+                    # 延时用例：整行小字号 + 灰色背景块（Windows 灰色框样式）
+                    for c in range(8):
+                        case_item.setFont(c, delay_font)
+                        case_item.setBackground(c, QColor(PLAN_TREE_DELAY_BG))
+                    for c in (2, 3, 4, 5):
+                        case_item.setFont(c, content_font)
+                else:
+                    case_item.setForeground(3, QColor(TYPE_COLORS.get(case.type, "#333333")))
+                    bg = QColor("#ffffff") if ci % 2 == 0 else QColor("#eef3f9")
+                    for c in range(8):
+                        case_item.setBackground(c, bg)
                 case_item.setData(0, Qt.UserRole, {"kind": "case", "seq": si, "case": ci})
                 seq_item.addChild(case_item)
-            tree.addTopLevelItem(seq_item)
-        tree.expandAll()
+            plan_item.addChild(seq_item)
+        tree.addTopLevelItem(plan_item)
+        # 默认展开 PLAN 根与第一个序列，其余折叠，突出「PLAN→序列→用例」三层
+        plan_item.setExpanded(True)
+        if plan_item.childCount():
+            plan_item.child(0).setExpanded(True)
 
     def _update_plan_label(self):
         if not self.plan:

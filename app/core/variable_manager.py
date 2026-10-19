@@ -6,9 +6,10 @@ import threading
 from . import syslog
 from .paths import VARIABLES_FILE
 
-TYPE_NAMES = ("int", "str", "float", "list", "dict")
+TYPE_NAMES = ("bool","int", "str", "float", "list", "dict")
 
 SUPPORTED_TYPES = {
+    "bool": bool,
     "int": int,
     "str": str,
     "float": float,
@@ -145,7 +146,9 @@ class VariableManager:
 
     @staticmethod
     def _infer(value):
-        if isinstance(value, int) and not isinstance(value, bool):
+        if isinstance(value, bool):
+            return "bool"
+        if isinstance(value, int):
             return "int"
         if isinstance(value, float):
             return "float"
@@ -159,6 +162,15 @@ class VariableManager:
     def cast(vtype, raw):
         """Convert raw string/number to the target python type."""
         try:
+            if vtype == "bool":
+                  if isinstance(raw, bool):
+                      return raw
+                  text = str(raw).strip().lower()
+                  if text in ("True", "true", "1", "yes", "y", "是"):
+                      return True
+                  if text in ("False", "false", "0", "no", "n", "否"):
+                      return False
+                  return bool(raw)
             if vtype == "int":
                 return int(float(str(raw).strip()))
             if vtype == "float":

@@ -45,6 +45,7 @@ OBJ_PP_ACC     = 0x6083
 OBJ_PP_DEC     = 0x6084
 OBJ_TARGET_VEL = 0x60FF
 OBJ_ERR_CODE   = 0x603F
+OBJ_MECH_ZERO  = 0x2262   # 机械零点标定(厂商自定义, 写当前实际位置)
 
 CW_FAULT_RESET = 0x80
 CW_SHUTDOWN    = 0x06
@@ -278,6 +279,16 @@ class RPJoint:
                           int(hw_target_pulses).to_bytes(4, "little", signed=True))
         self.sdo_download(OBJ_CTRLWORD, 0, bytes([CW_NEWSET, 0, 0, 0]))
         self.sdo_download(OBJ_CTRLWORD, 0, bytes([CW_MOVE, 0, 0, 0]))
+
+    def mech_home(self):
+        """机械0位标定: 读实际位置(0x6064) -> 写入0x2262, 由驱动器标定为机械0位。
+           返回 (ok, pos_before, pos_after)"""
+        p = self.read_pos()
+        ok = self.sdo_download(OBJ_MECH_ZERO, 0,
+                               p.to_bytes(4, "little", signed=True))
+        time.sleep(0.05)
+        after = self.read_pos() if ok else None
+        return ok, p, after
 
     def close(self):
         if self._owns_bus:

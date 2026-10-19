@@ -20,6 +20,7 @@ class SettingsManager:
         self.report_retention_days = 1  # HTML报告保留天数，默认1天（只保留当天）
         self.pending_retention_days = 2  # 待上报数据保留天数，默认2天
         self.line_id = ""  # 产线ID（接口文档 lineId，long类型）
+        self.show_robot_status = True  # 执行页是否显示底部机器人状态信息
         self.load()
 
     def load(self):
@@ -39,6 +40,7 @@ class SettingsManager:
                 self.report_retention_days = max(1, int(data.get("report_retention_days", self.report_retention_days)))
                 self.pending_retention_days = max(1, int(data.get("pending_retention_days", self.pending_retention_days)))
                 self.line_id = str(data.get("line_id", self.line_id))
+                self.show_robot_status = bool(data.get("show_robot_status", self.show_robot_status))
             except Exception:
                 syslog.exception("读取全局设置失败：{}".format(self._file))
 
@@ -55,6 +57,7 @@ class SettingsManager:
                 "report_retention_days": self.report_retention_days,
                 "pending_retention_days": self.pending_retention_days,
                 "line_id": self.line_id,
+                "show_robot_status": self.show_robot_status,
             }
             try:
                 os.makedirs(os.path.dirname(self._file), exist_ok=True)
@@ -86,6 +89,8 @@ class SettingsManager:
                     self.pending_retention_days = max(1, int(kwargs["pending_retention_days"]))
                 if "line_id" in kwargs:
                     self.line_id = str(kwargs["line_id"])
+                if "show_robot_status" in kwargs:
+                    self.show_robot_status = bool(kwargs["show_robot_status"])
                 self.save()
             except Exception:
                 syslog.exception("更新全局设置失败")

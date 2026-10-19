@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import (QDoubleSpinBox, QFormLayout, QGroupBox,
+from PyQt5.QtWidgets import (QCheckBox, QDoubleSpinBox, QFormLayout, QGroupBox,
                              QHBoxLayout, QLineEdit, QMessageBox, QPushButton,
                              QSpinBox, QVBoxLayout, QWidget)
 
@@ -60,6 +60,10 @@ class SettingsPage(QWidget):
         self.spin_pending_days.setToolTip("待上报数据保留天数，超过后自动删除")
         form.addRow("待上报数据保留天数：", self.spin_pending_days)
 
+        self.check_robot_status = QCheckBox("执行页面显示机器人状态信息（温度/电流/电压/电池）")
+        self.check_robot_status.setToolTip("勾选后执行页面底部显示机器人状态栏；取消勾选则隐藏")
+        form.addRow("", self.check_robot_status)
+
         layout.addWidget(grp)
 
         btn_row = QHBoxLayout()
@@ -81,6 +85,7 @@ class SettingsPage(QWidget):
         self.edit_line_id.setText(self.settings.line_id)
         self.spin_retention_days.setValue(self.settings.report_retention_days)
         self.spin_pending_days.setValue(self.settings.pending_retention_days)
+        self.check_robot_status.setChecked(self.settings.show_robot_status)
 
         self.btn_apply.clicked.connect(self.apply_now)
         self.btn_save.clicked.connect(self.save_now)
@@ -98,6 +103,7 @@ class SettingsPage(QWidget):
                 line_id=self.edit_line_id.text().strip(),
                 report_retention_days=self.spin_retention_days.value(),
                 pending_retention_days=self.spin_pending_days.value(),
+                show_robot_status=self.check_robot_status.isChecked(),
             )
             if self.apply_callback:
                 self.apply_callback()

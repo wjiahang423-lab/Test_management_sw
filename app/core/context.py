@@ -19,6 +19,7 @@ class RuntimeContext:
         self.display_info = {}
         self.robot_status = {"temperature": None, "current": None, "voltage": None, "battery": None}
         self.log_callback = None
+        self.picture_callback = None
         self._variables = None
         self.measure_result = None  # loop 会话脚本写入的自描述测量结果
         self.upload_key = ""  # 逐用例 JSON 上报密钥（脚本通过 set_upload_key 写入）
@@ -329,6 +330,13 @@ class RuntimeContext:
             ctx.clear_measure_result()
             return True
 
+        def request_picture(config):
+            """请求 GUI 线程显示测试图片并等待操作员选择。"""
+            callback = ctx.picture_callback
+            if callback is None:
+                return {"result": "Failed", "message": "GUI 图片请求未初始化"}
+            return callback(config)
+
         # ---- JSON 上报密钥 ----
         def set_upload_key(key):
             ctx.emit_log("[上报] 已设置上报密钥：{}".format("****" if key else "(空)"))
@@ -372,6 +380,7 @@ class RuntimeContext:
             "get_measure_range": get_measure_range,
             "get_measure_message": get_measure_message,
             "reset_measure_result": reset_measure_result,
+            "request_picture": request_picture,
             "set_upload_key": set_upload_key,
             "get_upload_key": get_upload_key,
             "get_station_id": get_station_id,

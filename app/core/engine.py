@@ -38,6 +38,7 @@ class EngineWorker(QThread):
     sig_run_started = pyqtSignal()
     sig_wait_sn = pyqtSignal()
     sig_request_pop = pyqtSignal(dict)
+    sig_request_picture = pyqtSignal(dict)
     sig_reset_tree = pyqtSignal()
     sig_phase = pyqtSignal(str)                        # running / paused / stopped / finished
     sig_round_finished = pyqtSignal(bool, int)         # 连续模式：每轮 (通过?, 轮次)
@@ -54,6 +55,10 @@ class EngineWorker(QThread):
         self.sn_event = threading.Event()
         self.pop_requested = threading.Event()
         self.pop_result = False
+        self.picture_requested = threading.Event()
+        self.picture_result = {"result": "Failed", "message": "未完成图片选择"}
+        self.picture_handler_available = False
+        self.ctx.picture_callback = self._request_picture
         self.wait_sn = True
         self.continuous = False
         self._speed = settings.speed_factor if settings else 1.0
@@ -246,7 +251,7 @@ class EngineWorker(QThread):
                 if self._is_paused():
                     if self._wait_pause():
                         return
-                state = self._execute_case(case, case_index, si, ci)
+                state = self._execute_case(case, case_index, si, ci, seq)
                 if state is None:
                     return  # aborted
                 done += 1
@@ -332,12 +337,27 @@ class EngineWorker(QThread):
         self.pop_requested.clear()
         return self.pop_result
 
+    def _request_picture(self, config):
+        """在 GUI 线程显示图片弹窗，避免测试线程直接创建 Qt 控件。"""
+        if not self.picture_handler_available:
+            return {"result": "Failed", "message": "没有可用的 GUI 图片处理器"}
+        self.picture_result = {"result": "Failed", "message": "未完成图片选择"}
+        self.picture_requested.clear()
+        self.sig_request_picture.emit(config)
+        while not self.picture_requested.is_set():
+            if self.stop_flag.is_set():
+                return {"result": "Failed", "message": "测试已停止"}
+            time.sleep(0.05)
+        return dict(self.picture_result)
+
     # ---------------- case execution ----------------
-    def _execute_case(self, case, case_index, si, ci):
-        # 跳过：不执行，仅在报告/树上标记为跳过
-        if getattr(case, "skip", False):
+    def _execute_case(self, case, case_index, si, ci, seq=None):
+        # 跳过：不执行，仅在报告/树上标记为跳过（序列级跳过或用例级跳过）
+        seq_skip = seq is not None and getattr(seq, "skip", False)
+        if getattr(case, "skip", False) or seq_skip:
+            detail = "该序列已标记为跳过，未执行" if seq_skip else "该用例已标记为跳过，未执行"
             self.last_elapsed = 0.0
-            self.ctx.finish_case(None, "该用例已标记为跳过，未执行")
+            self.ctx.finish_case(None, detail)
             self.results.append({
                 "index": case_index,
                 "case_no": getattr(case, "case_no", ""),
@@ -348,7 +368,7 @@ class EngineWorker(QThread):
                 "state": "跳过",
                 "passed": None,
                 "skipped": True,
-                "detail": "该用例已标记为跳过，未执行",
+                "detail": detail,
                 "duration": 0.0,
             })
             return "跳过"
@@ -816,7 +836,7 @@ class EngineWorker(QThread):
                 value = self.variables.get_value(var_name) if self.variables else None
                 if value is None:
                     value = p.get("value")
-                kwargs[name] = value
+                kwargs[name] = self._convert(vtype, value)
             else:
                 kwargs[name] = self._convert(vtype, p.get("value", ""))
         return kwargs
@@ -1136,10 +1156,15 @@ class EngineWorker(QThread):
             if judge == "等于":
                 if v is not None and t is not None:
                     return v == t, value
+                # 状态类字符串（如 Pass/pass、Failed/failed）不应因大小写导致误判。
+                if isinstance(value, str) and isinstance(threshold, str):
+                    return value.strip().casefold() == threshold.strip().casefold(), value
                 return s_val == s_thr, value
             if judge == "不等于":
                 if v is not None and t is not None:
                     return v != t, value
+                if isinstance(value, str) and isinstance(threshold, str):
+                    return value.strip().casefold() != threshold.strip().casefold(), value
                 return s_val != s_thr, value
             if judge == "大于":
                 if v is not None and t is not None:

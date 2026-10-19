@@ -200,6 +200,7 @@ class ExecutePage:
             self.ui.treeWidget_steps.setColumnWidth(col, width)
             header.setSectionResizeMode(col, QHeaderView.Fixed)
         header.setSectionResizeMode(1, QHeaderView.Stretch)  # 测试项名称列自适应拉伸
+        self.ui.treeWidget_steps.setIndentation(26)  # 用例相对序列的缩进
         self._steps_delegate = GridLineDelegate("#d5d8dc", self.ui.treeWidget_steps)
         self.ui.treeWidget_steps.setItemDelegate(self._steps_delegate)
         self.ui.logText.setPlainText("")
@@ -422,6 +423,16 @@ class ExecutePage:
         self._current_role = role
 
     # ---------------- robot status / clock ----------------
+    def apply_robot_visibility(self):
+        """按系统设置控制底部机器人状态栏的显示/隐藏。"""
+        try:
+            w = self.ui.bottomStatusBar if self.ui is not None else None
+            if w is not None:
+                visible = bool(self.settings and self.settings.show_robot_status)
+                w.setVisible(visible)
+        except Exception:
+            syslog.exception("应用机器人状态显示设置失败")
+
     def _refresh_robot_status(self):
         if not self.ui:
             return
@@ -507,23 +518,33 @@ class ExecutePage:
         self._seq_items = {}
         if not self.plan:
             return
-        seq_index = 1
         for si, seq in enumerate(self.plan.sequences, 1):
-            seq_item = QTreeWidgetItem(["序列 {}".format(si), seq.name, "待执行", "0.0s"])
-            seq_item.setExpanded(True)
+            skip_tag = " [跳过]" if getattr(seq, "skip", False) else ""
+            seq_item = QTreeWidgetItem(["序列 {}".format(si),
+                                        "{}{}（{} 用例）".format(seq.name, skip_tag, len(seq.cases)),
+                                        "待执行", "0.0s"])
+            seq_item.setExpanded(si == 1)
+            font = seq_item.font(0)
+            font.setBold(True)
+            for c in range(4):
+                seq_item.setFont(c, font)
+                seq_item.setBackground(c, QColor("#e7eef8"))
+            seq_item.setForeground(1, QColor("#1f4e79"))
             for ci, case in enumerate(seq.cases, 1):
                 case_no = (getattr(case, "case_no", "") or "").strip() or "{}.{}".format(si, ci)
                 case_item = QTreeWidgetItem([
                     case_no,
-                    case.name,
+                    "　　" + case.name,
                     "待执行",
                     "0.0s",
                 ])
+                bg = QColor("#ffffff") if ci % 2 == 0 else QColor("#f5f9fd")
+                for c in range(4):
+                    case_item.setBackground(c, bg)
                 seq_item.addChild(case_item)
                 self._case_items[case.id] = case_item
                 self._seq_items[case.id] = seq_item
             tree.addTopLevelItem(seq_item)
-        tree.expandAll()
 
     # ---------------- run control ----------------
     def start_run(self):
@@ -563,6 +584,8 @@ class ExecutePage:
         self.engine.sig_round_started.connect(self._on_round_started)
         self.engine.sig_run_started.connect(self._on_run_started)
         self.engine.sig_request_pop.connect(self._on_pop_requested)
+        self.engine.sig_request_picture.connect(self._on_picture_requested)
+        self.engine.picture_handler_available = True
         self.engine.sig_phase.connect(self._on_phase)
 
     def _on_run_started(self):
@@ -594,6 +617,28 @@ class ExecutePage:
         self.engine.pop_result = result
         self.engine.pop_requested.set()
 
+    def _on_picture_requested(self, config):
+        """在 GUI 线程创建脚本提供的图片窗口，并把结果交回引擎。"""
+        try:
+            dialog_cls = config.get("dialog_class")
+            if dialog_cls is None:
+                raise ValueError("未提供图片窗口类")
+            dialog = dialog_cls(
+                config["window_width"],
+                config["window_height"],
+                config["font_size"],
+                config["image_width"],
+                config["image_height"],
+                config["text_content"],
+                config["image_path"],
+            )
+            dialog.exec_()
+            self.engine.picture_result = {"result": dialog.result}
+        except Exception as exc:
+            syslog.exception("图片测试弹窗显示失败")
+            self.engine.picture_result = {"result": "Failed", "message": str(exc)}
+        self.engine.picture_requested.set()
+
     def _on_case_state(self, case_id, state, detail, elapsed):
         item = self._case_items.get(case_id)
         if not item:
@@ -604,6 +649,7 @@ class ExecutePage:
         item.setText(3, "{:.2f}s".format(elapsed))
         seq_item = self._seq_items.get(case_id)
         if seq_item:
+            seq_item.setExpanded(True)  # 运行到该序列时自动展开，方便现场看进度
             states = [self._case_items[c].text(2) for c in self._case_items if self._seq_items.get(c) is seq_item]
             if any(s == CASE_STATE_FAIL or s == CASE_STATE_TIMEOUT for s in states):
                 seq_item.setText(2, "FAIL")

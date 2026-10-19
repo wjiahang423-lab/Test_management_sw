@@ -36,7 +36,11 @@ except Exception:
 
 
 def _mset(name, *a, **k):
-    """test_api.set_measure_* 防护封装, 软件外可独立运行。"""
+    """安全调用测试平台的测量结果接口。
+
+    脚本既可以在 Test_management_sw 中运行，也可以在普通 Python 环境中
+    单独调试。未加载 ``test_api`` 时忽略测量上报，避免影响底层测试逻辑。
+    """
     if test_api is not None:
         getattr(test_api, name)(*a, **k)
 
@@ -80,6 +84,11 @@ ZERO = {}              # node -> 软件零点脉冲
 
 
 def _get_joint(node=DEFAULT_NODE):
+    """获取指定节点的关节对象，并按需创建共享 CAN 总线连接。
+
+    同一节点重复调用时复用 ``_joints`` 中的对象；首次使用任意节点时
+    打开一次共享总线，后续节点共用该总线句柄。
+    """
     global _bus, _joints
     node = int(node)
     if node in _joints:
@@ -96,19 +105,26 @@ def _get_joint(node=DEFAULT_NODE):
 
 
 def _ensure_zero(node=DEFAULT_NODE):
-    """确保该节点已标0, 返回零点脉冲。"""
+    """确保指定节点完成机械标零，并返回软件记录的零点脉冲。
+
+    首次调用会切换到 PP 模式、使能电机、写入对象 ``0x2262``，再读取
+    ``0x6064`` 保存当前位置。后续调用直接复用 ``ZERO``，不会重复标零。
+    """
     global ZERO
     node = int(node)
     if node not in ZERO:
         j = _get_joint(node)
         j.set_mode(rp.MODE_PP)
         j.enable()
+        ok, pos_before, pos_after = j.mech_home()
         ZERO[node] = j.read_pos()
-        _log("node%d 内部自动: 使能+标0, 零点=%d 脉冲" % (node, ZERO[node]))
+        _log("node%d 机械标0: 标定前=%d, 0x6064读数=%d, ok=%s"
+             % (node, pos_before, ZERO[node], ok))
     return ZERO[node]
 
 
 def _close_all():
+    """关闭共享 CAN 总线并清空节点对象和软件零点状态。"""
     global _bus, _joints, ZERO
     if _bus is not None:
         try:
@@ -119,7 +135,11 @@ def _close_all():
 
 
 def _parse_node(node):
-    """把 PLAN 传入的 node 转成 int 节点ID。node 可为 int/数字字符串。"""
+    """将 PLAN 传入的节点参数转换为整数节点 ID。
+
+    支持整数、数字字符串和空值；``all``/``*`` 为兼容旧 PLAN 的写法，
+    当前按默认节点处理，而不是遍历所有节点。
+    """
     if node is None:
         return int(DEFAULT_NODE)
     if isinstance(node, str):
@@ -130,7 +150,7 @@ def _parse_node(node):
 
 
 def _angle_up(angle):
-    """"""  # 保留（兼容）
+    """将输入角度限制在关节允许范围内，并返回是否发生钳制。"""
     a = float(angle)
     c = max(MIN_DEG, min(MAX_DEG, a))
     return c, abs(c - a) > 1e-6
@@ -138,7 +158,11 @@ def _angle_up(angle):
 
 # ============================ 动作 ============================
 def action_yrp_connect(node=DEFAULT_NODE):
-    """① CAN 硬件连接: 打开共享总线并连接指定 node 的电机读当量。"""
+    """连接指定节点并读取编码器每圈脉冲当量。
+
+    该动作会按需打开共享 CAN 总线，创建节点对象并缓存；连接成功返回
+    ``True``，底层异常会被记录并转换为 ``False``。
+    """
     try:
         _get_joint(_parse_node(node))
         return True
@@ -148,27 +172,46 @@ def action_yrp_connect(node=DEFAULT_NODE):
 
 
 def action_yrp_enable_zero(node=DEFAULT_NODE):
-    """② 使能 + 位置标0（单节点）: 设PP→使能→记当前脉冲为0°。"""
+    """使能指定节点，并将当前机械位置标定为电机零点。
+
+    执行顺序为切换 PP 模式、使能、写入 ``0x2262``，然后读取 ``0x6064``
+    更新 ``ZERO[node]``。标定成功返回设备结果 ``True``，失败或异常返回
+    ``False``。
+    """
     try:
         j = _get_joint(node)
         j.set_mode(rp.MODE_PP)
         j.enable()
+        ok, pos_before, pos_after = j.mech_home()
         global ZERO
         ZERO[int(node)] = j.read_pos()
-        _log("node%d 已使能并标0: 当前脉冲=%d 记为0°(左+右-)" % (node, ZERO[int(node)]))
-        return True
+        if ok:
+            _log("node%d 机械0位标定成功: 标定前脉冲=%d, 现读数=%d(0x6064)"
+                 % (node, pos_before, ZERO[int(node)]))
+        else:
+            _log("node%d 机械0位标定失败: 写0x2262被拒绝" % node)
+        return ok
     except Exception as e:
-        _log("node%d 使能/标0失败: {}: {}".format(node, type(e).__name__, e))
+        _log("node%d 使能/机械标0失败: {}: {}".format(node, type(e).__name__, e))
         return False
 
 
 def action_yrp_enable_zero_all(node=DEFAULT_NODE):
-    """②' 使能+标0（指定节点）: node 参数传要测试的电机节点ID, 只处理该节点。"""
+    """兼容旧测试计划的使能标零入口，只处理传入的一个节点。
+
+    函数名中的 ``all`` 不表示遍历全部节点，实际行为与
+    :func:`action_yrp_enable_zero` 完全一致。
+    """
     return action_yrp_enable_zero(node)
 
 
+
 def action_yrp_set_params(velocity_deg_s=None, acc_deg_s2=None, node=DEFAULT_NODE):
-    """可选: 设置 PP 轮廓速度/加减速(°/s, °/s²)。"""
+    """设置指定节点的 PP 轮廓速度和加减速度。
+
+    参数单位分别为 ``°/s`` 和 ``°/s²``；参数为空时使用脚本默认值。
+    设置成功返回 ``True``，参数转换或设备通信异常返回 ``False``。
+    """
     try:
         j = _get_joint(node)
         v = float(velocity_deg_s) if velocity_deg_s is not None else DEFAULT_PP_DEG_S
@@ -182,7 +225,12 @@ def action_yrp_set_params(velocity_deg_s=None, acc_deg_s2=None, node=DEFAULT_NOD
 
 
 def action_yrp_move(angle=None, node=DEFAULT_NODE):
-    """④ 控制角度输入（单节点）: angle 为角度(°), 左+右-。内部含模式PP与换算。"""
+    """命令指定节点移动到相对软件零点的目标角度。
+
+    正角度表示左转、负角度表示右转。函数会自动确保零点存在，切换
+    PP 模式，将角度换算为绝对脉冲位置后发送运动指令；超出行程的输入
+    会被限制到 ``MIN_DEG`` 和 ``MAX_DEG``。命令发送成功返回 ``True``。
+    """
     try:
         if angle is None:
             _log("缺少参数 angle(°)")
@@ -205,7 +253,11 @@ def action_yrp_move(angle=None, node=DEFAULT_NODE):
 
 
 def action_yrp_disable(node=DEFAULT_NODE):
-    """失能输出（单节点）。"""
+    """关闭指定节点的电机输出。
+
+    节点尚未建立连接时只记录状态，不主动创建连接；执行过程无异常时
+    返回 ``True``，否则返回 ``False``。
+    """
     try:
         if int(node) in _joints:
             _joints[int(node)].disable()
@@ -217,12 +269,16 @@ def action_yrp_disable(node=DEFAULT_NODE):
 
 
 def action_yrp_disable_all(node=DEFAULT_NODE):
-    """失能（指定节点）: node 参数传要失能的电机节点ID, 只处理该节点。"""
+    """兼容旧测试计划的失能入口，只处理传入节点，不遍历全部节点。"""
     return action_yrp_disable(node)
 
 
 def action_yrp_disconnect(params=None):
-    """关闭 CAN 总线(全部节点)。"""
+    """关闭共享 CAN 总线并释放全部已缓存节点。
+
+    ``params`` 仅用于兼容测试平台动作函数签名；无论是否传入都会关闭
+    当前共享连接，并清空软件零点记录。
+    """
     _close_all()
     _log("已断开 CAN")
     return True
@@ -230,7 +286,12 @@ def action_yrp_disconnect(params=None):
 
 # ============================ 测量 ============================
 def measure_yrp_angle(angle=None, node=DEFAULT_NODE):
-    """测量(单节点): 当前角度(相对软件零点)。angle 可作期望值。"""
+    """读取指定节点相对软件零点的当前角度。
+
+    位置反馈以脉冲读取，再按编码器当量换算为角度并上报；传入
+    ``angle`` 时同时将其作为期望值上报，但不在本函数内完成判定。
+    成功返回包含节点、角度、单位和原始脉冲的字典，异常返回错误字典。
+    """
     try:
         node = int(node)
         j = _get_joint(node)
@@ -250,7 +311,11 @@ def measure_yrp_angle(angle=None, node=DEFAULT_NODE):
 
 
 def measure_yrp_feedback(node=DEFAULT_NODE):
-    """测量(单节点): 原始编码器位置(脉冲)与换算角度。"""
+    """读取指定节点的原始编码器位置和每圈脉冲当量。
+
+    该测量面向底层反馈诊断，返回当前位置 ``pulses`` 和
+    ``enc_per_rev``，不对位置是否到达目标进行判断。
+    """
     try:
         node = int(node)
         j = _get_joint(node)
@@ -266,10 +331,12 @@ def measure_yrp_feedback(node=DEFAULT_NODE):
 
 
 def measure_yrp_od_string(address=0x2082, node=DEFAULT_NODE, expected="", label=""):
-    """测量(通用): 读一个 STRING 对象并判定等于 expected。
-       一个函数复用多个用例: 传 address(对象索引) 与 expected(期望值, 为空则只记录)。
-       常用: SN=0x2082, 产品型号=0x1008, 硬件版本=0x2083, MCU固件=0x2084。
-       返回 {"value": 读到的字符串}, 供 PLAN 用 returns judge=等于 threshold=<期望> 判定。"""
+    """读取一个 CANopen STRING 对象，并可选上报期望值。
+
+    ``address`` 是对象索引，``expected`` 为空时只记录实际值，否则交给
+    测试平台按期望值判定。常用索引包括序列号 ``0x2082``、产品型号
+    ``0x1008``、硬件版本 ``0x2083`` 和 MCU 固件 ``0x2084``。
+    """
     try:
         node = int(node)
         j = _get_joint(node)
@@ -289,7 +356,11 @@ def measure_yrp_od_string(address=0x2082, node=DEFAULT_NODE, expected="", label=
 
 
 def measure_yrp_status(node=DEFAULT_NODE):
-    """测量(单节点): 状态字与错误码。"""
+    """读取指定节点的状态字和错误码，并返回原始数值。
+
+    状态字以十六进制测量值上报，错误码同时附带错误名称，便于定位
+    驱动器故障；通信异常时返回包含 ``result=ERROR`` 的错误字典。
+    """
     try:
         node = int(node)
         j = _get_joint(node)
@@ -304,7 +375,12 @@ def measure_yrp_status(node=DEFAULT_NODE):
 
 
 def _wait_to_arrive(j, target_pulses, deg_s, timeout_s=None):
-    """等电机走到目标: 轮询 状态字bit10(目标到达) 或 位置到位, 超时返回(False, 原因)"""
+    """轮询关节直到目标到达或超时。
+
+    优先检查状态字 bit10（目标到达），同时用默认 0.5° 的脉冲容差做
+    位置兜底判断。未指定超时时间时，根据剩余行程和速度动态估算。
+    返回 ``(是否到位, 原因)``。
+    """
     tol = max(20, rp.deg_to_pulses(0.5, j.enc_per_rev))
     if timeout_s is None:
         travel = abs(target_pulses - j.read_pos()) / j.enc_per_rev * 360.0
@@ -322,8 +398,13 @@ def _wait_to_arrive(j, target_pulses, deg_s, timeout_s=None):
 
 def measure_yrp_roundtrip(angle_a=60.0, angle_b=-60.0, velocity_deg_s=None,
                           acc_deg_s2=None, node=DEFAULT_NODE):
-    """往返行程测量(单节点):
-       自动(连接→PP→使能→标0)→移到angle_a→等到位→读→移到angle_b→等到位→读→回0。"""
+    """测量指定节点在两个角度之间的实际往返行程。
+
+    函数会自动准备连接、PP 模式、使能和零点，然后依次移动到
+    ``angle_a``、``angle_b``，等待到位并读取反馈，最后回到零点。返回
+    实测角度差、期望角度差、两个位置脉冲值及编码器当量；通信异常返回
+    错误字典。角度超出行程时按允许范围钳制。
+    """
     try:
         node = int(node)
         j = _get_joint(node)
@@ -368,15 +449,23 @@ def measure_yrp_roundtrip(angle_a=60.0, angle_b=-60.0, velocity_deg_s=None,
 
 def measure_yrp_roundtrip_all(node=DEFAULT_NODE, angle_a=60.0, angle_b=-60.0,
                               velocity_deg_s=None, acc_deg_s2=None):
-    """往返行程测量（指定节点）: node 传要测试的电机节点ID, 只测该节点。
-       返回与 measure_yrp_roundtrip 一致, PLAN 直接用 item="value" 判定。"""
+    """兼容旧测试计划的往返测量入口，只测传入节点。
+
+    名称中的 ``all`` 不表示遍历节点，返回值和参数行为与
+    :func:`measure_yrp_roundtrip` 一致，可直接用 ``item="value"`` 判定。
+    """
     return measure_yrp_roundtrip(angle_a=angle_a, angle_b=angle_b,
                                  velocity_deg_s=velocity_deg_s,
                                  acc_deg_s2=acc_deg_s2, node=node)
 
 
 def measure_yrp_home0(tolerance=1.0, node=DEFAULT_NODE):
-    """回0位测量(单节点): 移回零点, 等到位, 校验 |角度|≤tolerance。"""
+    """将指定节点移回软件零点，并校验回零误差。
+
+    函数使用固定的回零速度和加速度，等待目标到位后读取实际位置，
+    以 ``|角度| <= tolerance`` 作为通过条件。返回实测值、判定结果、
+    脉冲位置和零点脉冲。
+    """
     try:
         node = int(node)
         j = _get_joint(node)
@@ -402,22 +491,65 @@ def measure_yrp_home0(tolerance=1.0, node=DEFAULT_NODE):
 
 
 def measure_yrp_home0_all(node=DEFAULT_NODE, tolerance=1.0):
-    """回0位测量（指定节点）: node 传要测试的电机节点ID, 只测该节点。
-       返回与 measure_yrp_home0 一致, PLAN 直接用 item="value" 判定。"""
+    """兼容旧测试计划的回零测量入口，只测传入节点。
+
+    返回值与 :func:`measure_yrp_home0` 一致，可直接使用 ``value`` 字段
+    作为测试平台的判定输入。
+    """
     return measure_yrp_home0(tolerance=tolerance, node=node)
 
 
 def measure_yrp_read_all(node=DEFAULT_NODE):
-    """角度/编码器回读（指定节点）: node 传要读取的电机节点ID, 只读该节点。
-       返回与 measure_yrp_angle 一致, PLAN 直接用 item="value" 判定。"""
+    """兼容旧测试计划的角度回读入口，只读取传入节点。
+
+    返回值与 :func:`measure_yrp_angle` 一致，不执行运动或额外判定。
+    """
     return measure_yrp_angle(node=node)
 
 
 def action_yrp_home0(params=None, node=DEFAULT_NODE):
-    """动作: 单节点回0位并等到位(不判定)。"""
+    """执行指定节点回零动作并等待到位，但不根据误差判定结果。
+
+    通过调用回零测量函数完成移动和等待，使用较宽容差仅确保动作流程
+    执行；测试平台若需严格校验，应调用 ``measure_yrp_home0``。
+    """
     try:
         measure_yrp_home0(tolerance=99.0, node=node)
         return True
     except Exception as e:
         _log("node%s 回0位出错: {}".format(node, e))
         return False
+
+
+def measure_yrp_zero_read(node:int)->dict:
+    """执行指定节点机械标零，并返回对象 ``0x6064`` 的位置读数。
+
+    函数会切换 PP 模式、使能、写入机械零点并更新 ``ZERO``，同时将
+    零点脉冲作为 pulse 类型测量值上报；返回值中的 ``ok`` 表示设备写入
+    零点是否成功。
+    """
+    try:
+        node = int(node)
+        j = _get_joint(node)
+        j.set_mode(rp.MODE_PP)
+        j.enable()
+        ok, pos_before, pos_after = j.mech_home()
+        global ZERO
+        ZERO[node] = j.read_pos()
+        _mset("set_measure_value", ZERO[node], unit="pulse")
+        _mset("set_measure_message", "node%d 标0位完成, 0x6064=%d" % (node, ZERO[node]))
+        _log("node%d 标0位: 0x6064读数=%d, ok=%s" % (node, ZERO[node], ok))
+        return {"node": node, "value": ZERO[node], "unit": "pulse", "ok": ok}
+    except Exception as e:
+        _log("node%d 标0位读取失败: {}: {}".format(node, type(e).__name__, e))
+        _mset("set_measure_message", str(e))
+        return {"node": node, "value": None, "result": "ERROR", "message": str(e)}
+
+def test_case1(a, b):
+    """示例测试函数：计算两个数之和并上报测量说明。
+
+    参数 ``a`` 和 ``b`` 应为可使用 ``+`` 运算的数值；函数返回相加结果，
+    并将格式化后的计算过程写入测试平台的测量消息。
+    """
+    _mset("set_measure_message", "%d 加上%d 的结果是 %d" % (a, b, a + b))
+    return a + b

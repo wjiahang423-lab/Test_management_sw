@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cit version="3.0" name="机器人CIT检查项配置">
+
+  <!-- 1. 板卡硬件检查 -->
+  <group id="board" name="板卡硬件检查" desc="CPU/内存/温度等板级资源">
+    <item id="hw.cpu_cores" name="CPU 核心数" module="cpu">
+      <description>检查系统可用 CPU 核心数, 确认多核资源正常。</description>
+      <param name="command" value="nproc"/>
+    </item>
+    <item id="hw.memory" name="内存容量" module="memory">
+      <description>检查物理内存总量, 确认不低于 1GB。</description>
+      <param name="command" value="free -m | awk '/Mem:/{print $2}'"/>
+    </item>
+    <item id="hw.temp" name="CPU 温度" module="sensor">
+      <description>读取板卡 CPU 温度。</description>
+    </item>
+  </group>
+
+ <!-- 2. 机器人硬件测试 -->
+  <group id="robot_hardware" name="机器人硬件测试" desc="机器人各硬件组件检查">
+    <item id="robot.arm.control" name="机械臂控制" module="script">
+      <description>检查机械臂控制功能，并获取各关节状态。</description>
+      <param name="result" value="~/script/machine_status_get.sh"/>
+      <param name="control" value="~/script/run.sh"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="robot.head.control" name="头部控制" module="head">
+      <description>检查头部控制功能，并获取头部关节状态。</description>
+      <param name="script" value="~/script/head_data_get.sh"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="robot.lift.control" name="升降杆控制" module="lift">
+      <description>检查升降杆控制功能，并获取升降杆位置。</description>
+      <param name="script" value="~/script/lift_data_get.sh"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="robot.agv.control" name="底盘控制" module="script">
+      <description>检查底盘控制功能 (结果由脚本采集)。脚本未部署时该测试项判 FAIL, 部署后即可通过。</description>
+      <param name="result_script" value="~/script/agv_data_get.sh"/>
+      <timeout_ms>30000</timeout_ms>
+    </item>
+  </group>
+
+  <!-- 3. 机器SN码获取 -->
+  <group id="sn" name="机器SN码获取" desc="获取机器唯一标识符">
+    <item id="sn.get" name="获取SN码" module="sn">
+      <description>读取机器的唯一序列号。</description>
+      <param name="lib" value="libeeprom56.a"/>
+    </item>
+  </group>
+
+  <!-- 4. 运行状态检查 -->
+  <group id="runtime" name="运行状态检查" desc="ROS 节点运行状态">
+    <item id="node.cit" name="CIT 节点" module="cit_node">
+      <description>检查 cit_node 是否在运行。</description>
+      <param name="node" value="/cit_node"/>
+    </item>
+    <item id="node.task_manager" name="任务管理节点" module="task_manager">
+      <description>检查 task_manager 节点是否在运行。</description>
+      <param name="node" value="/essp_task_manager"/>
+      <timeout_ms>5000</timeout_ms>
+    </item>
+    <item id="node.all" name="全部 ROS 节点" module="ros">
+      <description>列出当前运行的所有 ROS 节点。</description>
+    </item>
+    <item id="sys.machine_status" name="机器状态" module="script">
+      <description>采集 hostname / 内核 / 负载 / 内存 / 温度 / 板卡型号, 以 JSON 上传。</description>
+      <param name="result" value="~/script/machine_status_get.sh"/>
+      <timeout_ms>10000</timeout_ms>
+    </item>
+  </group>
+
+  <!-- 5. 系统版本检查 -->
+  <group id="version" name="系统版本检查" desc="校验全部关键模块版本">
+    <item id="ver.all" name="全部关键模块版本" module="version">
+      <description>一次校验全部 7 个关键模块版本， 并列出各模块版本号。</description>
+      <param name="keys" value="BSP_IMAGE,ZIONEER_ETHERKIT,MOTION_CONTROL,VISION_PERCEPTION,ROAM,TASK_MANAGER,SENSOR_DRIVER"/>
+    </item>
+  </group>
+
+  <!-- 5. 软件版本获取 -->
+  <group id="software" name="软件版本" desc="软件版本">
+    <item id="software.version.perception" name="读取感知系统版本" module="script">
+      <description> 读取感知系统版本 </description>
+      <param name="result" value="grep IMAGE= /etc/version.txt | sed 's/^IMAGE=//'"/>
+    </item>
+  </group>
+
+  <!-- 5. 主站 -->
+  <group id="ecat" name="主站测试" desc="主站测试">
+    <item id="ecat.master.status" name="读取左臂关节1的信息" module="script">
+      <description> 读取左臂关节1的所有信息 </description>
+      <param name="result" value="sudo /opt/zioneer_etherkit/local/bin/check_ecmater_status.sh"/>
+    </item>
+  </group>
+
+  <!-- 6. 整机联调 (预留) -->
+  <group id="system" name="整机联调检查" desc="整机联调测试 (预留)"></group>
+
+  <!-- 6. 故障注入与仿真 (预留) -->
+  <group id="fault" name="故障注入与仿真" desc="故障注入/仿真检查 (预留)"></group>
+<!-- 7. 运控功能接口 (来源: config/运控测试接口表单-20261026.md; TBD 项置底) -->
+<group id="mc" name="运控功能接口" desc="示教/关节与笛卡尔运动/跑合/模组状态查询等运控测试指令">
+        <item id="mc.env.source" name="运控环境加载(source)" module="cpu">
+      <description>自检统一环境包装脚本 ~/script/mc_run.sh: 输出 ROS_DISTRO、ros2 路径、mc_task_msgs 接口。运控工作空间路径集中定义在该脚本内 (MC_SETUP 变量), 机器迁移时只需修改脚本一处。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'echo ROS_DISTRO=$ROS_DISTRO; which ros2; ros2 interface show mc_task_msgs/action/ArmTask | head -3'"/>
+      <timeout_ms>30000</timeout_ms>
+    </item>
+    <item id="mc.runin.stop" name="停止运动" module="cpu">
+      <description>停止正在运行的运控任务 (页面停止按钮), 双保险: 1) 直接向运控 action 服务端发送标准 cancel_goal 指令, 取消全部活跃 goal (对客户端已退出的孤儿任务同样有效); 2) 向 ros2_node_action_client 进程发 SIGINT 令其尽快退出。适用于所有经 /zioneer/mc/action 启动的任务。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 service call /zioneer/mc/action/_action/cancel_goal action_msgs/srv/CancelGoal &quot;{}&quot;'; pkill -INT -f 'ros2_node_action_clien[t]' &amp;&amp; echo '已同时通知客户端退出' || echo '无运行中客户端'"/>
+      <timeout_ms>30000</timeout_ms>
+    </item>
+    <item id="mc.jiyi1.home" name="复位-回零位" module="cpu">
+      <description>复位任务 (双臂+腰部回 home)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 run mc_task_manager ros2_node_action_client move_dual_arm_waist_home'"/>
+      <timeout_ms>120000</timeout_ms>
+    </item>
+    <item id="mc.teach.left.on" name="拖动示教-左臂按下" module="cpu">
+      <description>模拟左臂按键按下, 开启 TEACH 模式 (adkey_status: 3)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'timeout 6 ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus &quot;{adkey_status: 3}&quot; || [ $? -eq 124 ]'"/>
+      <timeout_ms>25000</timeout_ms>
+    </item>
+    <item id="mc.teach.right.on" name="拖动示教-右臂按下" module="cpu">
+      <description>模拟右臂按键按下, 开启 TEACH 模式 (adkey_status: 5)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'timeout 6 ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus &quot;{adkey_status: 5}&quot; || [ $? -eq 124 ]'"/>
+      <timeout_ms>25000</timeout_ms>
+    </item>
+    <item id="mc.teach.left.off" name="拖动示教-左臂松开" module="cpu">
+      <description>模拟左臂按键松开, 回到 IDLE 关闭示教 (adkey_status: 4)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'timeout 6 ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus &quot;{adkey_status: 4}&quot; || [ $? -eq 124 ]'"/>
+      <timeout_ms>25000</timeout_ms>
+    </item>
+    <item id="mc.teach.right.off" name="拖动示教-右臂松开" module="cpu">
+      <description>模拟右臂按键松开, 回到 IDLE 关闭示教 (adkey_status: 6)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'timeout 6 ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus &quot;{adkey_status: 6}&quot; || [ $? -eq 124 ]'"/>
+      <timeout_ms>25000</timeout_ms>
+    </item>
+
+    <item id="mc.runin.slow" name="跑合动作" module="cpu">
+      <description>跑合任务: 慢速调试版。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 run mc_task_manager ros2_node_action_client jiyi1/run_in_full_stroke_slow'"/>
+      <timeout_ms>600000</timeout_ms>
+    </item>
+    <item id="mc.runin.limit" name="限位检测(臂-腰-头)" module="cpu">
+      <description>限位检测。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 run mc_task_manager ros2_node_action_client jiyi1/joint_limit_check'"/>
+      <timeout_ms>600000</timeout_ms>
+    </item>
+    <item id="mc.head.limit.yaw_max" name="头部限位-yaw正向极限" module="cpu">
+      <description>头部限位测试: yaw 转到正向限位 1.57 rad (约 +90°; 限位 [-1.57, 1.57] rad 即 [-90°, +90°])。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask &quot;{mode: 1, trajectories: {arm_mask: 1, head_joints: [1.57, 0.0], head_speed: 0.5}}&quot;'"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="mc.head.limit.yaw_min" name="头部限位-yaw负向极限" module="cpu">
+      <description>头部限位测试: yaw 转到负向限位 -1.57 rad (约 -90°)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask &quot;{mode: 1, trajectories: {arm_mask: 1, head_joints: [-1.57, 0.0], head_speed: 0.5}}&quot;'"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="mc.head.limit.pitch_max" name="头部限位-pitch上限" module="cpu">
+      <description>头部限位测试: pitch 转到上限 0.52 rad (约 +29.8°; 限位 [-0.695, 0.52] rad 即 [-39.8°, +29.8°])。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask &quot;{mode: 1, trajectories: {arm_mask: 1, head_joints: [0.0, 0.52], head_speed: 0.5}}&quot;'"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="mc.head.limit.pitch_min" name="头部限位-pitch下限" module="cpu">
+      <description>头部限位测试: pitch 转到下限 -0.695 rad (约 -39.8°)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask &quot;{mode: 1, trajectories: {arm_mask: 1, head_joints: [0.0, -0.695], head_speed: 0.5}}&quot;'"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+
+    <item id="mc.head.center" name="头部-回中" module="cpu">
+      <description>头部限位测试后回中 (yaw 0 rad / 0°, pitch 0 rad / 0°)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask &quot;{mode: 1, trajectories: {arm_mask: 1, head_joints: [0.0, 0.0], head_speed: 0.5}}&quot;'"/>
+      <timeout_ms>60000</timeout_ms>
+    </item>
+    <item id="mc.head.limit.position" name="头部限位-位置查询" module="cpu">
+      <description>读取头部关节当前位置 (best_effort QoS), 用于限位测试后确认实际到达位置。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'timeout 5 ros2 topic echo /mc/head/joint_states --field position --qos-reliability best_effort --once; echo 采集完成'"/>
+      <timeout_ms>30000</timeout_ms>
+    </item>
+    <item id="mc.arm.small_angle" name="正方向小角度校验" module="cpu">
+      <description>双臂小角度校验 (arm_mask: 12): 右臂七关节均 +0.3 rad (约 17.2°), 左臂 [-0.3, 0.3, -0.3, -0.3, -0.3, -0.3, 0.3] rad, 双臂速度 0.05。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask &quot;{mode: 1, trajectories: {arm_mask: 12, rightarm_joints: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3], rightarm_speed: 0.05, leftarm_joints: [-0.3, 0.3, -0.3, -0.3, -0.3, -0.3, 0.3], leftarm_speed: 0.05}}&quot;'"/>
+      <timeout_ms>120000</timeout_ms>
+    </item>
+
+
+    <item id="mc.jiyi1.greetings" name="问候动作(右手)" module="cpu">
+      <description>问候动作(右手)</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 run mc_task_manager ros2_node_action_client jiyi1/greetings'"/>
+      <timeout_ms>120000</timeout_ms>
+    </item>
+    <item id="mc.jiyi1.line1" name="检测线束动作" module="cpu">
+      <description>检测线束动作 dual_arm_line1。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'ros2 run mc_task_manager ros2_node_action_client jiyi1/dual_arm_line1'"/>
+      <timeout_ms>120000</timeout_ms>
+    </item>
+    <item id="mc.status.robot" name="状态查询-整机" module="cpu">
+      <description>依次采集整机状态 /mc/robot_status、双臂当前位姿 /zioneer/mc/current_poses、当前躯干位姿 /zioneer/mc/current_torso_pose; task_state / run_mode 可用 --field 过滤。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'timeout 5 ros2 topic echo /mc/robot_status --once; timeout 5 ros2 topic echo /zioneer/mc/current_poses --once; timeout 5 ros2 topic echo /zioneer/mc/current_torso_pose --once; echo 采集完成'"/>
+      <timeout_ms>90000</timeout_ms>
+    </item>
+    <item id="mc.torque.effort" name="模组扭矩查询(电流估算)" module="cpu">
+      <description>依次读取左臂/右臂/全身关节 effort (电流估算扭矩)。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'for t in /mc/left_arm/joint_states /mc/right_arm/joint_states /mc/whole_joint_states_out; do timeout 5 ros2 topic echo $t --field effort --once; done; echo 采集完成'"/>
+      <timeout_ms>90000</timeout_ms>
+    </item>
+    <item id="mc.module.states" name="模组状态-整条查询" module="cpu">
+      <description>依次整条读取 left_arm / right_arm / waist / head / lifter 各模组 joint_states (best_effort QoS) 及全身 /mc/whole_joint_states_out。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'for c in left_arm right_arm waist head lifter; do timeout 5 ros2 topic echo /mc/$c/joint_states --qos-reliability best_effort --once; done; timeout 5 ros2 topic echo /mc/whole_joint_states_out --once; echo 采集完成'"/>
+      <timeout_ms>90000</timeout_ms>
+    </item>
+    <item id="mc.module.position" name="模组位置查询" module="cpu">
+      <description>依次读取各模组 joint_states 的 position 字段 (best_effort QoS) 及全身汇总。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'for c in left_arm right_arm waist head lifter; do timeout 5 ros2 topic echo /mc/$c/joint_states --field position --qos-reliability best_effort --once; done; timeout 5 ros2 topic echo /mc/whole_joint_states_out --field position --once; echo 采集完成'"/>
+      <timeout_ms>90000</timeout_ms>
+    </item>
+    <item id="mc.module.velocity" name="模组速度查询" module="cpu">
+      <description>依次读取 left_arm / right_arm / waist / head 各模组 joint_states 的 velocity 字段 (best_effort QoS) 及全身汇总。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'for c in left_arm right_arm waist head; do timeout 5 ros2 topic echo /mc/$c/joint_states --field velocity --qos-reliability best_effort --once; done; timeout 5 ros2 topic echo /mc/whole_joint_states_out --field velocity --once; echo 采集完成'"/>
+      <timeout_ms>90000</timeout_ms>
+    </item>
+    <item id="mc.module.name" name="模组关节名对照" module="cpu">
+      <description>读取左臂/右臂及全身 joint_states 的 name 字段, 用于关节名对照。</description>
+      <param name="command" value="bash ~/script/mc_run.sh 'for c in left_arm right_arm; do timeout 5 ros2 topic echo /mc/$c/joint_states --field name --qos-reliability best_effort --once; done; timeout 5 ros2 topic echo /mc/whole_joint_states_out --field name --once; echo 采集完成'"/>
+      <timeout_ms>90000</timeout_ms>
+    </item>
+  </group>
+</cit>

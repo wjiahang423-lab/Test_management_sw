@@ -520,7 +520,8 @@ class ExecutePage:
             return
         for si, seq in enumerate(self.plan.sequences, 1):
             skip_tag = " [跳过]" if getattr(seq, "skip", False) else ""
-            seq_item = QTreeWidgetItem(["序列 {}".format(si),
+            block_number = str(getattr(seq, "block_number", "") or "")
+            seq_item = QTreeWidgetItem([block_number,
                                         "{}{}（{} 用例）".format(seq.name, skip_tag, len(seq.cases)),
                                         "待执行", "0.0s"])
             seq_item.setExpanded(si == 1)
@@ -531,7 +532,10 @@ class ExecutePage:
                 seq_item.setBackground(c, QColor("#e7eef8"))
             seq_item.setForeground(1, QColor("#1f4e79"))
             for ci, case in enumerate(seq.cases, 1):
-                case_no = (getattr(case, "case_no", "") or "").strip() or "{}.{}".format(si, ci)
+                case_no = (getattr(case, "case_no", "") or "").strip()
+                if not case_no:
+                    case_no = ("{}.{}".format(block_number, ci)
+                               if block_number else str(ci))
                 case_item = QTreeWidgetItem([
                     case_no,
                     "　　" + case.name,

@@ -70,6 +70,7 @@ class TestSequence:
     def __init__(self):
         self.id = new_id()
         self.name = ""
+        self.block_number = ""  # 手动输入的序列号/块号，为空时不参与上报
         self.cases = []
         self.skip = False  # True: 跳过整个序列（执行时不执行该序列下的用例）
 
@@ -77,6 +78,7 @@ class TestSequence:
         return {
             "id": self.id,
             "name": self.name,
+            "block_number": self.block_number,
             "skip": self.skip,
             "cases": [c.to_dict() for c in self.cases],
         }
@@ -87,6 +89,7 @@ class TestSequence:
         try:
             seq.id = d.get("id") or new_id()
             seq.name = d.get("name", "")
+            seq.block_number = str(d.get("block_number", "") or "")
             seq.skip = bool(d.get("skip", False))
             seq.cases = [TestCase.from_dict(c) for c in d.get("cases", [])]
         except Exception:

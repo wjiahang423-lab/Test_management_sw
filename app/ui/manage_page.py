@@ -42,7 +42,7 @@ FAIL_POLICY_NAMES = {
 PLAN_TREE_COLUMNS = ["测试编号", "用例名称", "描述", "类型", "失败策略", "用例跳过", "重试", "超时(ms)"]
 # 各列宽度（px）——「描述」列宽度在这里调
 PLAN_TREE_WIDTHS = {
-    "测试编号": 115,
+    "测试编号": 145,
     "用例名称": 460,
     "描述": 440,
     "类型": 250,
@@ -97,6 +97,7 @@ class ManagePage:
         self.stack = None
         self.on_switch_execute = None
         self._clipboard_cases = []
+        self._tree_plan_id = None
 
     # ---------------- lifecycle ----------------
     def setup(self, host):
@@ -117,6 +118,10 @@ class ManagePage:
             tree.setColumnWidth(col, PLAN_TREE_WIDTHS.get(name, 100))
             header.setSectionResizeMode(col, QHeaderView.Fixed)
         tree.setIndentation(PLAN_TREE_INDENT_PX)  # 保留缩进让折叠箭头可见，编号列加宽以防截断
+        # 只允许通过双击第一列编辑序列的 block_number，其它单元格不可直接改
+        tree.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        tree.itemDoubleClicked.connect(self._guarded(self._on_tree_double_clicked))
+        tree.itemChanged.connect(self._guarded(self._on_tree_item_changed))
         self._enable_case_drag_drop(tree)
         self._add_sidebar_logo()
         self._restructure()
@@ -491,15 +496,56 @@ class ManagePage:
         items = self.ui.treeWidget_plan.selectedItems()
         return items[0] if items else None
 
+    def _on_tree_double_clicked(self, item, column):
+        """双击序列行的第一列时，直接就地编辑 block_number。"""
+        if item is None or column != 0:
+            return
+        kind = item.data(0, Qt.UserRole) or {}
+        if kind.get("kind") != "sequence":
+            return
+        item.setFlags(item.flags() | Qt.ItemIsEditable)
+        self.ui.treeWidget_plan.editItem(item, 0)
+
+    def _on_tree_item_changed(self, item, column):
+        """把第一列编辑后的内容写回序列的 block_number。"""
+        if getattr(self, "_tree_building", False) or not self.plan or item is None:
+            return
+        if column != 0:
+            return
+        kind = item.data(0, Qt.UserRole) or {}
+        if kind.get("kind") != "sequence":
+            return
+        seq = self.plan.sequences[kind["seq"]]
+        text = item.text(0).strip()
+        seq.block_number = text
+        if text != item.text(0):
+            tree = self.ui.treeWidget_plan
+            tree.blockSignals(True)
+            item.setText(0, text)
+            tree.blockSignals(False)
+        # 未手填编号的用例行同步改成 "<block_number>.<序号>"
+        for ci in range(item.childCount()):
+            child = item.child(ci)
+            case = seq.cases[ci] if ci < len(seq.cases) else None
+            if case is None or case.type == "delay":
+                continue
+            if not (getattr(case, "case_no", "") or "").strip():
+                child.setText(0, "{}.{}".format(text, ci + 1) if text else str(ci + 1))
+
     def add_sequence(self):
         if not self.plan:
             QMessageBox.information(self.ui, "提示", "请先新建或打开测试计划")
+            return
+        block_number, ok = QInputDialog.getText(
+            self.ui, "新增序列", "序列号/块号 block_number（可留空）：")
+        if not ok:
             return
         name, ok = QInputDialog.getText(self.ui, "新增序列", "序列名称：")
         if not ok or not name.strip():
             return
         from app.core.plan_model import TestSequence
         seq = TestSequence()
+        seq.block_number = block_number.strip()
         seq.name = name.strip()
         self.plan.sequences.append(seq)
         self._refresh_tree()
@@ -549,11 +595,18 @@ class ManagePage:
         if kind["kind"] == "plan":
             return
         if kind["kind"] == "sequence":
-            name, ok = QInputDialog.getText(self.ui, "修改序列名称", "序列名称：", text=item.text(1))
-            if ok and name.strip():
-                seq = self.plan.sequences[kind["seq"]]
-                seq.name = name.strip()
-                self._refresh_tree()
+            seq = self.plan.sequences[kind["seq"]]
+            block_number, ok = QInputDialog.getText(
+                self.ui, "修改序列", "序列号/块号 block_number（可留空）：",
+                text=getattr(seq, "block_number", ""))
+            if not ok:
+                return
+            name, ok = QInputDialog.getText(self.ui, "修改序列", "序列名称：", text=seq.name)
+            if not ok or not name.strip():
+                return
+            seq.block_number = block_number.strip()
+            seq.name = name.strip()
+            self._refresh_tree()
         else:
             seq = self.plan.sequences[kind["seq"]]
             case = seq.cases[kind["case"]]
@@ -798,10 +851,61 @@ class ManagePage:
             pass
 
     # ---------------- tree / debug ----------------
+    def _tree_state(self):
+        """记录当前计划树的展开与选中状态，刷新后原样恢复（避免自动折叠）。"""
+        tree = self.ui.treeWidget_plan
+        plan_item = tree.topLevelItem(0)
+        if plan_item is None or not self.plan or self._tree_plan_id != id(self.plan):
+            return None
+        expanded = [plan_item.isExpanded()]
+        expanded.extend(plan_item.child(i).isExpanded()
+                        for i in range(plan_item.childCount()))
+        current = tree.currentItem()
+        selected = None
+        if current is not None:
+            kind = current.data(0, Qt.UserRole) or {}
+            if kind.get("kind") == "case":
+                selected = ("case", kind.get("seq"), kind.get("case"))
+            elif kind.get("kind") == "sequence":
+                selected = ("sequence", kind.get("seq"), None)
+            elif kind.get("kind") == "plan":
+                selected = ("plan", None, None)
+        return expanded, selected
+
+    def _restore_tree_selection(self, selected):
+        if not selected:
+            return
+        tree = self.ui.treeWidget_plan
+        plan_item = tree.topLevelItem(0)
+        if plan_item is None:
+            return
+        kind, seq_index, case_index = selected
+        if kind == "plan":
+            item = plan_item
+        else:
+            if seq_index is None or not (0 <= seq_index < plan_item.childCount()):
+                return
+            top = plan_item.child(seq_index)
+            if kind == "sequence" or case_index is None:
+                item = top
+            else:
+                if not (0 <= case_index < top.childCount()):
+                    return
+                item = top.child(case_index)
+        tree.setCurrentItem(item)
+        try:
+            tree.scrollToItem(item)
+        except Exception:
+            pass
+
     def _refresh_tree(self):
+        state = self._tree_state()
+        self._tree_building = True
         tree = self.ui.treeWidget_plan
         tree.clear()
         if not self.plan:
+            self._tree_plan_id = None
+            self._tree_building = False
             return
         total_case = sum(len(s.cases) for s in self.plan.sequences)
         # 字体由顶部 PLAN_TREE_*_FONT_PX 配置统一定义
@@ -823,12 +927,14 @@ class ManagePage:
         plan_item.setData(0, Qt.UserRole, {"kind": "plan"})
 
         for si, seq in enumerate(self.plan.sequences):
-            # ② 序列节点：蓝色题头行
-            seq_title = "序列{}　{}（{} 用例）".format(si + 1, seq.name, len(seq.cases))
+            # ② 序列节点：蓝色题头行（第一列显示手动输入的 block_number，不再自动编号）
+            block_number = str(getattr(seq, "block_number", "") or "")
+            seq_title = "{}（{} 用例）".format(seq.name, len(seq.cases))
             if getattr(seq, "skip", False):
                 seq_title += "　[跳过]"
-            seq_item = QTreeWidgetItem(["", seq_title] + [""] * 6)
+            seq_item = QTreeWidgetItem([block_number, seq_title] + [""] * 6)
             seq_item.setData(0, Qt.UserRole, {"kind": "sequence", "seq": si})
+            seq_item.setToolTip(0, "双击编辑序列号/块号 block_number")
             font = seq_item.font(0)
             font.setBold(True)
             for c in range(8):
@@ -840,7 +946,8 @@ class ManagePage:
                 # ③ 用例行
                 case_no = getattr(case, "case_no", "")
                 if case.type != "delay":
-                    case_no = case_no or "{}.{}".format(si + 1, ci + 1)
+                    case_no = case_no or ("{}.{}".format(block_number, ci + 1)
+                                          if block_number else str(ci + 1))
                 name_text = case.name + ("  [跳过]" if getattr(case, "skip", False) else "")
                 case_item = QTreeWidgetItem([
                     case_no,
@@ -874,10 +981,21 @@ class ManagePage:
                 seq_item.addChild(case_item)
             plan_item.addChild(seq_item)
         tree.addTopLevelItem(plan_item)
-        # 默认展开 PLAN 根与第一个序列，其余折叠，突出「PLAN→序列→用例」三层
-        plan_item.setExpanded(True)
-        if plan_item.childCount():
-            plan_item.child(0).setExpanded(True)
+        if state is not None:
+            # 同一计划内刷新：保留手动展开/折叠状态和当前选中项。
+            expanded, selected = state
+            plan_item.setExpanded(bool(expanded[0]))
+            for i in range(plan_item.childCount()):
+                if i + 1 < len(expanded):
+                    plan_item.child(i).setExpanded(bool(expanded[i + 1]))
+            self._restore_tree_selection(selected)
+        else:
+            # 新打开的计划：默认展开 PLAN 根与第一个序列。
+            plan_item.setExpanded(True)
+            if plan_item.childCount():
+                plan_item.child(0).setExpanded(True)
+        self._tree_plan_id = id(self.plan)
+        self._tree_building = False
 
     def _update_plan_label(self):
         if not self.plan:

@@ -185,6 +185,14 @@ class EngineWorker(QThread):
             self._logger.error(traceback.format_exc())
             self.sig_run_finished.emit(False, "执行异常：{}".format(e))
         finally:
+            try:
+                cleanup_errors = self.ctx.run_cleanup()
+                for error in cleanup_errors:
+                    self.sig_log.emit("清理回调失败：{}".format(error))
+                    if self._logger is not None:
+                        self._logger.error("清理回调失败：{}".format(error))
+            except Exception:
+                syslog.exception("执行清理回调失败")
             if self._logger is not None:
                 if self._log_routing_active:
                     try:
@@ -364,6 +372,7 @@ class EngineWorker(QThread):
                 "name": case.name,
                 "type": case.type,
                 "description": getattr(case, "description", ""),
+                "block_number": str(getattr(seq, "block_number", "") or "") if seq is not None else "",
                 "criterion": self._case_criterion(case),
                 "state": "跳过",
                 "passed": None,
@@ -431,6 +440,7 @@ class EngineWorker(QThread):
             "name": case.name,
             "type": case.type,
             "description": getattr(case, "description", ""),
+            "block_number": str(getattr(seq, "block_number", "") or "") if seq is not None else "",
             "criterion": self._case_criterion(case),
             "state": state,
             "passed": last_result is True,

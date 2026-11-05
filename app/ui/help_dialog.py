@@ -93,7 +93,15 @@ code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; }
     return {"ok": True}</pre>
 未调用时对应项显示 <code>--</code>。</div>
 
-<h2>二、全局变量的使用方式（重要）</h2>
+<h2>二、序列号 / 块号 block_number</h2>
+<p>测试序列可填写<b>序列号/块号 <code>block_number</code></b>（可留空）：</p>
+<ul>
+<li>显示在管理树和执行树序列行的第一列；双击第一列可就地编辑。</li>
+<li>未手填用例编号时，用例编号自动显示为 <code>block_number.序号</code>。</li>
+<li>随逐用例 JSON 上报写入 <code>block_number</code> 字段；未填写时该字段不出现。</li>
+</ul>
+
+<h2>三、全局变量的使用方式（重要）</h2>
 <div class="ok"><b>引用全局变量直接写「变量名」，不需要花括号。例如变量名为「目标温度」，
 一律写 <code>目标温度</code>，不是 <code>{目标温度}</code>。</b></div>
 <div class="note"><b>存储位置：全局变量随测试计划（PLAN）保存</b>。打开计划时自动加载该计划保存的变量；
@@ -114,7 +122,7 @@ code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; }
 <h3>2.2 支持的变量类型</h3>
 <p>int / str / float / list / dict。list 与 dict 在页面里用 JSON 文本填写，例如 <code>[1,2,3]</code>、<code>{"a":1}</code>。</p>
 
-<h2>三、返回值：绑定变量 与 判定（重要）</h2>
+<h2>四、返回值：绑定变量 与 判定（重要）</h2>
 <div class="ok"><b>「绑定变量」是可选的，留空也可以判定。</b> 判定只看「判定方式 + 阈值/范围」两列。</div>
 <table>
 <tr bgcolor='#f8f9fa'><th>列</th><th>说明</th></tr>
@@ -169,7 +177,7 @@ code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; }
 3) 判断存在键 voltage：返回项=<code>return</code>，判定=<code>包含</code>，阈值=<code>voltage</code><br/>
 4) 把整个 dict 存入全局变量：返回项=<code>return</code>，绑定变量=<code>whole_dict</code>（判定留空）</div>
 
-<h2>四、五类用例使用说明</h2>
+<h2>五、五类用例使用说明</h2>
 <h3>4.1 Action（仅执行）</h3>
 <p>仅调用脚本函数，<b>不判定结果</b>。配置脚本路径 + 函数名即可。报告只记录执行了哪个函数。</p>
 
@@ -183,7 +191,7 @@ code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; }
 
 <h3>4.4 Measurement（测量）</h3>
 <p>执行脚本函数并取得返回值。流程：选脚本 → 加载函数 → 选函数（自动解析参数与返回值）→
-填参数 → 配置返回项判定/绑定。详细见第二、三节。</p>
+填参数 → 配置返回项判定/绑定。详细见第三、四节。</p>
 
 <h3>4.5 Loop（循环批量）</h3>
 <p>同一函数、多组数据批量执行。数据写在 YAML 文件中。<b>session 键名以页面输入为准</b>
@@ -260,7 +268,7 @@ YAML 顶层本身就是列表时直接使用）。</p>
 <p><b>页面覆盖优先示例</b>：在 Loop 用例【覆盖配置】里加一行
 <code>upper</code>（类型 float，值 <code>14.0</code>），则该上限会覆盖 YAML 里的 <code>13.0</code> 参与判定与上报。</p>
 
-<h2>五、通用配置项说明</h2>
+<h2>六、通用配置项说明</h2>
 <table>
 <tr bgcolor='#f8f9fa'><th>配置项</th><th>说明</th></tr>
 <tr><td>超时时间(ms)</td><td>用例最长执行时间。<b>-1 表示无限等待</b>。超时后该用例判为「超时」失败。</td></tr>
@@ -269,9 +277,13 @@ YAML 顶层本身就是列表时直接使用）。</p>
  「失败后继续下一条」：忽略失败继续跑后续用例。</td></tr>
 <tr><td>跳过此用例</td><td>勾选后执行测试时<b>不执行</b>该用例，树与报告中标记为「跳过」；
 跳过的用例不参与通过/失败统计，也不影响总体结果。</td></tr>
+<tr><td>序列号/块号 block_number</td><td>在序列级设置，显示在树第一列并随 JSON 上报；用例编号留空时自动显示为
+<code>block_number.序号</code>。</td></tr>
+<tr><td>Pop 弹窗外观</td><td>在【系统设置 → Pop 弹窗设置】统一配置宽度、高度、字体大小和背景色，
+默认 840×440 px、30 px、#b8c0c4，保存后对之后弹出的 Pop 生效。</td></tr>
 </table>
 
-<h2>六、脚本用到的第三方库（外部扩展包）</h2>
+<h2>七、脚本用到的第三方库（外部扩展包）</h2>
 <p>测试脚本（Action / Measurement / Loop）可以用任何标准库（含 <code>requests</code>、<code>json</code>、<code>time</code> 等），
 也能用第三方库。软件已内置：<b>PyQt5、PyYAML、requests、paramiko</b> —— 做 HTTP 接口测试时
 直接 <code>import requests</code> 即可。</p>
@@ -300,12 +312,12 @@ def http_add(a: int, b: int) -&gt; dict:
 <code>data/ext_packages/</code> 下不要放名为 <code>test_api</code>、<code>app</code>、<code>scripts</code> 的文件夹；
 有传递依赖的包要把依赖一起放进去。</p>
 
-<h2>七、逐用例 JSON 数据上报</h2>
+<h2>八、逐用例 JSON 数据上报</h2>
 <p>在【计划设置 → 逐用例 JSON 数据上报】勾选「启动」并填写<b>上报接口地址</b>后，
 每轮测试结束会自动把<b>每个测试用例的结果</b>以 JSON POST 到服务器存储。</p>
 <table>
 <tr bgcolor='#f8f9fa'><th>项</th><th>说明</th></tr>
-<tr><td>上报密钥</td><td>由<b>测试脚本</b>从产品/服务器获取后调用 <code>set_upload_key(key)</code> 回填，上报报文的 <code>key</code> 字段自动关联该值；计划设置里不再手工填写。</td></tr>
+<tr><td>上报密钥</td><td>由<b>测试脚本</b>从产品/服务器获取后调用 <code>set_upload_key(key)</code> 回填，上报报文的 <code>key</code> 字段自动关联该值；脚本未回填时回退使用计划设置里的 <code>json_upload_key</code>。</td></tr>
 <tr><td>上报时机</td><td>一轮测试全部结束后统一 POST 一次；上传成功/失败均写入执行日志，失败不影响本地流程。</td></tr>
 </table>
 <h3>7.1 报文结构（test_time 为毫秒级）</h3>
@@ -362,7 +374,7 @@ Measurement 每个「返回项」一条；<b>Loop 父节点一条 + <code>list</
 <div class="note"><b>Loop 阈值提示</b>：YAML <code>expected</code> 里写数值即固定值（上下限相同），写 <code>20~30</code>
 / <code>20,30</code> 即范围；非数值文本（如 <code>pass</code>）上下限为空，实际值按该文本上报。</div>
 
-<h2>八、脚本编写注意事项</h2>
+<h2>九、脚本编写注意事项</h2>
 <ul>
 <li>脚本必须是可被 Python 导入的 <code>.py</code> 文件，无语法错误、无未安装的第三方依赖。</li>
 <li>需要访问软件状态时用内置 API（第一节），不要自行读取软件数据文件。</li>
@@ -370,7 +382,7 @@ Measurement 每个「返回项」一条；<b>Loop 父节点一条 + <code>list</
 <li>脚本抛出的异常会被软件捕获并记为失败，不会导致软件崩溃，但请尽量自行捕获可控异常。</li>
 </ul>
 
-<h2>九、执行与统计注意事项</h2>
+<h2>十、执行与统计注意事项</h2>
 <ul>
 <li>未输入 SN 直接点开始，软件会一直等待扫描/输入；连续测试模式下同样等待下一个 SN。</li>
 <li>执行页面总体状态 PASS/FAIL 会一直保留，直到下一个 SN 开始测试。</li>
@@ -379,7 +391,7 @@ Measurement 每个「返回项」一条；<b>Loop 父节点一条 + <code>list</
 <li>每个测试计划独立配置报告存储方式（本地 / 远程），互不影响。</li>
 </ul>
 
-<h2>十、循环测试模式（耐久测试）注意事项</h2>
+<h2>十一、循环测试模式（耐久测试）注意事项</h2>
 <div class="note"><b>重要提醒：请勿随意启用循环测试模式！</b><br/>
 循环测试模式开启后，一轮测试结束会自动从头重新执行，直到手动点击【停止】或退出程序才结束。
 该模式<b>仅限特殊测试需求</b>（如耐久测试、长时间稳定性测试）下启用，产线日常测试请勿开启。<br/>

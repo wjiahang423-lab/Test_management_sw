@@ -2,14 +2,39 @@
   "name": "腰部分装测试",
   "description": "连接→使能机械0位标定(0x2262)→PP→往返行程测量(±60→120°、±30→60°)→回读→失能断开。左=+",
   "variables": {
-    "Test_headup_bool": {
+    "Test_headdown": {
       "type": "int",
       "value": 0,
       "description": ""
     },
-    "Test_headdown": {
-      "type": "int",
+    "Test_head_bool": {
+      "type": "bool",
+      "value": false,
+      "description": ""
+    },
+    "friction_fc": {
+      "type": "float",
+      "value": 1.0,
+      "description": "摩擦补偿库伦力，单位0.1Nm，从0慢慢加"
+    },
+    "friction_b": {
+      "type": "float",
       "value": 0,
+      "description": "摩擦补偿粘性，单位0.1Nm·s/rad，从0慢慢加"
+    },
+    "friction_max_raw": {
+      "type": "int",
+      "value": 80,
+      "description": "摩擦补偿最大输出(0x6071 raw)，50≈0.135Nm"
+    },
+    "friction_fc_1": {
+      "type": "float",
+      "value": 1.3,
+      "description": ""
+    },
+    "friction_fc_2": {
+      "type": "float",
+      "value": 2.0,
       "description": ""
     }
   },
@@ -46,6 +71,7 @@
     {
       "id": "c98cd2883774",
       "name": "Ethercat通信",
+      "block_number": "",
       "skip": false,
       "cases": [
         {
@@ -181,7 +207,8 @@
     {
       "id": "4eaad5b57523",
       "name": "关节1测试",
-      "skip": false,
+      "block_number": "",
+      "skip": true,
       "cases": [
         {
           "id": "3b76d886f0d7",
@@ -201,7 +228,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               },
               {
@@ -240,7 +267,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               },
               {
@@ -279,7 +306,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               },
               {
@@ -318,7 +345,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               },
               {
@@ -355,15 +382,63 @@
           }
         },
         {
+          "id": "7a768394ebf2",
+          "case_no": "",
+          "name": "强制打开抱闸",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "Pr8.30 / 0x381E 写 128，保持打开直到标定0位完成",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_release_brake",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "341959827c33",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "等待抱闸打开",
+          "config": {
+            "delay_ms": 300,
+            "description": "等待抱闸打开"
+          }
+        },
+        {
           "id": "dd34fc6879dc",
           "case_no": "0006",
-          "name": "设置关节1扭矩模式",
+          "name": "设置关节1扭矩模式(0扭矩)",
           "type": "measurement",
           "timeout_ms": 80000,
           "retry": 0,
           "fail_policy": "pause",
           "skip": false,
-          "description": "设置电机1  为扭矩模式，扭力0",
+          "description": "仅用于摩擦补偿，不控制运动；目标扭矩0",
           "config": {
             "display": "",
             "script": "scripts/Tongchun_waist/tongchuan_test.py",
@@ -372,7 +447,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               },
               {
@@ -394,18 +469,87 @@
           }
         },
         {
-          "id": "c0a94cf51f24",
+          "id": "9e19dcd7b8d5",
           "case_no": "Delay",
           "name": "延时",
           "type": "delay",
-          "timeout_ms": 15000,
+          "timeout_ms": 5000,
           "retry": 0,
           "fail_policy": "continue",
           "skip": false,
-          "description": "设置模式后需要使能，使能成功需要等待n秒",
+          "description": "等待扭矩使能",
           "config": {
-            "delay_ms": 3000,
-            "description": ""
+            "delay_ms": 500,
+            "description": "等待扭矩使能"
+          }
+        },
+        {
+          "id": "c8829882e0fc",
+          "case_no": "",
+          "name": "设置摩擦力补偿",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "从全局变量读取 Fc/B/限幅；初值0，一点一点加",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_set_friction_compensation",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              },
+              {
+                "name": "fc",
+                "type": "float",
+                "value": "friction_fc",
+                "source": "variable"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "friction_b",
+                "source": "variable"
+              },
+              {
+                "name": "max_raw",
+                "type": "int",
+                "value": "friction_max_raw",
+                "source": "variable"
+              },
+              {
+                "name": "deadband",
+                "type": "str",
+                "value": "0.15",
+                "source": "value"
+              },
+              {
+                "name": "v_start",
+                "type": "str",
+                "value": "0.3",
+                "source": "value"
+              },
+              {
+                "name": "unit",
+                "type": "str",
+                "value": "0.1nm",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
           }
         },
         {
@@ -454,19 +598,19 @@
                 "source": "value"
               },
               {
-                "name": "image_path",
+                "name": "image_name",
                 "type": "str",
-                "value": "eyoushow.jpg",
+                "value": "tongchuan1.jpg",
                 "source": "value"
               }
             ],
             "returns": [
               {
-                "item": "return",
-                "type": "bool",
+                "item": "result",
+                "type": "str",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "True"
+                "threshold": "Pass"
               }
             ]
           }
@@ -489,7 +633,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               }
             ],
@@ -499,7 +643,76 @@
                 "type": "float",
                 "bind_var": "",
                 "judge": "小于",
-                "threshold": "1"
+                "threshold": "2"
+              }
+            ]
+          }
+        },
+        {
+          "id": "d0ea5b26dc33",
+          "case_no": "",
+          "name": "增加摩擦力补偿，可以扳动",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "从全局变量读取 Fc/B/限幅；初值0，一点一点加",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_set_friction_compensation",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              },
+              {
+                "name": "fc",
+                "type": "float",
+                "value": "friction_fc_1",
+                "source": "variable"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "friction_b",
+                "source": "variable"
+              },
+              {
+                "name": "max_raw",
+                "type": "int",
+                "value": "friction_max_raw",
+                "source": "variable"
+              },
+              {
+                "name": "deadband",
+                "type": "str",
+                "value": "0.15",
+                "source": "value"
+              },
+              {
+                "name": "v_start",
+                "type": "str",
+                "value": "0.3",
+                "source": "value"
+              },
+              {
+                "name": "unit",
+                "type": "str",
+                "value": "0.1nm",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
               }
             ]
           }
@@ -513,10 +726,10 @@
           "retry": 0,
           "fail_policy": "pause",
           "skip": false,
-          "description": "将头部转动到  “俯极限”（低头到最大角度）",
+          "description": "将电机转动到  “俯极限”（低头到最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将电机转动到  “俯极限”（低头到最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -541,7 +754,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               }
             ],
@@ -550,8 +763,8 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
               }
             ]
           }
@@ -565,10 +778,10 @@
           "retry": 0,
           "fail_policy": "pause",
           "skip": false,
-          "description": "将头部转动到  “仰极限”（抬头到最大角度）",
+          "description": "将电机转动到  “仰极限”（抬头到最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将电机转动到  “仰极限”（抬头到最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -593,7 +806,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "1",
+                "value": "0",
                 "source": "value"
               }
             ],
@@ -602,8 +815,60 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "90ebf7fe37ab",
+          "case_no": "0011",
+          "name": "关节1 恢复0位",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "将电机转动到  0位",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将电机转动到  拌到0位\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "f60153f7a7a9",
+          "case_no": "",
+          "name": "恢复抱闸并关闭扭矩",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定0位完成：关闭扭矩/摩擦补偿并恢复抱闸",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_disable_torque",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
               }
             ]
           }
@@ -613,6 +878,7 @@
     {
       "id": "273846111737",
       "name": "关节2测试",
+      "block_number": "",
       "skip": false,
       "cases": [
         {
@@ -633,13 +899,13 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               },
               {
                 "name": "address",
                 "type": "str",
-                "value": " 0x1008",
+                "value": "0x1008",
                 "source": "value"
               }
             ],
@@ -672,7 +938,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               },
               {
@@ -705,19 +971,19 @@
           "description": "读取SoftwareNubmber",
           "config": {
             "display": "",
-            "script": "scripts/eyou_head/eyou_test.py",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
             "function": "test_read_info",
             "params": [
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               },
               {
                 "name": "address",
                 "type": "str",
-                "value": "0x100A ",
+                "value": "0x100A",
                 "source": "value"
               }
             ],
@@ -744,13 +1010,13 @@
           "description": "读取HWNumber",
           "config": {
             "display": "",
-            "script": "scripts/eyou_head/eyou_test.py",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
             "function": "test_read_info",
             "params": [
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               },
               {
@@ -787,15 +1053,63 @@
           }
         },
         {
+          "id": "c1b745419cc1",
+          "case_no": "",
+          "name": "强制打开抱闸",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "Pr8.30 / 0x381E 写 128，保持打开直到标定0位完成",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_release_brake",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ee7839725d3c",
+          "case_no": "Delay",
+          "name": "延时",
+          "type": "delay",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "等待抱闸打开",
+          "config": {
+            "delay_ms": 300,
+            "description": "等待抱闸打开"
+          }
+        },
+        {
           "id": "a5dc0ba41619",
           "case_no": "0006",
-          "name": "设置关节2扭矩模式",
+          "name": "设置关节2扭矩模式(0扭矩)",
           "type": "measurement",
           "timeout_ms": 80000,
           "retry": 0,
           "fail_policy": "pause",
           "skip": false,
-          "description": "设置电机1  为扭矩模式，扭力0",
+          "description": "仅用于摩擦补偿，不控制运动；目标扭矩0",
           "config": {
             "display": "",
             "script": "scripts/Tongchun_waist/tongchuan_test.py",
@@ -804,7 +1118,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               },
               {
@@ -826,18 +1140,87 @@
           }
         },
         {
-          "id": "08b34bb767af",
+          "id": "511a58fa3dfa",
           "case_no": "Delay",
           "name": "延时",
           "type": "delay",
-          "timeout_ms": 15000,
+          "timeout_ms": 5000,
           "retry": 0,
           "fail_policy": "continue",
           "skip": false,
-          "description": "设置模式后需要使能，使能成功需要等待n秒",
+          "description": "等待扭矩使能",
           "config": {
-            "delay_ms": 3000,
-            "description": ""
+            "delay_ms": 500,
+            "description": "等待扭矩使能"
+          }
+        },
+        {
+          "id": "f64f9874969e",
+          "case_no": "",
+          "name": "设置摩擦力补偿",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "从全局变量读取 Fc/B/限幅；初值0，一点一点加",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_set_friction_compensation",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "fc",
+                "type": "float",
+                "value": "friction_fc_1",
+                "source": "variable"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "friction_b",
+                "source": "variable"
+              },
+              {
+                "name": "max_raw",
+                "type": "int",
+                "value": "friction_max_raw",
+                "source": "variable"
+              },
+              {
+                "name": "deadband",
+                "type": "str",
+                "value": "0.15",
+                "source": "value"
+              },
+              {
+                "name": "v_start",
+                "type": "str",
+                "value": "0.3",
+                "source": "value"
+              },
+              {
+                "name": "unit",
+                "type": "str",
+                "value": "0.1nm",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
           }
         },
         {
@@ -886,19 +1269,19 @@
                 "source": "value"
               },
               {
-                "name": "image_path",
+                "name": "image_name",
                 "type": "str",
-                "value": "eyoushow.jpg",
+                "value": "tongchuan2.jpg",
                 "source": "value"
               }
             ],
             "returns": [
               {
-                "item": "return",
-                "type": "bool",
+                "item": "result",
+                "type": "str",
                 "bind_var": "",
                 "judge": "等于",
-                "threshold": "True"
+                "threshold": "Pass"
               }
             ]
           }
@@ -921,7 +1304,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               }
             ],
@@ -937,18 +1320,87 @@
           }
         },
         {
+          "id": "3fd7ee8a7705",
+          "case_no": "",
+          "name": "增加摩擦力补偿，可以扳动",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "从全局变量读取 Fc/B/限幅；初值0，一点一点加",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_set_friction_compensation",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "fc",
+                "type": "float",
+                "value": "2.0",
+                "source": "variable"
+              },
+              {
+                "name": "b",
+                "type": "float",
+                "value": "friction_b",
+                "source": "variable"
+              },
+              {
+                "name": "max_raw",
+                "type": "int",
+                "value": "50",
+                "source": "variable"
+              },
+              {
+                "name": "deadband",
+                "type": "str",
+                "value": "0.15",
+                "source": "value"
+              },
+              {
+                "name": "v_start",
+                "type": "str",
+                "value": "0.3",
+                "source": "value"
+              },
+              {
+                "name": "unit",
+                "type": "str",
+                "value": "0.1nm",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
           "id": "953a8c3b0aa4",
           "case_no": "0009",
-          "name": "关节2 俯极限测试",
+          "name": "关节2 左转限测试",
           "type": "pop",
           "timeout_ms": -1,
           "retry": 0,
           "fail_policy": "pause",
           "skip": false,
-          "description": "将头部转动到  “俯极限”（低头到最大角度）",
+          "description": "将电机手动转动到  “左侧极限”",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将头部转动到  “左转到极限”（手动转到最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -958,13 +1410,13 @@
         {
           "id": "6b8b936dfbd5",
           "case_no": "0010",
-          "name": "关节2 读取俯极限角度",
+          "name": "关节2 读取左转极限角度",
           "type": "measurement",
           "timeout_ms": 15000,
           "retry": 0,
           "fail_policy": "continue",
           "skip": false,
-          "description": "“俯极限”最大角读取",
+          "description": "“左转极限”最大角读取",
           "config": {
             "display": "",
             "script": "scripts/Tongchun_waist/tongchuan_test.py",
@@ -973,7 +1425,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               }
             ],
@@ -982,8 +1434,8 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
               }
             ]
           }
@@ -991,16 +1443,16 @@
         {
           "id": "ba1fb5e226a9",
           "case_no": "0011",
-          "name": "关节2 仰极限测试",
+          "name": "关节2 右转限测试",
           "type": "pop",
           "timeout_ms": -1,
           "retry": 0,
           "fail_policy": "pause",
           "skip": false,
-          "description": "将头部转动到  “仰极限”（抬头到最大角度）",
+          "description": "将电机手动转动到  “右转极限”（抬头到最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将电机手动转动到  “右转极限”（最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -1010,13 +1462,13 @@
         {
           "id": "ed1d6e80ac1d",
           "case_no": "0012",
-          "name": "关节2 读取仰极限角度",
+          "name": "关节2 读取右转限角度",
           "type": "measurement",
           "timeout_ms": 15000,
           "retry": 0,
           "fail_policy": "continue",
           "skip": false,
-          "description": "“仰极限”最大角读取",
+          "description": "“右极限”最大角读取",
           "config": {
             "display": "",
             "script": "scripts/Tongchun_waist/tongchuan_test.py",
@@ -1025,7 +1477,7 @@
               {
                 "name": "node",
                 "type": "str",
-                "value": "2",
+                "value": "1",
                 "source": "value"
               }
             ],
@@ -1034,8 +1486,60 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "79f946448031",
+          "case_no": "0011",
+          "name": "关节1 恢复0位",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "将电机转动到  0位",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将电机转动到  拌到0位\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "460d913c6342",
+          "case_no": "",
+          "name": "恢复抱闸并关闭扭矩",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定0位完成：关闭扭矩/摩擦补偿并恢复抱闸",
+          "config": {
+            "display": "",
+            "script": "scripts/Tongchun_waist/tongchuan_test.py",
+            "function": "test_disable_torque",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
               }
             ]
           }

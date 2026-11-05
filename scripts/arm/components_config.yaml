@@ -1,0 +1,33 @@
+# 部件安装配置
+# 现场实际未安装的部件置 false，伺服层会屏蔽该部件的
+# 使能 / 模式切换 / 就绪等待 / 目标播种 / 故障检测与清错 / 控制写 PDO / 状态读取，
+# 从而在部件不完整时也能正常启动，不会卡在缺装从站的使能超时或被误判故障。
+#
+# true  = 已安装，正常参与控制
+# false = 未安装，伺服层屏蔽该部件所有相关操作
+#
+# 注意：六个键必须全部显式写出，缺任一个伺服层将拒绝启动并打印明确的缺键提示。
+components_installed:
+  left_arm: true
+  right_arm: true
+  waist: true
+  # 头部（独立部件 head，意忧/eyou 双轴：俯仰/偏航，仅位置控制）。必须显式写出：
+  #   true  → 参与控制（jiyi1 装配 has_head=true 时生效；须再填 motor_params 的 head 段、
+  #           robot_axes 的 head_reverse、motor_zero 的 head_zero_enc，缺任一均拒启）。
+  #   false → 伺服层屏蔽头部所有操作（shangfu 无头部应写 false）。
+  head: true
+  # 升降柱（独立部件 lifter，与腰 waist 完全解耦）。必须显式写出：
+  #   true  → 参与控制（shangfu 装配 has_lift=true 时生效）。
+  #   false → 伺服层屏蔽升降柱所有操作（jiyi1 无升降柱应写 false）。
+  lifter: false
+  # 手爪装机标志。必须显式写出：
+  #   true  → 已装手爪，须再写下方 gripper.type（dh | lingqiao）据此走不同分支。
+  #   false → 未装手爪，伺服层屏蔽手爪线程，下方 gripper 段可省略。
+  gripper: false
+
+# 手爪型号（单键全局开关；左右手同时生效、同型，不存在一个 dh 一个 lingqiao）
+#   dh       = 大寰 PGIA 平行电爪（商服现用）
+#   lingqiao = 灵巧智能三指手爪（保留态，防误用）
+# 仅当 components_installed.gripper=true 时必填；为 false 时本段可省略。
+gripper:
+  type: dh

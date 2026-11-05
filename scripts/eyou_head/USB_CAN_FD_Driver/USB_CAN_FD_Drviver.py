@@ -272,3 +272,16 @@ class USB_CAN_FD_Drviver:
         self.dev_ch2 = None
         self._chan = None
         self.m_dev = None
+
+if __name__ == "__main__":
+    drv = USB_CAN_FD_Drviver()
+    drv.open(bitrate=1000000, device_index=0, channel=0)
+    msg = CanMessage(arbitration_id=0x123, is_extended_id=False, data=b"\x01\x02\x03\x04")
+    drv.send(msg)
+    print("Sent:", msg.arbitration_id, msg.data)
+    received_msg = drv.recv(timeout=1.0)
+    if received_msg:
+        print("Received:", received_msg.arbitration_id, received_msg.data)
+    else:
+        print("No message received.")
+    drv.close()

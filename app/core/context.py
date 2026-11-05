@@ -26,6 +26,34 @@ class RuntimeContext:
         self.auth_token = ""  # 登录接口获取的 Token（启动时请求登录后写入，用于上报鉴权）
         self.station_id = ""
         self.station_name = ""
+        self._cleanup_callbacks = []
+
+    def register_cleanup(self, callback):
+        if not callable(callback):
+            return False
+        with self._lock:
+            if callback not in self._cleanup_callbacks:
+                self._cleanup_callbacks.append(callback)
+        return True
+
+    def unregister_cleanup(self, callback):
+        with self._lock:
+            if callback in self._cleanup_callbacks:
+                self._cleanup_callbacks.remove(callback)
+                return True
+        return False
+
+    def run_cleanup(self):
+        with self._lock:
+            callbacks = list(self._cleanup_callbacks)
+            self._cleanup_callbacks = []
+        errors = []
+        for callback in reversed(callbacks):
+            try:
+                callback()
+            except Exception as exc:
+                errors.append("{}: {}".format(callback, exc))
+        return errors
 
     def set_variables(self, variables):
         self._variables = variables
@@ -351,6 +379,12 @@ class RuntimeContext:
         def get_station_name():
             return ctx.get_station_name()
 
+        def register_cleanup(callback):
+            return ctx.register_cleanup(callback)
+
+        def unregister_cleanup(callback):
+            return ctx.unregister_cleanup(callback)
+
         return {
             "set_sn_to_Panel": set_sn_to_Panel,
             "get_sn": get_sn,
@@ -385,4 +419,6 @@ class RuntimeContext:
             "get_upload_key": get_upload_key,
             "get_station_id": get_station_id,
             "get_station_name": get_station_name,
+            "register_cleanup": register_cleanup,
+            "unregister_cleanup": unregister_cleanup,
         }

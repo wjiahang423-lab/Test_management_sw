@@ -66,6 +66,31 @@ class SettingsPage(QWidget):
 
         layout.addWidget(grp)
 
+        pop_grp = QGroupBox("Pop 弹窗设置")
+        pop_form = QFormLayout(pop_grp)
+
+        self.spin_pop_width = QSpinBox()
+        self.spin_pop_width.setRange(320, 1920)
+        self.spin_pop_width.setSuffix(" px")
+        pop_form.addRow("弹窗宽度：", self.spin_pop_width)
+
+        self.spin_pop_height = QSpinBox()
+        self.spin_pop_height.setRange(200, 1200)
+        self.spin_pop_height.setSuffix(" px")
+        pop_form.addRow("弹窗高度：", self.spin_pop_height)
+
+        self.spin_pop_font = QSpinBox()
+        self.spin_pop_font.setRange(12, 96)
+        self.spin_pop_font.setSuffix(" px")
+        pop_form.addRow("弹窗字体大小：", self.spin_pop_font)
+
+        self.edit_pop_bg = QLineEdit()
+        self.edit_pop_bg.setPlaceholderText("如 #b8c0c4")
+        self.edit_pop_bg.setToolTip("Pop 弹窗背景色（十六进制颜色），比执行页面暗一点更醒目")
+        pop_form.addRow("弹窗背景色：", self.edit_pop_bg)
+
+        layout.addWidget(pop_grp)
+
         btn_row = QHBoxLayout()
         self.btn_save = QPushButton("保存设置")
         self.btn_apply = QPushButton("应用")
@@ -86,6 +111,10 @@ class SettingsPage(QWidget):
         self.spin_retention_days.setValue(self.settings.report_retention_days)
         self.spin_pending_days.setValue(self.settings.pending_retention_days)
         self.check_robot_status.setChecked(self.settings.show_robot_status)
+        self.spin_pop_width.setValue(getattr(self.settings, "pop_width", 840))
+        self.spin_pop_height.setValue(getattr(self.settings, "pop_height", 440))
+        self.spin_pop_font.setValue(getattr(self.settings, "pop_font_size", 30))
+        self.edit_pop_bg.setText(getattr(self.settings, "pop_bg_color", "#b8c0c4"))
 
         self.btn_apply.clicked.connect(self.apply_now)
         self.btn_save.clicked.connect(self.save_now)
@@ -104,6 +133,10 @@ class SettingsPage(QWidget):
                 report_retention_days=self.spin_retention_days.value(),
                 pending_retention_days=self.spin_pending_days.value(),
                 show_robot_status=self.check_robot_status.isChecked(),
+                pop_width=self.spin_pop_width.value(),
+                pop_height=self.spin_pop_height.value(),
+                pop_font_size=self.spin_pop_font.value(),
+                pop_bg_color=self.edit_pop_bg.text().strip() or "#b8c0c4",
             )
             if self.apply_callback:
                 self.apply_callback()

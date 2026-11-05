@@ -1,0 +1,77 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 运控程序（mc/install）启动接口表
+#
+# 本文件是运控栈启动接口的单独真相源，由 arm_driver.py 通过
+# arm_interface.yaml 的 `motion_interface` 字段加载。
+#
+# 切换运控安装目录只改这里：
+#   ~/mc/install  -> setup/controller_dir 指向 ~/mc/install/...
+#   ~/install     -> setup/controller_dir 指向 ~/install/...
+#
+# 校验：python3 scripts/arm/arm_driver.py --check-config
+# ═══════════════════════════════════════════════════════════════════════════
+
+version: 1
+updated: "2026-11-05"
+note: "现场 192.168.88.20 实测：~/mc/install 需等关节状态真正发布后再启动 robot_app"
+
+motion:
+  # ── 运行环境 ───────────────────────────────────────────────────────────
+  ros_setup: "/opt/ros/humble/setup.bash"
+  setup: "~/mc/install/setup.bash"
+  controller_dir: "~/mc/install/servo2plan/lib/servo2plan"
+
+  # ── EtherCAT 主站 / 共享内存 ───────────────────────────────────────────
+  shared_mem: "/dev/shm/pdo_shared_mem"
+  shared_mem_timeout_s: 30.0
+  # 启动主站/伺服前，等待手臂+腰部驱动进入 OP（FCE1100 会一直是 PREOP）
+  slaves_op_timeout_s: 60.0
+  slaves_op_min: 16
+
+  # ── 三层节点命令 ───────────────────────────────────────────────────────
+  servo_command: "ros2 run servo2plan servo_motor_jiyi1_dualArm_Waist_node"
+  controller_command: "python3 hw_controller_manager.py"
+  app_env:
+    HW_TYPE: "jiyi1_robot"
+  # stdbuf 让 robot_app 的 stdout 行缓冲，避免重定向到日志文件时
+  # “Components in robot are ready” 迟迟不落盘导致误判超时。
+  app_command: "stdbuf -oL -eL ros2 run mc_task_manager robot_app"
+
+  # ── 就绪判定 ───────────────────────────────────────────────────────────
+  ready_keyword: "Components in robot are ready"
+  action_name: "/zioneer/mc/action"
+  # 伺服层 attach 共享内存
+  servo_ready_keyword: "Shared memory attached"
+  servo_ready_timeout_s: 90.0
+
+  # attach 之后，伺服层还要完成模式切换/使能，才真正发布 /mc/*/joint_states。
+  # ~/mc/install 实测 attach 后约 20~30s 才开始发布；robot_app 的组件等待只有 5s，
+  # 若紧随 attach 启动 robot_app，会报 Not found components 并退出。
+  # 因此启动 controller/robot_app 前，先等下面这些话题真正有数据。
+  joint_state_wait: true
+  joint_state_topics:
+    - "/mc/head/joint_states"
+    - "/mc/waist/joint_states"
+    - "/mc/left_arm/joint_states"
+    - "/mc/right_arm/joint_states"
+  joint_state_timeout_s: 90.0
+  joint_state_poll_s: 2.0
+  joint_state_probe_timeout_s: 6.0
+
+  # ── 启动/停止超时 ──────────────────────────────────────────────────────
+  start_timeout_s: 180.0
+  servo_settle_s: 5.0
+  controller_settle_s: 3.0
+  stop_timeout_s: 15.0
+
+  # ── 其它运行参数 ───────────────────────────────────────────────────────
+  log_dir: "/tmp"
+  cit_items: "cit_items.xml"
+  # 伺服层启动前检查；缺失/损坏时用本目录下的模板自动修复（需要 sudo）。
+  servo_config: "/etc/servo/config/components_config.yaml"
+  servo_config_template: "components_config.yaml"
+  cancel_goal_service: "/zioneer/mc/action/_action/cancel_goal"
+  process_patterns:
+    robot_app: "[r]obot_app"
+    controller: "[h]w_controller_manager.py"
+    servo: "[s]ervo_motor_jiyi1_dualArm_Waist_node"

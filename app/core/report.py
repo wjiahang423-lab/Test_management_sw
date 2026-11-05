@@ -445,6 +445,11 @@ def _build_record(r, det_time=""):
         "deviceId": 0,
     }
 
+    # 序列号/块号：为空时不写入上报 JSON
+    block_number = str(r.get("block_number", "") or "").strip()
+    if block_number:
+        rec["block_number"] = block_number
+
     # Loop：展开子项到 curveData（真实对象，points 为数组）
     sessions = r.get("sessions")
     if case_type == "loop" and sessions:

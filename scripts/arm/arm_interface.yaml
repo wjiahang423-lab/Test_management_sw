@@ -1,0 +1,248 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# 机械臂分装工位 · 接口数据表（唯一真相源）
+#
+# 用途：把「设备地址、关节/从站映射、对象字典、比例系数、工具命令、阈值」
+#       从代码里抽出来集中存放。以后接口有变化，只改本文件，不动 Python。
+#
+# 谁在用：scripts/arm/arm_driver.py 启动时读取本文件并覆盖默认值。
+# 校验：  python3 scripts/arm/arm_driver.py --check-config
+#
+# 注意：
+#   1. 十六进制对象索引直接写 0x6041，YAML 解析为整数，无需引号。
+#   2. 修改后不需要重启 EOL 软件：脚本按 mtime 重新加载。
+#   3. 本文件缺失时驱动会退回代码内置的默认值，但会打印告警。
+# ═══════════════════════════════════════════════════════════════════════════
+
+version: 1
+updated: "2026-10-30"
+note: "来源：192.168.88.20 实测（2026-10-29/30）+ mc_task_manager jiyi1 配置"
+
+# ────────────────────────────── 设备连接 ──────────────────────────────
+device:
+  host: 192.168.88.20
+  port: 22
+  user: zioneer
+  password: "123"
+  sudo_password: "123"
+  # 运控环境包装器（与 CIT 测试项同一套环境：ROS_LOCALHOST_ONLY=1 / DOMAIN=0）
+  mc_run: "~/script/mc_run.sh"
+  connect_timeout: 6.0        # SSH 建链超时（秒）
+  cmd_timeout: 30.0           # 单条命令默认超时（秒），调用方一般会显式给更大的值
+
+# ────────────────────────────── ROS 接口 ──────────────────────────────
+ros:
+  action: /zioneer/mc/action
+  action_type: mc_task_msgs/action/ArmTask
+
+  # arm_mask 位定义（mc_task_msgs/action/ArmTask.TrajectoryPoint）
+  arm_mask:
+    head: 1
+    waist: 2
+    right: 4
+    left: 8
+    left_hand: 32
+    right_hand: 16
+    lifter: 64
+
+  # 任务客户端命令行（%s = 任务名）
+  action_client: "ros2 run mc_task_manager ros2_node_action_client %s"
+
+  # 话题模板（{arm} 会被替换成 left/right）
+  topics:
+    # 实际话题名是 /mc/left_arm/...、/mc/right_arm/...，不是 /mc/left/...
+    joint_states: "/mc/{arm}_arm/joint_states"
+    collision_state: "/mc/{arm}_arm/collision_state"
+    robot_status: "/mc/robot_status"
+    servo_fault: "/mc/servo_fault"
+    power_board: "/svc_power_manager/status"
+    run_mode_cmd: "/mc/run_mode_cmd"
+
+  power_board_type: bt_task_interfaces/msg/PowerBoardStatus
+  run_mode_cmd_type: mc_task_msgs/msg/RunModeCmd
+
+  # 示教按键（PowerBoardStatus.adkey_status 的取值，按边沿事件处理）
+  teach_adkey:
+    left:  {press: 3, release: 4}
+    right: {press: 5, release: 6}
+
+  # run_mode 取值（/mc/robot_status）
+  run_mode:
+    idle: 0
+    auto: 1
+    manual: 2
+    teach: 3
+
+  # 健康检查期望值（自检用；不同机型请按实际改）
+  expect:
+    slaves: 15          # 1 个 HUB + 14 个伺服
+    nodes: 16           # 运控栈在线节点数下限
+
+# ────────────────────────────── 关节 / 从站 ──────────────────────────────
+joints:
+  per_arm: 7
+  total: 14
+
+  # 关节编号 -> 从站位置：slave = joint + (slave_start - start)
+  # 实测：p1..p7 = 左臂 J1..J7，p8..p14 = 右臂 J1..J7（位置 0 是 HUB）
+  arms:
+    left:  {start: 1, slave_start: 1}
+    right: {start: 8, slave_start: 8}
+
+  names:
+    1: 左臂J1
+    2: 左臂J2
+    3: 左臂J3
+    4: 左臂J4
+    5: 左臂J5
+    6: 左臂J6
+    7: 左臂J7
+    8: 右臂J1
+    9: 右臂J2
+    10: 右臂J3
+    11: 右臂J4
+    12: 右臂J5
+    13: 右臂J6
+    14: 右臂J7
+
+  # 关节限位（rad）。来源：mc_task_manager/config/jiyi1/joint_limit_check.xml
+  # 这些值距硬限位约 10 mrad（J4 按 XML 用 0.09/-2.345，右臂镜像）。
+  # ★ J2 下限 0.02、J4 左右镜像、J6/J7 行程小，改前请确认机械安全
+  limits:
+    - {joint: 1,  low: -3.04, high: 3.04}
+    - {joint: 2,  low: 0.02,  high: 2.95}
+    - {joint: 3,  low: -2.95, high: 2.95}
+    - {joint: 4,  low: -2.345, high: 0.09}
+    - {joint: 5,  low: -3.02, high: 3.02}
+    - {joint: 6,  low: -0.68, high: 0.68}
+    - {joint: 7,  low: -1.56, high: 1.56}
+    - {joint: 8,  low: -3.04, high: 3.04}
+    - {joint: 9,  low: 0.02,  high: 2.95}
+    - {joint: 10, low: -2.95, high: 2.95}
+    - {joint: 11, low: -0.09, high: 2.345}
+    - {joint: 12, low: -3.02, high: 3.02}
+    - {joint: 13, low: -0.68, high: 0.68}
+    - {joint: 14, low: -1.56, high: 1.56}
+
+# ────────────────────────────── 对象字典（SDO）──────────────────────────────
+# type   ：ethercat upload 的 -t 类型
+# index  ：对象索引
+# sub    ：子索引（默认 0）
+# scale  ：原始值 × scale = 工程值
+# unit   ：工程值单位，仅用于显示
+sdo:
+  status_word:      {index: 0x6041, type: uint16}
+  error_code:       {index: 0x603F, type: uint16}
+  mode_display:     {index: 0x6061, type: int8}
+  position_raw:     {index: 0x6064, type: int32}
+  velocity_raw:     {index: 0x606C, type: int32}
+  torque_actual:    {index: 0x6077, type: int16, scale: 0.1,      unit: "%rated"}
+  torque_sensor_0:  {index: 0x2401, type: int16,                  unit: "raw"}
+  torque_sensor_1:  {index: 0x2402, type: int16,                  unit: "raw"}
+  temperature:      {index: 0x2403, type: uint16, scale: 0.01,    unit: "C"}
+  bus_voltage:      {index: 0x2404, type: uint16, scale: 0.001,   unit: "V"}
+  key_version:      {index: 0x3000, type: uint32}
+  # CiA301 字符串身份对象（ethercat upload -t string）
+  device_name:      {index: 0x1008, type: string}
+  hw_version:       {index: 0x1009, type: string}
+  sw_version:       {index: 0x100A, type: string}
+
+  # CiA301 身份对象：0x1018 子索引固定
+  # 注意：0x1018:3 是修订号(revision)；报告里的 SW/HW 字符串走 0x100A/0x1009。
+  identity:
+    index: 0x1018
+    type: uint32
+    subs: {vendor: 1, part: 2, sw: 3, sn: 4}
+
+  # 本伺服未实现、不要调用（留档说明）
+  unsupported:
+    - {index: 0x6078, name: "电流实际值", reason: "SDO 返回 0x06020000 对象不存在"}
+    - {index: 0x6079, name: "母线电压",   reason: "同上，改用 0x2404"}
+
+# ────────────────────────────── 工具命令 ──────────────────────────────
+tools:
+  # 零位写入（{slave} 会被替换为从站位置 p1..p14）
+  # 与 cia402_tools 帮助一致：-z 执行 homing/把当前位置写为零位。
+  zero_write: "/opt/zioneer_etherkit/bin/cia402_tools -s {slave} -z"
+  ethercat: "ethercat"
+
+# ─────────────────────────── EtherCAT 主站启停 ───────────────────────────
+# 供 scripts/arm/etherkit_master.py 使用：计划开始时后台启动，计划结束时
+# 由引擎清理回调发送 Ctrl+C 关闭。
+master:
+  host: 192.168.88.20
+  port: 22
+  user: zioneer
+  password: "123"
+  connect_timeout: 6.0
+  sudo_password: "123"
+  etherkit_bin: "/opt/zioneer_etherkit/bin/zioneer_etherkit"
+  precheck_config: "/opt/zioneer_etherkit/etc/etherkit/QUALITY_INSPECTION.xml"
+  # 与「机器人手臂调试」项目的 precheck 指令一致
+  command: "sudo ${etherkit_bin} -n ${precheck_config}"
+  password_keywords: ["password", "[sudo]"]
+  error_keywords: ["command not found", "no such file", "permission denied",
+                   "incorrect password", "sorry, try again", "sudo:"]
+  start_timeout_s: 20.0
+  settle_s: 3.0
+  check_command: "pgrep -af '[z]ioneer_etherkit'"
+
+# ─────────────────────────── 运控程序启停接口 ───────────────────────────
+# 运控栈（安装目录、启动命令、就绪关键字、等待关节状态等）单独放在
+# motion_interface.yaml，便于在 ~/install 与 ~/mc/install 之间切换。
+# arm_driver.py 会加载该文件；本文件里不再重复运控参数。
+motion_interface: "motion_interface.yaml"
+
+# ─────────────────────────── 人工点动 / 标零面板 ───────────────────────────
+# 供 scripts/arm/jog_panel.py 使用（15050 零位对齐人工点动 + 标零）。
+# 指令模板与「机器人手臂调试」工程 config/commands.yaml 保持一致。
+jog:
+  host: 192.168.88.20
+  port: 22
+  user: zioneer
+  password: "123"
+  connect_timeout: 6.0
+  sudo_password: "123"
+  enter_dir: "/opt/zioneer_etherkit"
+  cia402_tools: "/opt/zioneer_etherkit/bin/cia402_tools"
+  # 点动用 CSP 增量工具：-v 是每 interval(默认 2ms) 的位置增量(pulses)，
+  # 支持负数反向；按住运动、Ctrl+C 停止。
+  # 注意：cia402_tools 没有 -v 选项（只有 -m/-e/-d/-z/-i 等），不要混用。
+  cia402_csp_tools: "/opt/zioneer_etherkit/bin/cia402_csp_tools"
+  enable_mode: 8
+  enable_timeout_s: 120
+  joints: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+  # 两套索引不能混用：
+  # 1) enable_slaves：传给 `cia402_tools -s` 的逻辑电机号，从 P1 开始 1..14；
+  # 2) enable_check_slaves：`ethercat upload -p` 的物理从站位置，链首有 2 个
+  #    FCE1100(0:0/0:1)，所以手臂 ROKAE 实际在 2..15。
+  enable_slaves: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+  enable_check_slaves: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  speed_options: [100, 200, 500]
+  default_speed: 200
+  zero_settle_s: 3.0
+  commands:
+    enable: "cd {enter_dir} && echo '{sudo_password}' | sudo -S {cia402_tools} -s {joint} -m {enable_mode}"
+    disable: "cd {enter_dir} && echo '{sudo_password}' | sudo -S {cia402_tools} -s {joint} -d"
+    disable_all: "cd {enter_dir} && echo '{sudo_password}' | sudo -S {cia402_tools} -s -1 -d"
+    jog: "cd {enter_dir} && echo '{sudo_password}' | sudo -S {cia402_csp_tools} -s {joint} -v {speed}"
+    zero: "cd {enter_dir} && echo '{sudo_password}' | sudo -S {cia402_tools} -s {joint} -z"
+
+# ────────────────────────────── 判定阈值（建议值）──────────────────────────────
+# 计划里已经写死阈值；这里放一份“建议值”，方便统一调整后批量替换计划
+thresholds:
+  temperature_max_c: 75          # 关节温度上限
+  bus_voltage_min_v: 44.0        # 母线电压下限（正常 ~49 V）
+  bus_voltage_max_v: 52.0
+  torque_sensor_min: 2200        # 力传感器原始值正常范围
+  torque_sensor_max: 2800
+  zero_align_tol_rad: 0.02       # 零位对齐容差
+  zero_write_tol_counts: 200     # 写零后残余 counts
+  home_tol_rad: 0.03             # 归零容差
+  move_delta_tol_rad: 0.05       # 位移 1rad 的容差
+  limit_tol_rad: 0.06            # 到限位的容差
+  speed_min_rad_s: 0.10          # 运动峰值速度下限
+  repeatability_max_rad: 0.02    # 往返到位峰峰值上限
+  nodes_min: 11                  # 在线节点数下限
+  slaves_expect: 15              # 从站数期望
+  teach_run_mode: 3              # 示教生效时的 run_mode
+  collision_ok: 0                # 无碰撞时的 collision_state

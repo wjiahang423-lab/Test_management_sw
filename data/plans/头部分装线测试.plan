@@ -46,8 +46,42 @@
     {
       "id": "c98cd2883774",
       "name": "头部关节通信",
+      "block_number": "10001",
       "skip": false,
       "cases": [
+        {
+          "id": "779bf86a3054",
+          "case_no": "SN",
+          "name": "读取SN",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 1,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SN后，设置到全局系统",
+          "config": {
+            "display": "",
+            "script": "scripts/scan_sn.py",
+            "function": "scan_sn",
+            "params": [
+              {
+                "name": "params",
+                "type": "dict",
+                "value": "",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
         {
           "id": "cf9e2658d80d",
           "case_no": "0000",
@@ -138,39 +172,6 @@
           }
         },
         {
-          "id": "779bf86a3054",
-          "case_no": "SN",
-          "name": "读取SN",
-          "type": "measurement",
-          "timeout_ms": 5000,
-          "retry": 1,
-          "fail_policy": "pause",
-          "skip": false,
-          "description": "读取SN后，设置到全局系统",
-          "config": {
-            "display": "",
-            "script": "scripts/eyou_head/eyou_test.py",
-            "function": "test_read_sn_",
-            "params": [
-              {
-                "name": "node",
-                "type": "str",
-                "value": "1",
-                "source": "value"
-              }
-            ],
-            "returns": [
-              {
-                "item": "return",
-                "type": "str",
-                "bind_var": "",
-                "judge": "不等于",
-                "threshold": "None"
-              }
-            ]
-          }
-        },
-        {
           "id": "6904d1466757",
           "case_no": "Delay",
           "name": "延时",
@@ -188,9 +189,108 @@
       ]
     },
     {
+      "id": "ae3ad12cc3dc",
+      "name": "节点1 写入PID",
+      "block_number": "00001",
+      "skip": false,
+      "cases": [
+        {
+          "id": "9a5cf52714c0",
+          "case_no": "",
+          "name": "节点1 写入PID数据1",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_write_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2304",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "str",
+                "value": "340",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ccea50b409c2",
+          "case_no": "",
+          "name": "节点1 写入PID数据2",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_write_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x222a",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "str",
+                "value": "4000",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "4eaad5b57523",
       "name": "关节1测试",
-      "skip": false,
+      "block_number": "10002",
+      "skip": true,
       "cases": [
         {
           "id": "3b76d886f0d7",
@@ -216,7 +316,7 @@
               {
                 "name": "address",
                 "type": "str",
-                "value": "0x2002",
+                "value": "0x1008",
                 "source": "value"
               }
             ],
@@ -225,8 +325,8 @@
                 "item": "return",
                 "type": "str",
                 "bind_var": "",
-                "judge": "",
-                "threshold": ""
+                "judge": "等于",
+                "threshold": "RP50L"
               }
             ]
           }
@@ -294,7 +394,7 @@
               {
                 "name": "address",
                 "type": "str",
-                "value": "0x2084",
+                "value": "0x100a",
                 "source": "value"
               }
             ],
@@ -370,8 +470,8 @@
           "type": "measurement",
           "timeout_ms": 80000,
           "retry": 0,
-          "fail_policy": "pause",
-          "skip": false,
+          "fail_policy": "continue",
+          "skip": true,
           "description": "设置电机1  为扭矩模式，扭力0",
           "config": {
             "display": "",
@@ -424,7 +524,7 @@
           "type": "measurement",
           "timeout_ms": -1,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
           "description": "弹窗显示0位图片",
           "config": {
@@ -432,6 +532,12 @@
             "script": "scripts/set_picture_show.py",
             "function": "test_set_picture_show",
             "params": [
+              {
+                "name": "window_width",
+                "type": "int",
+                "value": "950",
+                "source": "value"
+              },
               {
                 "name": "window_height",
                 "type": "int",
@@ -459,11 +565,11 @@
               {
                 "name": "text_content",
                 "type": "str",
-                "value": "请参考图片内容，来调整电机！",
+                "value": "请参考图片来调整位置",
                 "source": "value"
               },
               {
-                "name": "image_path",
+                "name": "image_name",
                 "type": "str",
                 "value": "eyoushow.jpg",
                 "source": "value"
@@ -472,10 +578,10 @@
             "returns": [
               {
                 "item": "return",
-                "type": "bool",
+                "type": "dict",
                 "bind_var": "",
-                "judge": "等于",
-                "threshold": "True"
+                "judge": "",
+                "threshold": ""
               }
             ]
           }
@@ -520,12 +626,12 @@
           "type": "pop",
           "timeout_ms": -1,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
           "description": "将头部转动到  “俯极限”（低头到最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n\n\n操作完成手动点“确认”按钮 ！\n\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -559,8 +665,8 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
               }
             ]
           }
@@ -572,12 +678,12 @@
           "type": "pop",
           "timeout_ms": -1,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
           "description": "将头部转动到  “仰极限”（抬头到最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -611,8 +717,53 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        },
+        {
+          "id": "6183d4814603",
+          "case_no": "",
+          "name": "节点1 写入PID数据1",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_write_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2304",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "str",
+                "value": "340",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
               }
             ]
           }
@@ -622,7 +773,8 @@
     {
       "id": "273846111737",
       "name": "关节2测试",
-      "skip": false,
+      "block_number": "10003",
+      "skip": true,
       "cases": [
         {
           "id": "b24901e3e241",
@@ -648,7 +800,7 @@
               {
                 "name": "address",
                 "type": "str",
-                "value": "0x2002",
+                "value": "0x1008",
                 "source": "value"
               }
             ],
@@ -726,7 +878,7 @@
               {
                 "name": "address",
                 "type": "str",
-                "value": "0x2084",
+                "value": "0x100a",
                 "source": "value"
               }
             ],
@@ -802,8 +954,8 @@
           "type": "measurement",
           "timeout_ms": 80000,
           "retry": 0,
-          "fail_policy": "pause",
-          "skip": false,
+          "fail_policy": "continue",
+          "skip": true,
           "description": "设置电机1  为扭矩模式，扭力0",
           "config": {
             "display": "",
@@ -856,7 +1008,7 @@
           "type": "measurement",
           "timeout_ms": -1,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
           "description": "弹窗显示0位图片",
           "config": {
@@ -864,6 +1016,12 @@
             "script": "scripts/set_picture_show.py",
             "function": "test_set_picture_show",
             "params": [
+              {
+                "name": "window_width",
+                "type": "int",
+                "value": "950",
+                "source": "value"
+              },
               {
                 "name": "window_height",
                 "type": "int",
@@ -891,11 +1049,11 @@
               {
                 "name": "text_content",
                 "type": "str",
-                "value": "请参考图片内容，来调整电机！",
+                "value": "请参考图片调整位值",
                 "source": "value"
               },
               {
-                "name": "image_path",
+                "name": "image_name",
                 "type": "str",
                 "value": "eyoushow.jpg",
                 "source": "value"
@@ -904,10 +1062,10 @@
             "returns": [
               {
                 "item": "return",
-                "type": "bool",
+                "type": "dict",
                 "bind_var": "",
-                "judge": "等于",
-                "threshold": "True"
+                "judge": "",
+                "threshold": ""
               }
             ]
           }
@@ -952,12 +1110,12 @@
           "type": "pop",
           "timeout_ms": -1,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
-          "description": "将头部转动到  “俯极限”（低头到最大角度）",
+          "description": "将头部转动到  “左限”（最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将头部转动到  “左转到极限”（左转最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -991,8 +1149,8 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
               }
             ]
           }
@@ -1004,12 +1162,12 @@
           "type": "pop",
           "timeout_ms": -1,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
-          "description": "将头部转动到  “仰极限”（抬头到最大角度）",
+          "description": "将头部转动到  “右极限”（抬头到最大角度）",
           "config": {
             "title": "手动操作，请注意！",
-            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "content": "请将头部转动到  “右极限”（右转到最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
             "btn_true": "确认",
             "btn_false": "取消",
             "result_var": "",
@@ -1043,8 +1201,8 @@
                 "item": "return",
                 "type": "float",
                 "bind_var": "",
-                "judge": "大于",
-                "threshold": "20"
+                "judge": "不等于",
+                "threshold": "0"
               }
             ]
           }
@@ -1054,6 +1212,7 @@
     {
       "id": "93fd14b161fc",
       "name": "关闭通信",
+      "block_number": "",
       "skip": false,
       "cases": [
         {
@@ -1063,12 +1222,1466 @@
           "type": "action",
           "timeout_ms": 5000,
           "retry": 0,
-          "fail_policy": "pause",
+          "fail_policy": "continue",
           "skip": false,
           "description": "",
           "config": {
             "script": "scripts/eyou_head/eyou_test.py",
             "function": "test_close",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "b27ead4f0c4a",
+      "name": "CAN ID —1对应的是俯仰 2 对应的是旋转",
+      "block_number": "19010",
+      "skip": false,
+      "cases": [
+        {
+          "id": "23712ef89f0e",
+          "case_no": "1901005",
+          "name": "1",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "bfbc92bf895e",
+      "name": "线中检测 非EOL",
+      "block_number": "19020",
+      "skip": false,
+      "cases": []
+    },
+    {
+      "id": "6a4a8f08ecd9",
+      "name": "相机装配检查",
+      "block_number": "19030",
+      "skip": false,
+      "cases": [
+        {
+          "id": "2c4665808864",
+          "case_no": "1903005",
+          "name": "相机装配检查",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "07fd328543e9",
+      "name": "头部ID码扫描",
+      "block_number": "19040",
+      "skip": false,
+      "cases": [
+        {
+          "id": "2b2b1424da12",
+          "case_no": "1904005",
+          "name": "头部ID码扫描",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "a223982f4786",
+      "name": "头部关节通信",
+      "block_number": "19050",
+      "skip": false,
+      "cases": [
+        {
+          "id": "3d4e4f1d031f",
+          "case_no": "1905005",
+          "name": "头部关节通信",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "0f2c41e4f47d",
+          "case_no": "1905010",
+          "name": "头部关节寻找",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "9fb9d2c7048b",
+      "name": "关节1PID写入",
+      "block_number": "19060",
+      "skip": false,
+      "cases": [
+        {
+          "id": "5ce7d082da35",
+          "case_no": "1906005",
+          "name": "DID 0x2304",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "d1852cc4269c",
+          "case_no": "1906010",
+          "name": "DID 0x222a",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "b0aabce5c9f2",
+          "case_no": "",
+          "name": "节点1 写入PID数据1",
+          "type": "measurement",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_write_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2304",
+                "source": "value"
+              },
+              {
+                "name": "value",
+                "type": "str",
+                "value": "340",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "160b19b6edb1",
+      "name": "关节2 PID写入",
+      "block_number": "19070",
+      "skip": false,
+      "cases": [
+        {
+          "id": "1a18b637ca76",
+          "case_no": "1907005",
+          "name": "DID 0x2304",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "1d5e6e10e5b5",
+          "case_no": "1907010",
+          "name": "DID 0x222a",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "a5f146fc6847",
+      "name": "关节1 PID数据读取",
+      "block_number": "19080",
+      "skip": false,
+      "cases": [
+        {
+          "id": "6d52da3db611",
+          "case_no": "1908005",
+          "name": "DID 0x2304",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "ab58254b3bd2",
+          "case_no": "1908010",
+          "name": "DID 0x222a",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "798e689be21d",
+      "name": "关节2 PID数据读取",
+      "block_number": "19090",
+      "skip": false,
+      "cases": [
+        {
+          "id": "9e33be0d4d0f",
+          "case_no": "1909005",
+          "name": "DID 0x2304",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "07e63c13e459",
+          "case_no": "1909010",
+          "name": "DID 0x222a",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "aab6714bea55",
+      "name": "关节1 基本信息记录",
+      "block_number": "19100",
+      "skip": false,
+      "cases": [
+        {
+          "id": "4c36fca481bc",
+          "case_no": "1910005",
+          "name": "关节1 读取PN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取PartNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x1008",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "RP50L"
+              }
+            ]
+          }
+        },
+        {
+          "id": "04a9f3510bac",
+          "case_no": "1910010",
+          "name": "关节1读取SN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SerialNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2082",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "706a475df47d",
+          "case_no": "1910015",
+          "name": "关节1读取SW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SoftwareNubmber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x100a",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "163a04d0ba5e",
+          "case_no": "1910020",
+          "name": "关节1 读取HW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取HWNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2083",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "8ae206ba793d",
+      "name": "关节1 标零",
+      "block_number": "19110",
+      "skip": false,
+      "cases": [
+        {
+          "id": "1e1cd7d4ea28",
+          "case_no": "1911010",
+          "name": "机械硬限位检查",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "cb44e6f6170a",
+          "case_no": "1911015",
+          "name": "零位刻度线对齐",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "dfd94cd8beda",
+          "case_no": "1911020",
+          "name": "上位机对模组编码器置零",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "69bba7a8d7e5",
+          "case_no": "1911005",
+          "name": "设置关节1扭矩模式",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": true,
+          "description": "设置电机1  为扭矩模式，扭力0",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_set_torque",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              },
+              {
+                "name": "torque",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "2efa225d5b50",
+          "case_no": "0007",
+          "name": "关节1 手动调节0位",
+          "type": "measurement",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "弹窗显示0位图片",
+          "config": {
+            "display": "",
+            "script": "scripts/set_picture_show.py",
+            "function": "test_set_picture_show",
+            "params": [
+              {
+                "name": "window_width",
+                "type": "int",
+                "value": "950",
+                "source": "value"
+              },
+              {
+                "name": "window_height",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "font_size",
+                "type": "int",
+                "value": "22",
+                "source": "value"
+              },
+              {
+                "name": "image_width",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "image_height",
+                "type": "int",
+                "value": "750",
+                "source": "value"
+              },
+              {
+                "name": "text_content",
+                "type": "str",
+                "value": "请参考图片来调整位置",
+                "source": "value"
+              },
+              {
+                "name": "image_name",
+                "type": "str",
+                "value": "eyoushow.jpg",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "4a8d0e91d865",
+          "case_no": "0008",
+          "name": "关节1 标定0位",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定0位",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_zero_position",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "a79072f68779",
+      "name": "关节1 俯极限测试",
+      "block_number": "19120",
+      "skip": false,
+      "cases": [
+        {
+          "id": "d4c8dbf7b904",
+          "case_no": "1912005",
+          "name": "手动转到俯极限",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "5823687b8fa4",
+          "case_no": "1912010",
+          "name": "关节模组反馈角度",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "739bb2730adb",
+          "case_no": "0009",
+          "name": "关节1 俯极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "将头部转动到  “俯极限”（低头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “俯极限”（低头到最大角度）\n\n\n操作完成手动点“确认”按钮 ！\n\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "40cae4c76fa1",
+          "case_no": "0010",
+          "name": "关节1 读取俯极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“俯极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "4320cb2f0237",
+      "name": "关节1 仰极限测试",
+      "block_number": "19130",
+      "skip": false,
+      "cases": [
+        {
+          "id": "b6d0f8892bad",
+          "case_no": "1913005",
+          "name": "手动转到仰极限",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "300f0a7b2e50",
+          "case_no": "1913010",
+          "name": "关节模组反馈角度",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "b804f9c7d7e7",
+          "case_no": "0011",
+          "name": "关节1 仰极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "将头部转动到  “仰极限”（抬头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “仰极限”（抬头到最大角度）\n\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "f3ddabb89f89",
+          "case_no": "0012",
+          "name": "关节1 读取仰极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“仰极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "1",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "972b88680f94",
+      "name": "关节2 基本信息记录",
+      "block_number": "19140",
+      "skip": false,
+      "cases": [
+        {
+          "id": "94f78c609947",
+          "case_no": "1914005",
+          "name": "关节2 读取PN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取PartNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x1008",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "314ad2613fcc",
+          "case_no": "1914010",
+          "name": "关节2读取SN",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SerialNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2082",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "fae23686c5a3",
+          "case_no": "1914015",
+          "name": "关节2读取SW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取SoftwareNubmber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x100a",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "5b31d0f5dd1a",
+          "case_no": "1914020",
+          "name": "关节2读取HW",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "读取HWNumber",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_info",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "address",
+                "type": "str",
+                "value": "0x2083",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "str",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "515a03c2e911",
+      "name": "关节2 标零",
+      "block_number": "19150",
+      "skip": false,
+      "cases": [
+        {
+          "id": "9bd5e100c424",
+          "case_no": "1915005",
+          "name": "设置扭矩模式",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "50ba1410cd67",
+          "case_no": "1915010",
+          "name": "机械硬限位检查",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "4a265acd1840",
+          "case_no": "1915015",
+          "name": "零位刻度线对齐",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "6cb64794a2b3",
+          "case_no": "1915020",
+          "name": "上位机对模组编码器置零",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "cc424fd7c0fa",
+          "case_no": "0006",
+          "name": "设置关节2扭矩模式",
+          "type": "measurement",
+          "timeout_ms": 80000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": true,
+          "description": "设置电机1  为扭矩模式，扭力0",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_set_torque",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              },
+              {
+                "name": "torque",
+                "type": "str",
+                "value": "0",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "bool",
+                "bind_var": "",
+                "judge": "等于",
+                "threshold": "True"
+              }
+            ]
+          }
+        },
+        {
+          "id": "db5d6ae3e54d",
+          "case_no": "0007",
+          "name": "关节2 手动调节0位",
+          "type": "measurement",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "弹窗显示0位图片",
+          "config": {
+            "display": "",
+            "script": "scripts/set_picture_show.py",
+            "function": "test_set_picture_show",
+            "params": [
+              {
+                "name": "window_width",
+                "type": "int",
+                "value": "950",
+                "source": "value"
+              },
+              {
+                "name": "window_height",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "font_size",
+                "type": "int",
+                "value": "22",
+                "source": "value"
+              },
+              {
+                "name": "image_width",
+                "type": "int",
+                "value": "900",
+                "source": "value"
+              },
+              {
+                "name": "image_height",
+                "type": "int",
+                "value": "750",
+                "source": "value"
+              },
+              {
+                "name": "text_content",
+                "type": "str",
+                "value": "请参考图片调整位值",
+                "source": "value"
+              },
+              {
+                "name": "image_name",
+                "type": "str",
+                "value": "eyoushow.jpg",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "dict",
+                "bind_var": "",
+                "judge": "",
+                "threshold": ""
+              }
+            ]
+          }
+        },
+        {
+          "id": "e46db1481194",
+          "case_no": "0008",
+          "name": "关节2 标定0位",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "标定0位",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_zero_position",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "小于",
+                "threshold": "1"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "b4e3115726b1",
+      "name": "关节2 左转极限测试",
+      "block_number": "19160",
+      "skip": false,
+      "cases": [
+        {
+          "id": "aa16485bd9b6",
+          "case_no": "1916005",
+          "name": "手动转到左极限",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "a92fa16fb174",
+          "case_no": "1916010",
+          "name": "关节模组反馈角度",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "d798ff8d0d93",
+          "case_no": "0009",
+          "name": "关节2 俯极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "将头部转动到  “左限”（最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “左转到极限”（左转最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "65bb7ea2ef85",
+          "case_no": "0010",
+          "name": "关节2 读取俯极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“俯极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "a7b8e4a4eb8d",
+      "name": "关节2 右转极限测试",
+      "block_number": "19170",
+      "skip": false,
+      "cases": [
+        {
+          "id": "ca3cdc2d3633",
+          "case_no": "1917005",
+          "name": "手动转到右极限",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "d721a725b755",
+          "case_no": "1917010",
+          "name": "关节模组反馈角度",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
+            "description": ""
+          }
+        },
+        {
+          "id": "05b903974f89",
+          "case_no": "0011",
+          "name": "关节2 仰极限测试",
+          "type": "pop",
+          "timeout_ms": -1,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "将头部转动到  “右极限”（抬头到最大角度）",
+          "config": {
+            "title": "手动操作，请注意！",
+            "content": "请将头部转动到  “右极限”（右转到最大角度）\n\n操作完成手动点“确认”按钮 ！\n若转不动手动点击“取消”按钮！",
+            "btn_true": "确认",
+            "btn_false": "取消",
+            "result_var": "",
+            "modal": true
+          }
+        },
+        {
+          "id": "0d2fb8b687ac",
+          "case_no": "0012",
+          "name": "关节2 读取仰极限角度",
+          "type": "measurement",
+          "timeout_ms": 15000,
+          "retry": 0,
+          "fail_policy": "continue",
+          "skip": false,
+          "description": "“仰极限”最大角读取",
+          "config": {
+            "display": "",
+            "script": "scripts/eyou_head/eyou_test.py",
+            "function": "test_read_angle",
+            "params": [
+              {
+                "name": "node",
+                "type": "str",
+                "value": "2",
+                "source": "value"
+              }
+            ],
+            "returns": [
+              {
+                "item": "return",
+                "type": "float",
+                "bind_var": "",
+                "judge": "不等于",
+                "threshold": "0"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "7fc5cafa34bb",
+      "name": "头部关节ID及正方向复核",
+      "block_number": "19180",
+      "skip": false,
+      "cases": [
+        {
+          "id": "7f3c499843e2",
+          "case_no": "1918005",
+          "name": "头部俯仰关节ID及正方向复核",
+          "type": "action",
+          "timeout_ms": 5000,
+          "retry": 0,
+          "fail_policy": "pause",
+          "skip": false,
+          "description": "",
+          "config": {
+            "script": "",
+            "function": "",
             "description": ""
           }
         }

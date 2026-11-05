@@ -1,0 +1,153 @@
+[
+  {
+    "name": "运动停止",
+    "command": "ros2 service call /zioneer/mc/action/_action/cancel_goal action_msgs/srv/CancelGoal \"{}\"; pkill -INT -f 'ros2_node_action_clien[t]' && echo '已同时通知客户端退出' || echo '无运行中客户端'",
+    "enabled": true
+  },
+  {
+    "name": "拖动示教_左臂按下",
+    "command": "ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus {adkey_status: 3}",
+    "enabled": true
+  },
+  {
+    "name": "拖动示教_左臂松开",
+    "command": "ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus {adkey_status: 4}",
+    "enabled": true
+  },
+  {
+    "name": "拖动示教_右臂按下",
+    "command": "ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus {adkey_status: 5}",
+    "enabled": true
+  },
+
+  {
+    "name": "拖动示教_右臂松开",
+    "command": "ros2 topic pub --rate 2 /svc_power_manager/status bt_task_interfaces/msg/PowerBoardStatus {adkey_status: 6}",
+    "enabled": true
+  },
+  {
+    "name": "component关节运动",
+    "command": "ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1task_id: ''task_name: ''yaml_args: ''trajectories:  arm_mask: 12        # MASK_RIGHT_ARM  rightarm_joints: [    -0.5435207918171348, 0.19009041986579245, 0.15507610995981216, 1.756669258231996, 0.9959281582083226, 0.00007286408742456796, -0.0027271302194629417,    0.27823463372918816, 0.22550092824714382, -0.09957332947113615, 1.0892363745834364, 1.8337570658822078, 0.00004026699568199808, -0.2821283084009385,  ]  rightarm_speed: 0.6  leftarm_joints: [    0.6976825054166682, 0.22919973942193309, -0.1476463698874873, -1.723313325368419, -1.0855440348900962, 0.0007684285009314634, -0.0001227184630308513,    0.611201701970136, 0.5074837481577313, -0.39771232266113293, -1.8960342890253838, -0.16584417572177315, 0.05874547206356738, -0.13814335890653576,    0, 0, 0, 0, 0, 0, 0  ]  leftarm_speed: 0.6\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1trajectories:  arm_mask: 12          rightarm_joints: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3  ]  rightarm_speed: 0.05  leftarm_joints: [-0.3, 0.3, -0.3, -0.3, -0.3, -0.3, 0.3  ]  leftarm_speed: 0.05\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1task_id: ''task_name: ''yaml_args: ''trajectories:  arm_mask: 8       # MASK_LEFT_ARM  leftarm_joints: [    -0.200324,1.357808,0.179845,-1.262274,-1.29697,0.000922,-0.001344  ]  leftarm_speed: 0.6\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1task_id: ''task_name: ''yaml_args: ''trajectories:  arm_mask: 2       # MASK_WAIST  waist_joints: [    -0.00, 0.0  ]  waist_speed: 0.5\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1task_id: ''task_name: ''yaml_args: ''trajectories:  arm_mask: 1       # MASK_HEAD  head_joints: [    -0.00, 0.0  ]  head_speed: 0.6\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1task_id: ''task_name: ''yaml_args: ''trajectories:  arm_mask: 0  lifter_mask: true  lifter_pos: 0.2   #质检机器人0.0~0.2  lifter_speed: 0.5\"",
+    "enabled": true
+  },
+  {
+    "name": "手臂笛卡尔空间运动",
+    "command": "# move_type: 运动模式\n#   1 = end_effector_pose_in_cartesian_space   (Torso坐标系下绝对位姿)\n#   2 = end_effector_delta_move_in_torso_frame (Torso坐标系下增量)\n#   3 = end_effector_delta_move_in_hand_frame  (末端坐标系下增量)\n#   5 = end_effector_flange_pose_in_base_link   (base_link坐标系下法兰绝对位姿)\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 4cartesian_move:  arm_mask: 12  move_type: 5  interp_space: 0  leftarm_vector: [    0.092223193, 0.388397732, -0.088002435,    2.796577784, -0.219514543, 1.679274240,    0.182269381, 0.507462921, 0.037233233,    2.413787727, -0.403650341, 1.734498879,    0.258517568, 0.532213829, 0.210862126,    2.030008308, -0.545797292, 1.707616385  ]  rightarm_vector: [    0.099193345, -0.382680859, -0.087106485,    -2.740986233, -0.163691117, -1.657027901,    0.193263220, -0.494450810, 0.040623189,    -2.325327304, -0.317800897, -1.645219933,    0.267516436, -0.508912666, 0.216193188,    -1.941427417, -0.473330430, -1.519666471  ]  #可选参考角  leftarm_ik_reference: [     0.15, 0.20, -0.08, -0.50, -0.05, 0.03, 0.03,    0.30, 0.40, -0.16, -1.00, -0.10, 0.06, 0.06,    0.45, 0.60, -0.24, -1.50, -0.15, 0.09, 0.09  ]  #可选参考角  rightarm_ik_reference: [    -0.15, 0.20, 0.08, 0.50, 0.05, 0.03, -0.03,    -0.30, 0.40, 0.16, 1.00, 0.10, 0.06, -0.06,    -0.45, 0.60, 0.24, 1.50, 0.15, 0.09, -0.09  ]  ik_reference_jump_threshold: 0.5  leftarm_speed: 0.5  rightarm_speed: 0.5\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 4cartesian_move:  arm_mask: 12  move_type: 5  interp_space: 0  leftarm_vector: [    0.092223193, 0.388397732, -0.088002435,    2.796577784, -0.219514543, 1.679274240,  ]  rightarm_vector: [    0.099193345, -0.382680859, -0.087106485,    -2.740986233, -0.163691117, -1.657027901,  ]  ik_reference_jump_threshold: 0.5  leftarm_speed: 0.5  rightarm_speed: 0.5\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 4cartesian_move:  arm_mask: 8  move_type: 5  interp_space: 0  # xyz rpy  leftarm_vector: [    0.092223193, 0.388397732, -0.088002435,    2.796577784, -0.219514543, 1.679274240,  ]  ik_reference_jump_threshold: 0.5  leftarm_speed: 0.5\"",
+    "enabled": true
+  },
+  {
+    "name": "笛卡尔空间相对运动",
+    "command": "ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 4cartesian_move: {arm_mask: 4, move_type: 2, rightarm_vector: [0.0,0.0,0.05,0.0,0.0,0.0], rightarm_speed: 1.0}\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 4cartesian_move: {arm_mask: 4, move_type: 3, rightarm_vector: [0.05,0.0,0.0,0.0,0.0,0.0], rightarm_speed: 0.5}\"",
+    "enabled": true
+  },
+  {
+    "name": "笛卡尔空间直线运动",
+    "command": "#  interp_space:\n#  0 = joint_space 关节差值\n#  1 = cartesian_space 笛卡尔空间直线运动  ##只支持单点运动\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 4, cartesian_move: {arm_mask: 4, move_type: 2, rightarm_vector: [0.0,0.0,0.1,0.0,0.0,0.0], rightarm_speed: 0.3, interp_space: 1}}\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 4, cartesian_move: {arm_mask: 12, move_type: 2, leftarm_vector: [0.0,0.0,0.2,0.0,0.0,0.0], rightarm_vector: [0.0,0.0,0.2,0.0,0.0,0.0], leftarm_speed: 0.3, rightarm_speed: 0.3, interp_space: 1}}\"",
+    "enabled": true
+  },
+  {
+    "name": "跑合-慢速调试版",
+    "command": "ros2 run mc_task_manager ros2_node_action_client jiyi1/run_in_full_stroke_slow",
+    "enabled": true
+  },
+  {
+    "name": "跑合-限位检测",
+    "command": "ros2 run mc_task_manager ros2_node_action_client jiyi1/joint_limit_check\n请至钉钉文档查看附件《joint_limit_check_full.mp4》。",
+    "enabled": true
+  },
+  {
+    "name": "jiyi1任务-问候",
+    "command": "ros2 run mc_task_manager ros2_node_action_client jiyi1/greetings",
+    "enabled": true
+  },
+  {
+    "name": "jiyi1任务-复位",
+    "command": "ros2 run mc_task_manager ros2_node_action_client move_dual_arm_waist_home",
+    "enabled": true
+  },
+  {
+    "name": "全局速度",
+    "command": "ros2 action send_goal /zioneer/mc/set_speed mc_task_msgs/action/SetSpeedRate \"{rate: 0.5}\"",
+    "enabled": true
+  },
+  {
+    "name": "状态查询-整机",
+    "command": "ros2 topic echo /mc/robot_status\nros2 topic echo /mc/robot_status --field task_state、ros2 topic echo /mc/robot_status --field run_mode\nros2 topic echo /zioneer/mc/current_poses\nros2 topic echo /zioneer/mc/current_torso_pose",
+    "enabled": true
+  },
+  {
+    "name": "检测线束动作",
+    "command": "ros2 run mc_task_manager ros2_node_action_client jiyi1/dual_arm_line1",
+    "enabled": true
+  },
+  {
+    "name": "电源板状态-总览",
+    "command": "ros2 topic echo /svc_power_manager/status",
+    "enabled": true
+  },
+  {
+    "name": "电源板电流查询",
+    "command": "ros2 topic echo /svc_power_manager/status --field l_arm_current\nros2 topic echo /svc_power_manager/status --field r_arm_current\nros2 topic echo /svc_power_manager/status --field waist_current\nros2 topic echo /svc_power_manager/status --field lift_current",
+    "enabled": true
+  },
+  {
+    "name": "电源板母线电压查询",
+    "command": "ros2 topic echo /svc_power_manager/status --field l_arm_voltage\nros2 topic echo /svc_power_manager/status --field r_arm_voltage\nros2 topic echo /svc_power_manager/status --field waist_voltage",
+    "enabled": true
+  },
+  {
+    "name": "模组母线电压查询(TBD)",
+    "command": "从 EtherCAT PDO 共享内存 (/dev/shm/pdo_shared_mem) 采集DCBusVoltage (0x2404) 数据",
+    "enabled": false
+  },
+  {
+    "name": "模组扭矩查询（电流估算）",
+    "command": "ros2 topic echo /mc/left_arm/joint_states --field effort\nros2 topic echo /mc/right_arm/joint_states --field effort\nros2 topic echo /mc/whole_joint_states_out --field effort",
+    "enabled": true
+  },
+  {
+    "name": "模组扭矩查询（力矩传感器）(TBD)",
+    "command": "从 EtherCAT PDO 共享内存 (/dev/shm/pdo_shared_mem) 采集analog_output1 (0x2401) 和 analog_output2 (0x2402) 数据",
+    "enabled": false
+  },
+  {
+    "name": "模组温度-板卡级(TBD)",
+    "command": "ros2 topic echo /svc_power_manager/status --field motion_temp\nros2 topic echo /svc_power_manager/status --field board_temp\nros2 topic echo /svc_power_manager/status --field perception_temp",
+    "enabled": false
+  },
+  {
+    "name": "驱动器温度（TBD）",
+    "command": "从 EtherCAT PDO 共享内存 (/dev/shm/pdo_shared_mem) 采集AMPTemperature (0x2403) 数据",
+    "enabled": false
+  },
+  {
+    "name": "模组状态-整条查询",
+    "command": "ros2 topic echo /mc/left_arm/joint_states --qos-reliability best_effort\nros2 topic echo /mc/right_arm/joint_states --qos-reliability best_effort\nros2 topic echo /mc/waist/joint_states --qos-reliability best_effort\nros2 topic echo /mc/head/joint_states --qos-reliability best_effort\nros2 topic echo /mc/lifter/joint_states --qos-reliability best_effort\nros2 topic echo /mc/whole_joint_states_out",
+    "enabled": true
+  },
+  {
+    "name": "模组位置查询",
+    "command": "ros2 topic echo /mc/left_arm/joint_states --field position --qos-reliability best_effort\nros2 topic echo /mc/right_arm/joint_states --field position --qos-reliability best_effort\nros2 topic echo /mc/waist/joint_states --field position --qos-reliability best_effort\nros2 topic echo /mc/head/joint_states --field position --qos-reliability best_effort\nros2 topic echo /mc/lifter/joint_states --field position --qos-reliability best_effort\nros2 topic echo /mc/whole_joint_states_out --field position",
+    "enabled": true
+  },
+  {
+    "name": "模组速度查询",
+    "command": "ros2 topic echo /mc/left_arm/joint_states --field velocity --qos-reliability best_effort\nros2 topic echo /mc/right_arm/joint_states --field velocity --qos-reliability best_effort\nros2 topic echo /mc/waist/joint_states --field velocity --qos-reliability best_effort\nros2 topic echo /mc/head/joint_states --field velocity --qos-reliability best_effort\nros2 topic echo /mc/whole_joint_states_out --field velocity",
+    "enabled": true
+  },
+  {
+    "name": "模组关节名对照",
+    "command": "ros2 topic echo /mc/left_arm/joint_states --field name --qos-reliability best_effort\nros2 topic echo /mc/right_arm/joint_states --field name --qos-reliability best_effort\nros2 topic echo /mc/whole_joint_states_out --field name",
+    "enabled": true
+  },
+  {
+    "name": "头部限位测试：yaw ±1.57、pitch [-0.695, 0.52]",
+    "command": "ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 1, trajectories: {arm_mask: 1, head_joints: [1.57, 0.0], head_speed: 0.5}}\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 1, trajectories: {arm_mask: 1, head_joints: [-1.57, 0.0], head_speed: 0.5}}\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 1, trajectories: {arm_mask: 1, head_joints: [0.0, 0.52], head_speed: 0.5}}\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 1, trajectories: {arm_mask: 1, head_joints: [0.0, -0.695], head_speed: 0.5}}\"\nros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"{mode: 1, trajectories: {arm_mask: 1, head_joints: [0.0, 0.0], head_speed: 0.5}}\"\nros2 topic echo /mc/head/joint_states --field position --qos-reliability best_effort",
+    "enabled": true
+  },
+  {
+    "name": "正方向小角度校验",
+    "command": "ros2 action send_goal /zioneer/mc/action mc_task_msgs/action/ArmTask \"mode: 1trajectories:  arm_mask: 12          rightarm_joints: [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3  ]  rightarm_speed: 0.05  leftarm_joints: [-0.3, 0.3, -0.3, -0.3, -0.3, -0.3, 0.3  ]  leftarm_speed: 0.05\"",
+    "enabled": true
+  }
+]
